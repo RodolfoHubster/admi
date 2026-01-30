@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fitoscents Admin</title>
+        
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+        
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+        <link rel="stylesheet" href="assets/css/main.css">
+    </head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">👑 Fitoscents</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <div class="navbar-nav gap-2">
+                    <a href="index.html" class="nav-link">Inicio</a>
+                    <a href="products.html" class="nav-link">📦 Inventario</a>
+                    <a href="ventas.html" class="nav-link active">💰 Ventas</a> <a href="clientes.html" class="nav-link">👥 Clientes</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+<div class="container mt-5 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>💰 Finanzas y Pagos</h2>
+
+        <a href="index.html" class="btn btn-outline-dark mb-3">🏠 Ir al Inicio</a>
+
+        <a href="products.html" class="btn btn-secondary">⬅ Volver al Inventario</a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3 shadow">
+                <div class="card-header">Mi Ganancia Acumulada</div>
+                <div class="card-body">
+                    <h2 class="card-title" id="total-mi-ganancia">$0.00</h2>
+                    <small>Dinero libre para mí</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3 shadow">
+                <div class="card-header">Deuda Actual con Socio</div>
+                <div class="card-body">
+                    <h2 class="card-title fw-bold" id="saldo-pendiente-socio">$0.00</h2>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <small id="detalle-pagos" class="text-dark opacity-75">Generado: $0 | Pagado: $0</small>
+                    </div>
+                    <button class="btn btn-dark text-info fw-bold w-100 mt-2" data-bs-toggle="modal" data-bs-target="#modalPagarSocio">
+                        💸 Registrar Pago
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="text-muted mb-3">📦 Registro de Ventas</h4>
+    <div class="card shadow mb-5">
+        <div class="card-body p-0">
+            <table class="table table-striped table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Producto</th>
+                        <th>Utilidad Total</th>
+                        <th>Reparto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="sales-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h4 class="text-muted mb-3">🤝 Historial de Pagos Realizados</h4>
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="bg-secondary text-white">
+                    <tr>
+                        <th>Fecha Pago</th>
+                        <th>Monto Entregado</th>
+                        <th>Nota / Concepto</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="pagos-table-body">
+                    </tbody>
+            </table>
+            <div id="no-pagos-msg" class="p-3 text-center text-muted" style="display:none">
+                Aún no has registrado pagos al socio.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPagarSocio" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">💸 Pagar al Socio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    Deuda Actual: <strong id="modal-deuda-actual">---</strong>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">¿Cuánto le vas a dar?</label>
+                    <input type="number" class="form-control form-control-lg" id="inputMontoPago" placeholder="Ej: 500">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nota (Opcional)</label>
+                    <input type="text" class="form-control" id="inputNotaPago" placeholder="Ej: Transferencia, Efectivo, Parte de la deuda...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarPago()">Confirmar Pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetalleVenta" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">📄 Expediente de Venta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <h4 id="det-producto" class="fw-bold">Nombre Producto</h4>
+                    <span id="det-sku" class="badge bg-secondary">SKU-000</span>
+                    <span id="det-fecha" class="badge bg-light text-dark border">Fecha</span>
+                </div>
+
+                <ul class="list-group mb-3">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>👤 Cliente / Destino:</span>
+                        <strong id="det-cliente">---</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>📉 Costo Adquisición:</span>
+                        <span id="det-costo" class="text-danger">---</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>💵 Precio Venta Final:</span>
+                        <span id="det-precio" class="text-success fw-bold">---</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between bg-light">
+                        <span>💰 Utilidad Neta:</span>
+                        <strong id="det-utilidad">---</strong>
+                    </li>
+                </ul>
+
+                <div class="card bg-light border-0">
+                    <div class="card-body p-2">
+                        <small class="text-muted d-block mb-1">Distribución de Ganancia:</small>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-primary">Yo: <b id="det-yo">---</b></span>
+                            <span class="text-info text-dark">Socio: <b id="det-socio">---</b></span>
+                        </div>
+                        <div id="det-info-pct" class="text-muted" style="font-size: 0.75rem; margin-top: 5px;">
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarVenta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">✏️ Editar Registro de Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-id-venta">
+                
+                <div class="mb-3">
+                    <label class="form-label">Producto</label>
+                    <input type="text" class="form-control" id="edit-producto" disabled readonly>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Precio Final ($)</label>
+                        <input type="number" class="form-control" id="edit-precio">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Utilidad ($)</label>
+                        <input type="number" class="form-control" id="edit-utilidad" disabled>
+                        <small class="text-muted">Se recalcula auto.</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Cliente / Nota</label>
+                    <input type="text" class="form-control" id="edit-cliente">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning fw-bold" onclick="guardarEdicionVenta()">💾 Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="assets/js/config.js"></script>    <script src="assets/js/utils.js"></script>     <script src="assets/js/inventory.js"></script> <script src="assets/js/sales.js"></script>     <script src="assets/js/cart.js"></script>      <script src="assets/js/backup.js"></script>    <script src="assets/js/main.js"></script>
+
+<script>
+    // --- CONFIGURACIÓN ---
+    //const DB_KEY = 'perfume_inventory_v1'; // Para devolver stock
+    //const SALES_KEY = 'perfume_sales_v1';
+    //const PAYOUTS_KEY = 'perfume_payouts_v1';
+    //const ADMIN_PIN = "0525"; 
+
+    let ventas = [];
+    let pagos = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+    });
+
+    function cargarDatos() {
+        ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+        pagos = JSON.parse(localStorage.getItem(PAYOUTS_KEY)) || [];
+        renderVentas();
+        renderPagos();
+        calcularTotales();
+    }
+
+    // 1. DIBUJAR TABLA VENTAS
+    function renderVentas() {
+        const tbody = document.getElementById('sales-table-body');
+        tbody.innerHTML = '';
+        const ventasDisplay = [...ventas].sort((a, b) => new Date(b.id) - new Date(a.id));
+
+        ventasDisplay.forEach(venta => {
+            const row = `
+                <tr>
+                    <td><small>${venta.fecha}</small></td>
+                    <td>
+                        <strong>${venta.producto}</strong><br>
+                        <small class="text-muted">Venta: $${venta.precioFinal}</small>
+                    </td>
+                    <td class="text-success fw-bold">+$${venta.utilidad}</td>
+                    <td>
+                        <span class="badge bg-primary">Yo: $${parseFloat(venta.reparto.yo).toFixed(0)}</span>
+                        <span class="badge bg-info text-dark">Socio: $${parseFloat(venta.reparto.socio).toFixed(0)}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info text-white me-1" onclick="verDetalle(${venta.id})" title="Ver Ficha">ℹ️</button>
+                        <button class="btn btn-sm btn-warning me-1" onclick="abrirEdicion(${venta.id})" title="Editar">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deshacerVenta(${venta.id})" title="Deshacer Venta (Devolver Stock)">↩️</button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // --- NUEVO: FUNCIÓN PARA ABRIR EDICIÓN (Arregla el error amarillo) ---
+    function abrirEdicion(id) {
+        const venta = ventas.find(v => v.id === id);
+        if (!venta) return;
+
+        document.getElementById('edit-id-venta').value = venta.id;
+        document.getElementById('edit-producto').value = venta.producto;
+        document.getElementById('edit-precio').value = venta.precioFinal;
+        document.getElementById('edit-utilidad').value = venta.utilidad;
+        document.getElementById('edit-cliente').value = venta.cliente || '';
+
+        const modal = new bootstrap.Modal(document.getElementById('modalEditarVenta'));
+        modal.show();
+    }
+
+    // --- NUEVO: GUARDAR EDICIÓN ---
+    function guardarEdicionVenta() {
+        const id = parseFloat(document.getElementById('edit-id-venta').value);
+        const nuevoPrecio = parseFloat(document.getElementById('edit-precio').value);
+        const nuevoCliente = document.getElementById('edit-cliente').value;
+
+        const index = ventas.findIndex(v => v.id === id);
+        if (index === -1) return;
+
+        // Recalcular utilidad
+        const costo = ventas[index].costoOriginal;
+        const gastos = ventas[index].gastosExtra || 0;
+        const nuevaUtilidad = nuevoPrecio - costo - gastos;
+
+        // Actualizar objeto
+        ventas[index].precioFinal = nuevoPrecio;
+        ventas[index].utilidad = nuevaUtilidad;
+        ventas[index].cliente = nuevoCliente;
+
+        // Recalcular Reparto (Proporcional simple para no complicar)
+        // Si era mio (socio=0), sigue siendo mio. Si era 50/50, ajustamos.
+        if (ventas[index].reparto.socio > 0 && ventas[index].reparto.yo > 0) {
+            // Era compartido (50/50 o personalizado)
+            // Asumimos 50/50 para simplificar la edición, o mantenemos ratio si es complejo
+            ventas[index].reparto.socio = nuevaUtilidad / 2;
+            ventas[index].reparto.yo = nuevaUtilidad / 2;
+        } else if (ventas[index].reparto.socio > 0) {
+            // Era 100% socio
+            ventas[index].reparto.socio = nuevaUtilidad;
+        } else {
+            // Era 100% mio
+            ventas[index].reparto.yo = nuevaUtilidad;
+        }
+
+        localStorage.setItem(SALES_KEY, JSON.stringify(ventas));
+        
+        // Cerrar modal
+        const modalEl = document.getElementById('modalEditarVenta');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        cargarDatos();
+    }
+
+    // --- FUNCIÓN INTELIGENTE: DESHACER VENTA ---
+    function deshacerVenta(id) {
+        const venta = ventas.find(v => v.id === id);
+        if (!venta) return;
+
+        // 1. SEGURIDAD FINANCIERA (La restricción que pediste)
+        // Calculamos cuánto le debes al socio HOY
+        let generadoSocioTotal = ventas.reduce((acc, v) => acc + parseFloat(v.reparto.socio || 0), 0);
+        let pagadoSocioTotal = pagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
+        let deudaGlobalActual = generadoSocioTotal - pagadoSocioTotal;
+
+        // Verificamos si al quitar esta venta, la deuda se volvería negativa (significa que ya le pagaste)
+        // Solo aplica si la venta tenía ganancia para el socio
+        if (venta.reparto.socio > 0) {
+            if (venta.reparto.socio > deudaGlobalActual) {
+                alert(`⛔ NO SE PUEDE DESHACER.\n\nEsta venta generó $${venta.reparto.socio} para el socio, pero tú deuda actual es solo de $${deudaGlobalActual}.\n\nSignifica que YA LE PAGASTE este dinero. Si deshaces la venta, tus cuentas no cuadrarán.\n\nSolución: Elimina primero el pago correspondiente en la tabla de abajo.`);
+                return;
+            }
+        }
+
+        // 2. PIN DE SEGURIDAD
+        if(!solicitarPin()) return alert("❌ Cancelado.");
+
+        // 3. PREGUNTA DE STOCK
+        if(confirm(`⚠️ ¿Quieres devolver "${venta.producto}" al Inventario?\n\n[Aceptar] = Sí, devolver stock y borrar venta.\n[Cancelar] = No borrar nada.`)) {
+            
+            // A. Devolver al inventario (Recuperamos el objeto original lo mejor posible)
+            const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            
+            // LÓGICA INTELIGENTE PARA EL CLIENTE:
+            // Si la venta tiene un cliente real (que no sea "Mostrador"), 
+            // lo devolvemos como "Pedido" a nombre de esa persona.
+            let destinoRecuperado = 'stock';
+            let clienteRecuperado = '';
+
+            if (venta.cliente && venta.cliente !== 'Mostrador') {
+                destinoRecuperado = 'pedido';
+                clienteRecuperado = venta.cliente;
+            }
+
+            const productoRecuperado = {
+                id: Date.now(), // Nuevo ID para evitar conflictos
+                nombre: venta.producto,
+                marca: venta.marca || "Recuperado", // Dato perdido si no lo guardamos en venta, puedes poner "Generico"
+                sku: venta.sku,
+                costo: venta.costoOriginal,
+                precioVenta: venta.precioFinal, // Regresa con el precio al que se vendió
+                inversion: (venta.reparto.socio > 0 && venta.reparto.yo > 0) ? 'mitad' : (venta.reparto.socio > 0 ? 'socio' : 'mio'),
+                destino: destinoRecuperado,
+                cliente: clienteRecuperado,
+                imagen: venta.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png', // Icono default
+                fechaRegistro: new Date().toISOString()
+            };
+
+            inventario.push(productoRecuperado);
+            localStorage.setItem(DB_KEY, JSON.stringify(inventario));
+
+            // B. Borrar de Ventas
+            ventas = ventas.filter(v => v.id !== id);
+            localStorage.setItem(SALES_KEY, JSON.stringify(ventas));
+
+            cargarDatos();
+            alert("✅ Venta deshecha. El producto volvió al inventario y el dinero se descontó.");
+        }
+    }
+
+    // Funciones auxiliares y de visualización
+    function verDetalle(id) {
+        const venta = ventas.find(v => v.id === id);
+        if(!venta) return;
+        document.getElementById('det-producto').innerText = venta.producto;
+        document.getElementById('det-sku').innerText = venta.sku || 'Sin SKU';
+        document.getElementById('det-fecha').innerText = venta.fecha;
+        document.getElementById('det-cliente').innerText = venta.cliente || 'Venta de Stock General';
+        document.getElementById('det-costo').innerText = formatMoney(venta.costoOriginal);
+        document.getElementById('det-precio').innerText = formatMoney(venta.precioFinal);
+        document.getElementById('det-utilidad').innerText = formatMoney(venta.utilidad);
+        document.getElementById('det-yo').innerText = formatMoney(venta.reparto.yo);
+        document.getElementById('det-socio').innerText = formatMoney(venta.reparto.socio);
+        
+        let textoPct = "Modelo: Desconocido";
+        if(venta.reparto.yo > 0 && venta.reparto.socio === 0) textoPct = "Modelo: 100% Tuyo";
+        else if(venta.reparto.socio > 0 && venta.reparto.yo === 0) textoPct = "Modelo: 100% Socio";
+        else if(venta.reparto.yo === venta.reparto.socio) textoPct = "Modelo: 50% / 50%";
+        else textoPct = "Modelo: Porcentaje Personalizado";
+        document.getElementById('det-info-pct').innerText = textoPct;
+
+        const modal = new bootstrap.Modal(document.getElementById('modalDetalleVenta'));
+        modal.show();
+    }
+
+    function renderPagos() {
+        const tbody = document.getElementById('pagos-table-body');
+        const msg = document.getElementById('no-pagos-msg');
+        tbody.innerHTML = '';
+        if (pagos.length === 0) {
+            msg.style.display = 'block';
+            return;
+        }
+        msg.style.display = 'none';
+        const pagosDisplay = [...pagos].sort((a, b) => b.id - a.id);
+        pagosDisplay.forEach(pago => {
+            const row = `
+                <tr>
+                    <td>${new Date(pago.id).toLocaleDateString()}</td>
+                    <td class="fw-bold text-danger">-$${pago.monto}</td>
+                    <td>${pago.nota || '-'}</td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarPago(${pago.id})">❌</button></td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function calcularTotales() {
+        let generadoSocio = ventas.reduce((acc, v) => acc + parseFloat(v.reparto.socio || 0), 0);
+        let pagadoSocio = pagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
+        let deudaActual = generadoSocio - pagadoSocio;
+        let miGanancia = ventas.reduce((acc, v) => acc + parseFloat(v.reparto.yo || 0), 0);
+
+        document.getElementById('total-mi-ganancia').innerText = formatMoney(miGanancia);
+        document.getElementById('saldo-pendiente-socio').innerText = formatMoney(deudaActual);
+        document.getElementById('modal-deuda-actual').innerText = formatMoney(deudaActual);
+        document.getElementById('detalle-pagos').innerText = `Total Generado: ${formatMoney(generadoSocio)} | Ya Pagado: ${formatMoney(pagadoSocio)}`;
+    }
+
+    function guardarPago() {
+        const monto = parseFloat(document.getElementById('inputMontoPago').value);
+        const nota = document.getElementById('inputNotaPago').value;
+        if (!monto || monto <= 0) return alert("Ingresa un monto válido");
+
+        const nuevoPago = { id: Date.now(), monto: monto, nota: nota };
+        pagos.push(nuevoPago);
+        localStorage.setItem(PAYOUTS_KEY, JSON.stringify(pagos));
+
+        const modalEl = document.getElementById('modalPagarSocio');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        document.getElementById('inputMontoPago').value = '';
+        document.getElementById('inputNotaPago').value = '';
+        cargarDatos();
+        alert("✅ Pago registrado.");
+    }
+
+    function eliminarPago(id) {
+        if(!solicitarPin()) return alert("❌ PIN Incorrecto.");
+        pagos = pagos.filter(p => p.id !== id);
+        localStorage.setItem(PAYOUTS_KEY, JSON.stringify(pagos));
+        cargarDatos();
+    }
+
+    function solicitarPin() {
+        return prompt("🔐 Ingrese PIN para autorizar:") === ADMIN_PIN;
+    }
+
+    function formatMoney(amount) {
+        return '$' + parseFloat(amount).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+/* --- 1. VARIABLES GLOBALES (DARK LUXURY - CONTRASTE ALTO) --- */
+:root {
+    /* --- Fondos --- */
+    --bg-main: #121212;
+    --bg-secondary: #1E1E1E;
+    --bg-tertiary: #2D2D30;
+
+    /* --- Dorados (Más brillantes para leerse bien) --- */
+    --gold-gradient: linear-gradient(135deg, #FFD700, #FDB931); /* Oro más vivo */
+    --gold-flat: #FFD700;        /* Dorado brillante puro */
+    --gold-muted: #C5A059;       /* Dorado mate para bordes */
+
+    /* --- Tipografía de Alto Contraste --- */
+    --text-primary: #FFFFFF;     /* Blanco PURO para lectura principal */
+    --text-secondary: #B0B0B0;   /* Gris plata claro (antes era muy oscuro) */
+    --text-gold: #FFD700;
+
+    /* --- Estructura --- */
+    --border-radius: 12px;
+    --border-subtle: 1px solid rgba(197, 160, 89, 0.3); 
+    
+    --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
+    --shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.9);
+    
+    --success-color: #4CAF50;
+    --danger-color: #F44336;
+}

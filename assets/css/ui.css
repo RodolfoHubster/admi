@@ -1,0 +1,154 @@
+/* assets/css/ui.css */
+
+/* --- TARJETAS (Cards) --- */
+.card {
+    background-color: var(--bg-secondary);
+    border: var(--border-subtle);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-soft);
+    color: var(--text-primary);
+}
+.card-header {
+    background-color: rgba(255, 215, 0, 0.05);
+    border-bottom: 1px solid var(--gold-muted);
+    color: var(--gold-flat);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.text-muted { color: var(--text-secondary) !important; }
+
+/* --- TABLAS DE LUJO --- */
+.table { 
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    border-color: rgba(194, 79, 79, 0.1);
+}
+.table thead th {
+    background-color: #000;
+    color: var(--gold-flat);
+    border-bottom: 2px solid var(--gold-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.table tbody tr { background-color: var(--bg-secondary) !important; transition: background-color 0.2s; }
+.table tbody td { border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-primary); }
+.table-hover > tbody > tr:hover { background-color: rgba(255, 215, 0, 0.08) !important; }
+.table-group-header { background-color: #2C2C2C !important; border-left: 4px solid var(--gold-flat); }
+
+/* --- INPUTS OSCUROS --- */
+.form-control, .form-select {
+    background-color: var(--bg-tertiary) !important;
+    border: 1px solid #555;
+    color: #fff !important; /* Texto blanco al escribir */
+}
+.form-control::placeholder { color: #888; }
+.form-control:focus, .form-select:focus {
+    background-color: #333 !important;
+    border-color: var(--gold-flat);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.form-text {
+    color: var(--text-secondary);
+}
+.input-group-text {
+    background-color: #222 !important;
+    border: 1px solid #555;
+    color: var(--gold-flat) !important;
+}
+
+/* --- MODALES (VENTANAS EMERGENTES) - EL ARREGLO PRINCIPAL --- */
+.modal-content {
+    background-color: #1a1a1a !important; /* Fondo negro suave */
+    border: 1px solid var(--gold-muted);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+.modal-header {
+    background-color: #000 !important;
+    border-bottom: 1px solid var(--gold-muted);
+}
+.modal-title {
+    color: var(--gold-flat) !important;
+    font-weight: bold;
+}
+.modal-body {
+    color: #eee !important; /* Texto del cuerpo blanco */
+}
+.modal-footer {
+    border-top: 1px solid #333;
+}
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%); /* Hace la X blanca */
+}
+
+/* Arreglo para bloques internos que tengan 'bg-light' (Como el de Inversión) */
+.modal-body .bg-light {
+    background-color: #2D2D30 !important; /* Lo forzamos a gris oscuro */
+    color: #fff !important;
+    border: 1px solid #444 !important;
+}
+.modal-body label {
+    color: var(--gold-flat); /* Etiquetas doradas */
+    font-weight: 500;
+}
+
+/* --- CORRECCIONES DE TEXTO --- */
+.table .text-dark { color: #fff !important; }
+.table strong, .table b, .fw-bold { color: var(--gold-flat) !important; font-weight: 600; }
+.table small, .table .small { color: var(--text-secondary) !important; }
+.text-success { color: #69F0AE !important; }
+
+/* --- BOTONES --- */
+.btn { border-radius: 8px; font-weight: 600; border: none; }
+.btn-primary, .btn-success { background: var(--gold-gradient); color: #000; }
+.btn-outline-primary, .btn-outline-dark { color: var(--gold-flat); border-color: var(--gold-muted); }
+.btn-outline-primary:hover { background-color: var(--gold-flat); color: #000; }
+
+/* --- BADGES --- */
+.bg-light.text-dark, .badge.bg-light { background-color: #000 !important; color: #aaa !important; border: 1px solid #444 !important; }
+.table-warning > td { background-color: rgba(255, 215, 0, 0.15) !important; }
+.badge.bg-warning { background-color: var(--gold-flat) !important; color: #000 !important; border: none; }
+
+/* 1. ARREGLO PARA LA LISTA "TOP PERFUMES" */
+.list-group-item {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-primary) !important;
+}
+
+/* El precio (badge) dentro de la lista */
+.list-group-item .badge {
+    background-color: #000 !important;
+    color: var(--gold-flat) !important;
+    border: 1px solid var(--gold-muted) !important;
+}
+
+/* 2. FUERZA BRUTA PARA EL MODAL OSCURO */
+.modal-content {
+    background-color: #1a1a1a !important;
+    color: #fff !important;
+}
+
+/* Arreglar los inputs dentro del modal para que no se pierdan */
+.modal-body input, 
+.modal-body select, 
+.modal-body textarea {
+    background-color: #2D2D30 !important;
+    border: 1px solid #555 !important;
+    color: #fff !important;
+}
+
+/* Arreglar el placeholder (texto de ayuda) */
+.modal-body input::placeholder {
+    color: #888 !important;
+    opacity: 1;
+}
+
+/* Etiquetas (Labels) doradas */
+.modal-body label {
+    color: var(--gold-flat) !important;
+    font-weight: 500;
+}

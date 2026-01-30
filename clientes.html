@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fitoscents Admin</title>
+        
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+        
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+        <link rel="stylesheet" href="assets/css/main.css">
+    </head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">👑 Fitoscents</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+    
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <div class="navbar-nav gap-2">
+                    <a href="index.html" class="nav-link">Inicio</a>
+                    <a href="products.html" class="nav-link">📦 Inventario</a>
+                    <a href="ventas.html" class="nav-link">💰 Ventas</a>
+                    <a href="clientes.html" class="nav-link active">👥 Clientes</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+<div class="container">
+    
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-danger text-white text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title opacity-75">TOTAL EN LA CALLE (POR COBRAR)</h5>
+                    <h1 class="fw-bold display-4" id="total-deuda-global">$0.00</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-dark fw-bold py-3">
+            👥 Clientes con Saldo Pendiente
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cliente / Producto</th>
+                        <th>Fecha Venta</th>
+                        <th>Total Venta</th>
+                        <th>Abonado</th>
+                        <th>Resta (Deuda)</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-deudas">
+                    </tbody>
+            </table>
+            <div id="msg-sin-deudas" class="text-center p-4 text-muted" style="display:none;">
+                🎉 ¡Felicidades! Nadie te debe dinero.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAbonar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">💸 Recibir Abono</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-secondary">
+                    Cliente: <strong id="abonar-cliente">---</strong><br>
+                    Deuda Actual: <strong class="text-danger" id="abonar-deuda">---</strong>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Monto a Abonar ($)</label>
+                    <input type="number" class="form-control form-control-lg" id="inputAbono" placeholder="Ej: 200">
+                </div>
+                
+                <input type="hidden" id="abonar-id-venta">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmarAbono()">✅ Registrar Pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const SALES_KEY = 'perfume_sales_v1';
+    let ventas = [];
+
+    document.addEventListener('DOMContentLoaded', cargarDeudas);
+
+    function cargarDeudas() {
+        ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+        const tbody = document.getElementById('tabla-deudas');
+        const msg = document.getElementById('msg-sin-deudas');
+        
+        tbody.innerHTML = '';
+        let deudaGlobal = 0;
+        let hayDeudores = false;
+
+        // Filtrar solo las ventas que tienen saldo pendiente > 0
+        const deudas = ventas.filter(v => v.saldoPendiente && v.saldoPendiente > 0);
+
+        deudas.forEach(venta => {
+            hayDeudores = true;
+            deudaGlobal += parseFloat(venta.saldoPendiente);
+            
+            const abonado = venta.precioFinal - venta.saldoPendiente;
+            const porcentajePagado = (abonado / venta.precioFinal) * 100;
+
+            const row = `
+                <tr>
+                    <td>
+                        <div class="fw-bold text-primary">${venta.cliente}</div>
+                        <small class="text-muted">${venta.producto}</small>
+                    </td>
+                    <td><small>${venta.fecha.split(',')[0]}</small></td> <td>$${venta.precioFinal}</td>
+                    <td>
+                        <div class="text-success">$${abonado.toFixed(2)}</div>
+                        <div class="progress" style="height: 5px; width: 80px;">
+                            <div class="progress-bar bg-success" style="width: ${porcentajePagado}%"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-danger fs-6">$${venta.saldoPendiente.toFixed(2)}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="abrirAbonar(${venta.id})">
+                            💰 Abonar
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        document.getElementById('total-deuda-global').innerText = '$' + deudaGlobal.toLocaleString('es-MX', {minimumFractionDigits: 2});
+        
+        if (!hayDeudores) {
+            msg.style.display = 'block';
+        } else {
+            msg.style.display = 'none';
+        }
+    }
+
+    // --- LÓGICA DE ABONOS ---
+
+    function abrirAbonar(idVenta) {
+        const venta = ventas.find(v => v.id === idVenta);
+        if (!venta) return;
+
+        document.getElementById('abonar-cliente').innerText = venta.cliente;
+        document.getElementById('abonar-deuda').innerText = '$' + venta.saldoPendiente.toFixed(2);
+        document.getElementById('abonar-id-venta').value = venta.id;
+        document.getElementById('inputAbono').value = ''; // Limpiar input
+
+        const modal = new bootstrap.Modal(document.getElementById('modalAbonar'));
+        modal.show();
+    }
+
+    function confirmarAbono() {
+        const idVenta = parseInt(document.getElementById('abonar-id-venta').value);
+        const monto = parseFloat(document.getElementById('inputAbono').value);
+
+        if (!monto || monto <= 0) return alert("Ingresa un monto válido");
+
+        // Buscar y actualizar en el array global
+        const index = ventas.findIndex(v => v.id === idVenta);
+        if (index === -1) return;
+
+        const venta = ventas[index];
+
+        if (monto > venta.saldoPendiente) {
+            return alert(`Error: El cliente solo debe $${venta.saldoPendiente}. No puedes abonar más.`);
+        }
+
+        // Actualizar datos
+        venta.saldoPendiente -= monto;
+        
+        // Guardar en historial interno de esa venta
+        if (!venta.historialAbonos) venta.historialAbonos = [];
+        venta.historialAbonos.push({
+            fecha: new Date().toLocaleString(),
+            monto: monto,
+            nota: "Abono registrado en sistema"
+        });
+
+        // Guardar cambios en LocalStorage
+        ventas[index] = venta;
+        localStorage.setItem(SALES_KEY, JSON.stringify(ventas));
+
+        // Cerrar y refrescar
+        const modalEl = document.getElementById('modalAbonar');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        cargarDeudas();
+        
+        if (venta.saldoPendiente <= 0.5) { // Margen de error de centavos
+            alert("🎉 ¡Deuda LIQUIDADA! Esta venta saldrá de la lista de pendientes.");
+        } else {
+            alert("✅ Abono registrado correctamente.");
+        }
+    }
+</script>
+
+</body>
+</html>

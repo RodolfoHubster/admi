@@ -1,0 +1,8 @@
+/* assets/css/main.css */
+/* EL CONDUCTOR: Importa todos los módulos en orden */
+
+@import 'variables.css';   /* 1. Colores y Configuración (¡Debe ir primero!) */
+@import 'global.css';      /* 2. Estilos base y Navegación */
+@import 'ui.css';          /* 3. Botones, Tablas y Tarjetas */
+@import 'features.css';    /* 4. Ticket, Foto Preview, Extras */
+@import 'dashboard.css';   /* 5. Estilos específicos del Inicio */
