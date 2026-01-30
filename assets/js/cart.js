@@ -93,7 +93,23 @@ function procesarVentaMasiva() {
         const costo = item.costo;
         const precio = item.precioVenta;
         const utilidad = precio - costo;
+        const productoRealIndex = productosDB.findIndex(p => p.id === item.id);
         let gananciaMia = 0, gananciaSocio = 0;
+
+        if (productoRealIndex !== -1) {
+            const prodReal = productosDB[productoRealIndex];
+            
+            // Si tiene cantidad mayor a 1, restamos
+            if (prodReal.cantidad && prodReal.cantidad > 1) {
+                prodReal.cantidad -= 1;
+                productosDB[productoRealIndex] = prodReal; // Actualizamos en memoria temporal
+            } else {
+                // Si es 1 o no tiene campo, lo marcamos para borrar
+                // (Usamos un truco: le ponemos un flag para filtrar después)
+                prodReal._borrar = true;
+            }
+        }
+        // ---------------------------------
 
         if (item.inversion === 'mio') gananciaMia = utilidad;
         else if (item.inversion === 'socio') gananciaSocio = utilidad;
@@ -116,7 +132,7 @@ function procesarVentaMasiva() {
         historialVentas.push(nuevaVenta);
     });
 
-    productosDB = productosDB.filter(p => !idsEnCarrito.includes(p.id));
+    productosDB = productosDB.filter(p => !p._borrar);
     localStorage.setItem(SALES_KEY, JSON.stringify(historialVentas));
     localStorage.setItem(DB_KEY, JSON.stringify(productosDB));
 

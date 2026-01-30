@@ -61,7 +61,18 @@ function confirmarVentaFinal() {
     historial.push(nuevaVenta);
     localStorage.setItem(SALES_KEY, JSON.stringify(historial));
 
-    productos.splice(index, 1);
+    if (producto.cantidad && producto.cantidad > 1) {
+        // Si hay más de 1, restamos y actualizamos
+        producto.cantidad -= 1;
+        productos[index] = producto;
+        // Opcional: Avisar visualmente
+        // alert("Stock actualizado. Quedan: " + producto.cantidad);
+    } else {
+        // Si es el último (o no tiene cantidad definida), lo borramos del inventario
+        productos.splice(index, 1);
+    }
+    // ----------------------------------
+
     localStorage.setItem(DB_KEY, JSON.stringify(productos));
 
     const modalEl = document.getElementById('modalVenta');

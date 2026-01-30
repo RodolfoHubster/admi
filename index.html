@@ -44,54 +44,54 @@
     </div>
 
     <div class="row g-4 mb-5">
-        
+    
         <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi bg-primary shadow h-100">
+            <div class="card card-kpi kpi-capital h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0">CAPITAL INVERTIDO</h6>
+                        <h6 class="card-title mb-0 text-secondary">CAPITAL INVERTIDO</h6>
                         <i class="bi bi-box-seam icon-box"></i>
                     </div>
                     <h3 class="fw-bold mb-0 kpi-value" id="kpi-stock-costo">$0.00</h3>
-                    <small class="opacity-75">Dinero parado en botellas</small>
+                    <small class="text-muted">Dinero parado en botellas</small>
                 </div>
             </div>
         </div>
-
+    
         <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi text-white bg-success shadow h-100">
+            <div class="card card-kpi kpi-venta h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0">VENTA POTENCIAL</h6>
+                        <h6 class="card-title mb-0 text-secondary">VENTA POTENCIAL</h6>
                         <i class="bi bi-graph-up-arrow icon-box"></i>
                     </div>
-                    <h3 class="fw-bold mb-0" id="kpi-stock-venta">$0.00</h3>
-                    <small class="opacity-75">Si vendes todo hoy</small>
+                    <h3 class="fw-bold mb-0 kpi-value" id="kpi-stock-venta">$0.00</h3>
+                    <small class="text-muted">Si vendes todo hoy</small>
                 </div>
             </div>
         </div>
-
+    
         <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi text-white bg-warning shadow h-100">
+            <div class="card card-kpi kpi-ganancia h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0">GANANCIA TOTAL</h6>
+                        <h6 class="card-title mb-0 text-secondary">GANANCIA TOTAL</h6>
                         <i class="bi bi-cash-stack icon-box"></i>
                     </div>
-                    <h3 class="fw-bold mb-0" id="kpi-ganancia-total">$0.00</h3>
-                    <small class="opacity-75">Utilidad Neta (Tú + Socio)</small>
+                    <h3 class="fw-bold mb-0 kpi-value text-gold" id="kpi-ganancia-total">$0.00</h3>
+                    <small class="text-muted">Utilidad Neta Histórica</small>
                 </div>
             </div>
         </div>
-
+    
         <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi bg-white text-dark shadow h-100 border-start border-5 border-info">
+            <div class="card card-kpi kpi-stock h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0 text-muted">BOTELLAS EN STOCK</h6>
-                        <i class="bi bi-upc-scan icon-box text-info"></i>
+                        <h6 class="card-title mb-0 text-secondary">BOTELLAS EN STOCK</h6>
+                        <i class="bi bi-upc-scan icon-box"></i>
                     </div>
-                    <h3 class="fw-bold mb-0" id="kpi-cantidad-stock">0</h3>
+                    <h3 class="fw-bold mb-0 kpi-value" id="kpi-cantidad-stock">0</h3>
                     <small class="text-muted">Unidades físicas</small>
                 </div>
             </div>
@@ -118,23 +118,22 @@
                     🚀 Acciones Rápidas
                 </div>
                 <div class="card-body d-grid gap-3">
-                    <a href="products.html" class="btn btn-outline-success btn-lg text-start">
-                        <i class="bi bi-plus-circle me-2"></i> Registrar Nueva Compra
+                    <a href="products.html" class="btn btn-action text-start">
+                        <i class="bi bi-plus-circle me-2 text-gold"></i> Registrar Nueva Compra
                     </a>
-                    <a href="ventas.html" class="btn btn-outline-info btn-lg text-start">
-                        <i class="bi bi-wallet2 me-2"></i> Ver Deudas y Pagos
+                    <a href="ventas.html" class="btn btn-action text-start">
+                        <i class="bi bi-wallet2 me-2 text-gold"></i> Ver Deudas y Pagos
                     </a>
-                    <button onclick="descargarRespaldoGlobal()" class="btn btn-secondary text-start">
-                        <i class="bi bi-cloud-arrow-down me-2"></i> Respaldar Todo Ahora
+                    <button onclick="descargarRespaldoGlobal()" class="btn btn-action text-start">
+                        <i class="bi bi-cloud-arrow-down me-2 text-gold"></i> Respaldar Todo Ahora
                     </button>
-                    <a href="clientes.html" class="btn btn-outline-danger btn-lg text-start">
-                        <i class="bi bi-people me-2"></i> Cobrar a Clientes
+                    <a href="clientes.html" class="btn btn-action text-start">
+                        <i class="bi bi-people me-2 text-gold"></i> Cobrar a Clientes
                     </a>
-
-                    <button onclick="exportarExcel()" class="btn btn-success text-start">
+                
+                    <button onclick="exportarExcel()" class="btn btn-gold text-start fw-bold text-dark">
                         <i class="bi bi-file-earmark-spreadsheet me-2"></i> Descargar Excel
                     </button>
-
                 </div>
             </div>
         </div>

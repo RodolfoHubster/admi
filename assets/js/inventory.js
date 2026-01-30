@@ -116,6 +116,7 @@ function cargarInventario() {
 function renderFila(prod, index) {
     const imgSegura = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
     const ganancia = prod.precioVenta - prod.costo;
+    const cantidad = prod.cantidad || 1;
     
     // CLASE BASE POR DEFECTO: VACÍA (Para que tome el color del CSS oscuro)
     let claseFila = ''; 
@@ -142,7 +143,7 @@ function renderFila(prod, index) {
             <td>${badgeUbicacion}${botonRecibir}</td>
             <td>$${prod.precioVenta}</td>
             <td class="fw-bold text-success">+$${ganancia}</td>
-            <td>1 Unid.</td>
+            <td class="text-center fw-bold fs-5">${cantidad}</td>
             <td>${getBotonesAccion(index)}</td>
         </tr>
     `;
@@ -195,6 +196,10 @@ function guardarProducto() {
     let sku = document.getElementById('inputSku').value;
     const costo = document.getElementById('inputCosto').value;
     const precio = document.getElementById('inputPrecio').value;
+    // --- NUEVO: CAPTURAR CANTIDAD ---
+    const cantidadInput = document.getElementById('inputCantidad').value;
+    const cantidad = cantidadInput ? parseInt(cantidadInput) : 1;
+    // --------------------------------
     const imagenUrl = document.getElementById('inputImagen').value;
     const inversion = document.getElementById('inputInversion').value;
     
@@ -211,6 +216,7 @@ function guardarProducto() {
         nombre, marca, sku, costo: parseFloat(costo), precioVenta: parseFloat(precio),
         inversion, destino, cliente, ubicacion,
         imagen: imagenUrl || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
+        cantidad: cantidad,
         fechaRegistro: new Date().toISOString()
     };
 
@@ -250,6 +256,7 @@ function editarProducto(index) {
     document.getElementById('inputCliente').value = prod.cliente || '';
     document.getElementById('inputUbicacion').value = prod.ubicacion || 'en_inventario';
     document.getElementById('inputImagen').value = prod.imagen || ''; 
+    document.getElementById('inputCantidad').value = prod.cantidad || 1;
 
     document.querySelector('#modalNuevoPerfume .modal-title').innerText = "Editar Perfume";
     const btnGuardar = document.querySelector('#modalNuevoPerfume .modal-footer .btn-primary');
@@ -264,6 +271,7 @@ function guardarCambiosEdicion() {
     if (indiceEdicion === null) return;
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     const p = productos[indiceEdicion];
+    productos[indiceEdicion].cantidad = parseInt(document.getElementById('inputCantidad').value) || 1;
     
     p.nombre = document.getElementById('inputNombre').value;
     p.marca = document.getElementById('inputMarca').value;

@@ -152,3 +152,50 @@
     color: var(--gold-flat) !important;
     font-weight: 500;
 }
+
+/* --- BOTÓN DE ACCIÓN UNIFICADO (ACCIONES RÁPIDAS) --- */
+.btn-action {
+    background-color: #252525;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    transition: all 0.3s ease;
+    padding: 12px 20px; /* Más gorditos */
+}
+
+.btn-action:hover {
+    background-color: #333;
+    border-color: var(--gold-muted);
+    color: #fff;
+    transform: translateX(5px); /* Efecto de moverse a la derecha */
+}
+
+/* --- BOTÓN GOLD PRINCIPAL --- */
+.btn-gold {
+    background: var(--gold-flat);
+    border: none;
+    color: #000;
+}
+.btn-gold:hover {
+    background-color: #e6c200; /* Un poco más oscuro */
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* --- ARREGLO FILTROS DE FECHA (El botón amarillo) --- */
+/* Cuando el botón de filtro está activo */
+.btn-group .btn.active {
+    background-color: var(--gold-flat) !important; /* Dorado */
+    color: #000 !important; /* Texto NEGRO para contraste */
+    border-color: var(--gold-flat) !important;
+    font-weight: 700;
+}
+
+/* Estado normal (inactivo) */
+.btn-group .btn-outline-secondary {
+    border-color: #444;
+    color: #aaa;
+}
+.btn-group .btn-outline-secondary:hover {
+    background-color: #333;
+    color: #fff;
+    border-color: #666;
+}
