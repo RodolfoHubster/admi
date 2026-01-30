@@ -3,7 +3,7 @@
 /* --- TARJETAS KPI (ESTILO LUXURY) --- */
 .card-kpi {
     background-color: var(--bg-secondary);
-    border: 1px solid rgba(255, 255, 255, 0.05); /* Borde muy sutil */
+    border: 1px solid rgba(255, 255, 255, 0.05); /* Borde sutil, NO AZUL */
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
     overflow: hidden;
@@ -17,13 +17,13 @@
 }
 
 /* Degradados sutiles para diferenciar categorías sin usar colores chillones */
+/* DEGRADADOS OSCUROS (Importante para que no se vea plano) */
 .kpi-capital { background: linear-gradient(160deg, #1e1e1e 0%, #252525 100%); }
-/* Un toque muy sutil de verde oscuro para Venta */
 .kpi-venta { background: linear-gradient(160deg, #1e1e1e 0%, #1a2e1a 100%); } 
-/* Un toque muy sutil de dorado oscuro para Ganancia */
 .kpi-ganancia { background: linear-gradient(160deg, #1e1e1e 0%, #2e2a1a 100%); }
-/* Un toque muy sutil de azul grisáceo para Stock */
 .kpi-stock { background: linear-gradient(160deg, #1e1e1e 0%, #1a1f2e 100%); }
+
+.text-gold { color: #FFD700 !important; }
 
 .icon-box {
     font-size: 1.8rem;
@@ -35,4 +35,3 @@
     font-family: 'Poppins', sans-serif;
     letter-spacing: 0.5px;
 }
-.text-gold { color: var(--gold-flat) !important; }

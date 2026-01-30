@@ -171,13 +171,15 @@
 
 /* --- BOTÓN GOLD PRINCIPAL --- */
 .btn-gold {
-    background: var(--gold-flat);
-    border: none;
-    color: #000;
+    background-color: #FFD700 !important; /* El !important fuerza el color */
+    color: #000000 !important;
+    border: none !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .btn-gold:hover {
-    background-color: #e6c200; /* Un poco más oscuro */
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    background-color: #e6c200 !important;
+    transform: scale(1.05); /* Efecto de crecer un poco */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); /* Brillo dorado */
 }
 
 /* --- ARREGLO FILTROS DE FECHA (El botón amarillo) --- */
@@ -198,4 +200,34 @@
     background-color: #333;
     color: #fff;
     border-color: #666;
+}
+
+/* --- BOTÓN DE LUJO (CLASE INVENCIBLE) --- */
+.btn-luxury-gold {
+    /* Fondo Dorado Intenso */
+    background-color: #FFD700 !important; 
+    border: 1px solid #FFD700 !important;
+    color: #000 !important; /* Texto Negro para contraste */
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 20px;
+    
+    /* Animación suave */
+    transition: all 0.3s ease-in-out !important;
+}
+
+/* Efecto Hover (Cuando pasas el mouse) */
+.btn-luxury-gold:hover {
+    /* Se oscurece un poco y brilla */
+    background-color: #e6c200 !important; 
+    border-color: #e6c200 !important;
+    color: #000 !important;
+    transform: translateY(-2px); /* Se levanta tantito */
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4) !important; /* Resplandor dorado */
+}
+
+/* Asegurar que el icono también sea negro */
+.btn-luxury-gold i {
+    color: #000 !important;
 }
