@@ -191,46 +191,90 @@ function cambiarOrden(campo) {
 function filtrarTabla() { cargarInventario(); }
 
 function guardarProducto() {
-    const nombre = document.getElementById('inputNombre').value;
-    const marca = document.getElementById('inputMarca').value;
-    let sku = document.getElementById('inputSku').value;
+    // 1. CAPTURAR DATOS DEL FORMULARIO
+    const nombre = document.getElementById('inputNombre').value.trim();
+    const marca = document.getElementById('inputMarca').value.trim();
+    let sku = document.getElementById('inputSku').value.trim();
     const costo = document.getElementById('inputCosto').value;
     const precio = document.getElementById('inputPrecio').value;
-    // --- NUEVO: CAPTURAR CANTIDAD ---
-    const cantidadInput = document.getElementById('inputCantidad').value;
-    const cantidad = cantidadInput ? parseInt(cantidadInput) : 1;
-    // --------------------------------
-    const imagenUrl = document.getElementById('inputImagen').value;
-    const inversion = document.getElementById('inputInversion').value;
+    const imagenUrl = document.getElementById('inputImagen').value.trim();
     
-    // Validaciones básicas
-    if (!nombre || !costo || !precio) return alert("Llena los campos obligatorios.");
+    // OJO: Aseguramos capturar bien la inversión (a veces es selectInversion o inputInversion)
+    const elInversion = document.getElementById('selectInversion') || document.getElementById('inputInversion');
+    const inversion = elInversion ? elInversion.value : 'mio';
+
+    // --- AQUÍ ESTÁ LA CLAVE: CAPTURAR CUÁNTOS QUIERES ---
+    const cantidadInput = document.getElementById('inputCantidad').value;
+    const cantidadTotal = cantidadInput ? parseInt(cantidadInput) : 1;
+    // ----------------------------------------------------
+
+    // 2. VALIDACIONES
+    if (!nombre || !costo || !precio) return alert("Por favor, llena los campos obligatorios.");
+    // Si no hay SKU, generamos uno aleatorio
     if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
 
-    const destino = document.getElementById('inputDestino') ? document.getElementById('inputDestino').value : 'stock'; 
+    // Valores opcionales (con protección por si no existen en el HTML)
+    const destino = document.getElementById('inputDestino') ? document.getElementById('inputDestino').value : 'stock';
     const cliente = document.getElementById('inputCliente') ? document.getElementById('inputCliente').value : '';
     const ubicacion = document.getElementById('inputUbicacion') ? document.getElementById('inputUbicacion').value : 'en_inventario';
 
-    const nuevoPerfume = {
-        id: Date.now(),
-        nombre, marca, sku, costo: parseFloat(costo), precioVenta: parseFloat(precio),
-        inversion, destino, cliente, ubicacion,
-        imagen: imagenUrl || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
-        cantidad: cantidad,
-        fechaRegistro: new Date().toISOString()
-    };
-
+    // 3. CARGAR BASE DE DATOS ACTUAL
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-    productos.push(nuevoPerfume);
+
+    // ============================================================
+    // 🚀 LA CORRECCIÓN: EL BUCLE DE REPETICIÓN
+    // ============================================================
+    // Si pones cantidad 5, esto se repite 5 veces
+    for (let i = 0; i < cantidadTotal; i++) {
+        
+        const nuevoPerfume = {
+            // TRUCO IMPORTANTE: Date.now() + i 
+            // Esto asegura que si registras 10 botellas, cada una tenga un ID diferente
+            // y no se sobrescriban entre ellas.
+            id: Date.now() + i, 
+            
+            nombre: nombre,
+            marca: marca,
+            sku: sku, // Todas comparten el mismo SKU (porque son el mismo modelo)
+            costo: parseFloat(costo),
+            precioVenta: parseFloat(precio),
+            inversion: inversion,
+            destino: destino,
+            cliente: cliente,
+            ubicacion: ubicacion,
+            imagen: imagenUrl || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
+            
+            cantidad: 1, // <--- AQUÍ CAMBIÓ: Cada fila representa SIEMPRE 1 unidad física
+            
+            fechaRegistro: new Date().toISOString()
+        };
+
+        // Metemos la botella individual a la caja
+        productos.push(nuevoPerfume);
+    }
+    // ============================================================
+
+    // 4. GUARDAR Y CERRAR
     localStorage.setItem(DB_KEY, JSON.stringify(productos));
 
+    // Cerrar modal y limpiar
     const modalEl = document.getElementById('modalNuevoPerfume');
     if(modalEl) {
         const modal = bootstrap.Modal.getInstance(modalEl);
         modal.hide();
         document.getElementById('form-nuevo-perfume').reset();
     }
-    cargarInventario();
+
+    // Refrescar la tabla para ver las nuevas filas
+    if (typeof cargarInventario === 'function') {
+        cargarInventario();
+    } else if (typeof renderInventario === 'function') {
+        renderInventario();
+    } else {
+        location.reload(); // Si no encuentra la función, recarga la página
+    }
+    
+    alert(`✅ Se registraron correctamente ${cantidadTotal} unidades.`);
 }
 
 function eliminarProducto(index) {
