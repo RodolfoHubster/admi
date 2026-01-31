@@ -129,7 +129,7 @@ function procesarVentaMasiva() {
 
     // 1. Capturar datos del Modal Nuevo
     const esCredito = document.getElementById('checkCreditoCarrito').checked;
-    const clienteGlobal = document.getElementById('cart-cliente').value.trim();
+    const clienteGlobal = document.getElementById('cart-cliente').value.trim().toUpperCase();
     const abonoTotal = parseFloat(document.getElementById('cart-anticipo').value) || 0;
     
     // Validación

@@ -213,6 +213,10 @@ function guardarProducto() {
     const cantidadInput = document.getElementById('inputCantidad').value;
     const cantidadTotal = cantidadInput ? parseInt(cantidadInput) : 1;
     // ----------------------------------------------------
+    const destinoElement = document.getElementById('inputDestino'); 
+    const clienteElement = document.getElementById('inputCliente');
+
+    const destino = destinoElement ? destinoElement.value : 'stock';
 
     // 2. VALIDACIONES
     if (!nombre || !costo || !precio) return alert("Por favor, llena los campos obligatorios.");
@@ -220,9 +224,9 @@ function guardarProducto() {
     if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
 
     // Valores opcionales (con protección por si no existen en el HTML)
-    const destino = document.getElementById('inputDestino') ? document.getElementById('inputDestino').value : 'stock';
-    const cliente = document.getElementById('inputCliente') ? document.getElementById('inputCliente').value : '';
+    const cliente = clienteRaw.trim().toUpperCase();
     const ubicacion = document.getElementById('inputUbicacion') ? document.getElementById('inputUbicacion').value : 'en_inventario';
+    const clienteRaw = clienteElement ? clienteElement.value : '';
 
     // 3. CARGAR BASE DE DATOS ACTUAL
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];

@@ -27,7 +27,19 @@ function iniciarVenta(index) {
         document.getElementById('venta-gastos').value = 0;
     }
 
-    // Mostrar el Modal usando Bootstrap 5
+    const inputCliente = document.getElementById('venta-cliente');
+    
+    // 1. Detectamos si hay un cliente real (que no sea Mostrador)
+    const clienteReal = (prod.cliente && prod.cliente.trim() !== '' && prod.cliente !== 'Mostrador') ? prod.cliente : '';
+
+    // 2. ¡TRUCO! Guardamos ese nombre en un atributo invisible del input para recordarlo siempre
+    inputCliente.dataset.duenoOriginal = clienteReal;
+
+    // 3. Pre-llenamos el valor visualmente
+    inputCliente.value = clienteReal;
+    // -----------------------
+
+    // Mostrar el Modal
     const modalVenta = new bootstrap.Modal(document.getElementById('modalVenta'));
     modalVenta.show();
 }
@@ -831,16 +843,36 @@ modales.forEach(modal => {
 function toggleCredito() {
     const check = document.getElementById('checkCredito');
     const bloque = document.getElementById('bloque-credito');
+    const inputCliente = document.getElementById('venta-cliente');
     
     // Si el switch está encendido, mostramos el bloque. Si no, lo ocultamos.
     if (check && check.checked) {
         bloque.style.display = 'block';
+
+        // --- LÓGICA INTELIGENTE ---
+        // Recuperamos el dueño que guardamos en iniciarVenta
+        const dueno = inputCliente.dataset.duenoOriginal;
+        
+        if (dueno && dueno !== '') {
+            // Si el perfume YA tiene dueño, lo escribimos automáticamente
+            inputCliente.value = dueno;
+            // Opcional: Agregamos una clase visual para indicar que es automático
+            inputCliente.classList.add('bg-warning', 'bg-opacity-10'); 
+        } else {
+            // Si es STOCK (no tiene dueño), lo dejamos vacío para escribir
+            // (Solo limpiamos si el campo estaba vacío o tenía basura, para no borrar lo que escribas)
+            if (!inputCliente.value) inputCliente.value = '';
+            inputCliente.classList.remove('bg-warning', 'bg-opacity-10');
+        }
+
     } else {
+        // Si el switch se apaga
         bloque.style.display = 'none';
-        // Limpiar campos si se arrepiente
-        document.getElementById('venta-cliente').value = '';
+        
+        // Limpiamos campos visuales, pero el dataset.duenoOriginal sigue guardado en memoria por si vuelves a activar
+        inputCliente.value = ''; 
         document.getElementById('venta-anticipo').value = 0;
-        calcularRestante(); // Resetear texto rojo
+        calcularRestante(); 
     }
 }
 
