@@ -34,44 +34,80 @@
         </div>
     </nav>
 
-<div class="container">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-dark">Gestión de Clientes</h2>
+                <p class="text-muted">Cobranza y seguimiento de pedidos.</p>
+            </div>
+            <button class="btn btn-dark" onclick="alert('Próximamente: Lista de Interesados/Leads')">
+                <i class="bi bi-notebook"></i> Anotar Interesado
+            </button>
+        </div>
     
-    <div class="row mb-4 justify-content-center">
-        <div class="col-md-6">
-            <div class="card bg-danger text-white text-center shadow">
-                <div class="card-body">
-                    <h5 class="card-title opacity-75">TOTAL EN LA CALLE (POR COBRAR)</h5>
-                    <h1 class="fw-bold display-4" id="total-deuda-global">$0.00</h1>
+        <ul class="nav nav-tabs mb-4" id="clientesTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold text-dark" id="deudas-tab" data-bs-toggle="tab" data-bs-target="#deudas-content" type="button">
+                    💰 Cuentas por Cobrar (<span id="count-deudores">0</span>)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-dark" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos-content" type="button">
+                    📦 Pedidos y Encargos (<span id="count-pedidos">0</span>)
+                </button>
+            </li>
+        </ul>
+    
+        <div class="tab-content" id="myTabContent">
+            
+            <div class="tab-pane fade show active" id="deudas-content" role="tabpanel">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="card bg-dark text-white text-center p-3">
+                            <h6 class="text-secondary">TOTAL EN LA CALLE</h6>
+                            <h2 class="text-gold fw-bold mb-0" id="total-calle">$0.00</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive shadow-sm rounded">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Productos Debidos</th>
+                                <th>Saldo Pendiente</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientes-table-body" class="bg-white">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+    
+            <div class="tab-pane fade" id="pedidos-content" role="tabpanel">
+                <div class="alert alert-info border-0 shadow-sm text-dark">
+                    <i class="bi bi-info-circle-fill me-2"></i> 
+                    Estos son perfumes registrados en el <strong>Inventario</strong> asignados a un cliente. 
+                    Si cambias la ubicación a "En Inventario", aparecerán como listos.
+                </div>
+                <div class="table-responsive shadow-sm rounded">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-secondary text-white">
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Perfume Encargado</th>
+                                <th>Estado Actual</th> <th>Inversión</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="encargos-table-body" class="bg-white">
+                            </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="card shadow">
-        <div class="card-header bg-dark fw-bold py-3">
-            👥 Clientes con Saldo Pendiente
-        </div>
-        <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Cliente / Producto</th>
-                        <th>Fecha Venta</th>
-                        <th>Total Venta</th>
-                        <th>Abonado</th>
-                        <th>Resta (Deuda)</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-deudas">
-                    </tbody>
-            </table>
-            <div id="msg-sin-deudas" class="text-center p-4 text-muted" style="display:none;">
-                🎉 ¡Felicidades! Nadie te debe dinero.
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="modal fade" id="modalAbonar" tabindex="-1">
     <div class="modal-dialog">
@@ -102,124 +138,151 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/utils.js"></script>
 <script>
-    const SALES_KEY = 'perfume_sales_v1';
-    let ventas = [];
+    // Referencias a Datos
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || []; // LEEMOS INVENTARIO TAMBIÉN
 
-    document.addEventListener('DOMContentLoaded', cargarDeudas);
+    document.addEventListener('DOMContentLoaded', () => {
+        renderDeudas();
+        renderEncargos();
+    });
 
-    function cargarDeudas() {
-        ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-        const tbody = document.getElementById('tabla-deudas');
-        const msg = document.getElementById('msg-sin-deudas');
+    // --- 1. LÓGICA DE DEUDAS (TAB 1) ---
+    function renderDeudas() {
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const clientesMap = {};
+    let totalCalle = 0;
+
+    // Agrupar
+    ventas.forEach(v => {
+        if (v.saldoPendiente > 0 && v.cliente) {
+            if (!clientesMap[v.cliente]) {
+                clientesMap[v.cliente] = { 
+                    nombre: v.cliente, 
+                    deudaActual: 0, 
+                    totalOriginal: 0, // Nuevo: Cuánto era la venta original total
+                    items: [] 
+                };
+            }
+            clientesMap[v.cliente].deudaActual += parseFloat(v.saldoPendiente);
+            // Calculamos cuánto costaba el producto originalmente para sacar el porcentaje
+            clientesMap[v.cliente].totalOriginal += parseFloat(v.precioFinal);
+            clientesMap[v.cliente].items.push(v.producto);
+            totalCalle += parseFloat(v.saldoPendiente);
+        }
+    });
+
+    document.getElementById('total-calle').innerText = formatMoney(totalCalle);
+    document.getElementById('count-deudores').innerText = Object.keys(clientesMap).length;
+
+    const tbody = document.getElementById('clientes-table-body');
+    tbody.innerHTML = '';
+
+    Object.values(clientesMap).forEach(c => {
+        // Cálculos para la barra
+        const pagado = c.totalOriginal - c.deudaActual;
+        const porcentajePagado = (pagado / c.totalOriginal) * 100;
         
+        // Color de la barra según progreso
+        let colorBarra = 'bg-danger';
+        if(porcentajePagado > 50) colorBarra = 'bg-warning';
+        if(porcentajePagado > 80) colorBarra = 'bg-success';
+
+        tbody.innerHTML += `
+            <tr>
+                <td class="fw-bold">${c.nombre}</td>
+                <td style="width: 30%;">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Progreso de Pago</span>
+                        <span class="fw-bold">${Math.round(porcentajePagado)}%</span>
+                    </div>
+                    <div class="progress" style="height: 10px; background-color: #333;">
+                        <div class="progress-bar ${colorBarra}" role="progressbar" style="width: ${porcentajePagado}%"></div>
+                    </div>
+                    <small class="text-muted">${c.items.length} perfumes</small>
+                </td>
+                <td class="text-danger fw-bold fs-5">$${c.deudaActual.toFixed(2)}</td>
+                <td>
+                    <a href="ventas.html?cliente=${c.nombre}" class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-wallet2"></i> Ver Detalles
+                    </a>
+                </td>
+            </tr>
+        `;
+    });
+
+    if (Object.keys(clientesMap).length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">🎉 Nadie te debe dinero hoy.</td></tr>`;
+    }
+}
+    // --- 2. LÓGICA DE ENCARGOS (TAB 2) ---
+    function renderEncargos() {
+        const tbody = document.getElementById('encargos-table-body');
         tbody.innerHTML = '';
-        let deudaGlobal = 0;
-        let hayDeudores = false;
+        let contadorEncargos = 0;
 
-        // Filtrar solo las ventas que tienen saldo pendiente > 0
-        const deudas = ventas.filter(v => v.saldoPendiente && v.saldoPendiente > 0);
+        // Filtramos inventario donde haya un cliente asignado
+        const encargos = inventario.filter(prod => prod.cliente && prod.cliente.trim() !== '');
 
-        deudas.forEach(venta => {
-            hayDeudores = true;
-            deudaGlobal += parseFloat(venta.saldoPendiente);
+        // Ordenamos: Primero los que YA LLEGARON ("en_inventario")
+        encargos.sort((a, b) => (a.ubicacion === 'en_inventario' ? -1 : 1));
+
+        encargos.forEach(prod => {
+            contadorEncargos++;
             
-            const abonado = venta.precioFinal - venta.saldoPendiente;
-            const porcentajePagado = (abonado / venta.precioFinal) * 100;
+            // Lógica de Estado Inteligente
+            let estadoBadge = '';
+            let accionBtn = '';
 
-            const row = `
+            if (prod.ubicacion === 'en_inventario' || prod.ubicacion === 'stock') {
+                // YA LLEGÓ
+                estadoBadge = `<span class="badge bg-success shadow-sm p-2"><i class="bi bi-check-circle-fill"></i> LISTO PARA ENTREGA</span>`;
+                // El botón lleva a procesar la venta directamente
+                accionBtn = `<button class="btn btn-sm btn-success" onclick="venderEncargo(${prod.id})">Entregar y Cobrar</button>`;
+            } else {
+                // VIENE EN CAMINO
+                estadoBadge = `<span class="badge bg-warning text-dark p-2"><i class="bi bi-truck"></i> EN TRANSITO</span>`;
+                accionBtn = `<small class="text-muted">Esperando llegada...</small>`;
+            }
+
+            tbody.innerHTML += `
                 <tr>
+                    <td class="fw-bold text-primary">${prod.cliente}</td>
                     <td>
-                        <div class="fw-bold text-primary">${venta.cliente}</div>
-                        <small class="text-muted">${venta.producto}</small>
-                    </td>
-                    <td><small>${venta.fecha.split(',')[0]}</small></td> <td>$${venta.precioFinal}</td>
-                    <td>
-                        <div class="text-success">$${abonado.toFixed(2)}</div>
-                        <div class="progress" style="height: 5px; width: 80px;">
-                            <div class="progress-bar bg-success" style="width: ${porcentajePagado}%"></div>
+                        <div class="d-flex align-items-center">
+                            <img src="${prod.imagen}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; margin-right: 10px;">
+                            <div>
+                                <strong>${prod.nombre}</strong><br>
+                                <small>${prod.marca}</small>
+                            </div>
                         </div>
                     </td>
-                    <td>
-                        <span class="badge bg-danger fs-6">$${venta.saldoPendiente.toFixed(2)}</span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="abrirAbonar(${venta.id})">
-                            💰 Abonar
-                        </button>
-                    </td>
+                    <td>${estadoBadge}</td>
+                    <td><small>${prod.inversion.toUpperCase()}</small></td>
+                    <td>${accionBtn}</td>
                 </tr>
             `;
-            tbody.innerHTML += row;
         });
 
-        document.getElementById('total-deuda-global').innerText = '$' + deudaGlobal.toLocaleString('es-MX', {minimumFractionDigits: 2});
-        
-        if (!hayDeudores) {
-            msg.style.display = 'block';
-        } else {
-            msg.style.display = 'none';
+        document.getElementById('count-pedidos').innerText = contadorEncargos;
+
+        if (contadorEncargos === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">📭 No tienes encargos activos.</td></tr>`;
         }
     }
 
-    // --- LÓGICA DE ABONOS ---
-
-    function abrirAbonar(idVenta) {
-        const venta = ventas.find(v => v.id === idVenta);
-        if (!venta) return;
-
-        document.getElementById('abonar-cliente').innerText = venta.cliente;
-        document.getElementById('abonar-deuda').innerText = '$' + venta.saldoPendiente.toFixed(2);
-        document.getElementById('abonar-id-venta').value = venta.id;
-        document.getElementById('inputAbono').value = ''; // Limpiar input
-
-        const modal = new bootstrap.Modal(document.getElementById('modalAbonar'));
-        modal.show();
+    // Función auxiliar para ir directo a vender
+    function venderEncargo(id) {
+        // Redirigimos al carrito o inventario filtrando ese ID (simulado por ahora)
+        alert("Para entregar, ve a Inventario y dale a 'Vender' en este producto. El sistema ya sabe que es de este cliente.");
+        window.location.href = 'products.html'; 
     }
 
-    function confirmarAbono() {
-        const idVenta = parseInt(document.getElementById('abonar-id-venta').value);
-        const monto = parseFloat(document.getElementById('inputAbono').value);
-
-        if (!monto || monto <= 0) return alert("Ingresa un monto válido");
-
-        // Buscar y actualizar en el array global
-        const index = ventas.findIndex(v => v.id === idVenta);
-        if (index === -1) return;
-
-        const venta = ventas[index];
-
-        if (monto > venta.saldoPendiente) {
-            return alert(`Error: El cliente solo debe $${venta.saldoPendiente}. No puedes abonar más.`);
-        }
-
-        // Actualizar datos
-        venta.saldoPendiente -= monto;
-        
-        // Guardar en historial interno de esa venta
-        if (!venta.historialAbonos) venta.historialAbonos = [];
-        venta.historialAbonos.push({
-            fecha: new Date().toLocaleString(),
-            monto: monto,
-            nota: "Abono registrado en sistema"
-        });
-
-        // Guardar cambios en LocalStorage
-        ventas[index] = venta;
-        localStorage.setItem(SALES_KEY, JSON.stringify(ventas));
-
-        // Cerrar y refrescar
-        const modalEl = document.getElementById('modalAbonar');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-
-        cargarDeudas();
-        
-        if (venta.saldoPendiente <= 0.5) { // Margen de error de centavos
-            alert("🎉 ¡Deuda LIQUIDADA! Esta venta saldrá de la lista de pendientes.");
-        } else {
-            alert("✅ Abono registrado correctamente.");
-        }
+    function formatMoney(amount) {
+        return '$' + amount.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 </script>
 

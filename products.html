@@ -329,34 +329,49 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalCarrito" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold">🛒 Carrito de Compras</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">🛒 Confirmar Compra</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <ul class="list-group mb-4" id="lista-carrito">
-                    </ul>
                 
-                <div class="card bg-dark border-0 p-3">
+                <ul class="list-group list-group-flush mb-3 rounded" id="lista-carrito">
+                    </ul>
+
+                <div class="card bg-secondary bg-opacity-10 border-0 p-3 mb-3">
                     <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="checkCreditoCarrito">
-                        <label class="form-check-label fw-bold" for="checkCreditoCarrito">⚠️ ¿Es Venta a Crédito (Fiado)?</label>
+                        <input class="form-check-input" type="checkbox" id="checkCreditoCarrito" onchange="toggleCreditoCarrito()">
+                        <label class="form-check-label fw-bold text-warning" for="checkCreditoCarrito">¿Es Venta a Crédito / Fiado?</label>
                     </div>
-                    <div class="input-group">
-                        <span class="input-group-text">👤 Cliente</span>
-                        <input type="text" class="form-control" id="inputClienteCarrito" placeholder="Nombre del cliente (Opcional si es contado)">
+
+                    <div class="mb-2">
+                        <label class="form-label small text-muted">Cliente Asignado</label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="cart-cliente" placeholder="Nombre del Cliente">
+                    </div>
+
+                    <div id="bloque-credito-carrito" style="display: none;">
+                        <label class="form-label small text-warning fw-bold">Abono Inicial (Lo que paga hoy)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-white border-secondary">$</span>
+                            <input type="number" class="form-control bg-dark text-white border-secondary fw-bold" id="cart-anticipo" value="0" min="0">
+                        </div>
                     </div>
                 </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <h5 class="text-muted">Total a Pagar:</h5>
+                    <h2 class="fw-bold text-gold" id="modal-cart-total">$0.00</h2>
+                </div>
+
             </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-outline-danger" onclick="vaciarCarrito()">🗑️ Vaciar Todo</button>
-                <div>
-                    <span class="fs-4 fw-bold me-3" id="modal-cart-total">$0.00</span>
-                    <button type="button" class="btn btn-success fw-bold btn-lg" onclick="procesarVentaMasiva()">✅ Cobrar Todo</button>
-                </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Seguir viendo</button>
+                <button type="button" class="btn btn-luxury-gold" onclick="procesarVentaMasiva()">
+                    <i class="bi bi-check-circle-fill me-2"></i> COBRAR AHORA
+                </button>
             </div>
         </div>
     </div>

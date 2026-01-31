@@ -120,13 +120,16 @@ function renderFila(prod, index) {
     
     // CLASE BASE POR DEFECTO: VACÍA (Para que tome el color del CSS oscuro)
     let claseFila = ''; 
-    let badgeUbicacion = '<span class="badge bg-success bg-opacity-10 text-success border border-success">✅ En Mano</span>';
+    let badgeUbicacion = '';
     let botonRecibir = '';
 
     if (prod.ubicacion === 'en_camino') {
-        claseFila = 'table-warning'; // Esta clase sí la queremos para resaltar
+        claseFila = 'table-warning';
         badgeUbicacion = '<span class="badge bg-warning text-dark border border-dark animation-blink">🚚 En Camino</span>';
         botonRecibir = `<button class="btn btn-sm btn-outline-dark ms-1" onclick="marcarComoRecibido(${index})" title="Recibir">📥</button>`;
+    } else {
+        // Solo si NO está en camino, ponemos En Mano
+        badgeUbicacion = '<span class="badge bg-success bg-opacity-10 text-success border border-success">✅ En Mano</span>';
     }
 
     return `
@@ -155,13 +158,16 @@ function renderFilaHija(prod, index) {
 
     // AQUÍ ESTABA EL ERROR: QUITAMOS 'bg-white'
     let claseFila = ''; 
-    let badgeUbicacion = '<span class="badge border border-success text-success bg-light">En Mano</span>';
+    let badgeUbicacion = '';
     let botonRecibir = '';
 
     if (prod.ubicacion === 'en_camino') {
         claseFila = 'table-warning';
-        badgeUbicacion = '<span class="badge bg-warning text-dark border border-dark">🚚 En Camino</span>';
-        botonRecibir = `<button class="btn btn-dark btn-sm ms-1 px-2 py-0" onclick="marcarComoRecibido(${index})" title="Recibir" style="font-size: 10px;">📥</button>`;
+        badgeUbicacion = '<span class="badge bg-warning text-dark border border-dark animation-blink">🚚 En Camino</span>';
+        botonRecibir = `<button class="btn btn-sm btn-outline-dark ms-1" onclick="marcarComoRecibido(${index})" title="Recibir">📥</button>`;
+    } else {
+        // Solo si NO está en camino, ponemos En Mano
+        badgeUbicacion = '<span class="badge bg-success bg-opacity-10 text-success border border-success">✅ En Mano</span>';
     }
 
     return `

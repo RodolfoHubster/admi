@@ -10,6 +10,32 @@ function iniciarVenta(index) {
     document.getElementById('venta-index-producto').value = index;
     if(document.getElementById('venta-gastos')) document.getElementById('venta-gastos').value = 0;
 
+    // =======================================================
+    // 🧠 LÓGICA DE AUTO-CLIENTE (CORREGIDA)
+    // =======================================================
+    // Usamos el ID real que vi en tu código: 'venta-cliente'
+    const inputCliente = document.getElementById('venta-cliente'); 
+    const checkCredito = document.getElementById('checkCredito');
+
+    if (prod.cliente && prod.cliente.trim() !== '' && prod.cliente !== 'Mostrador') {
+        // CASO 1: YA TIENE DUEÑO (Ej. Pedido de Juan)
+        inputCliente.value = prod.cliente; // Pone "Juan" solo
+        
+        // (Opcional) Si quieres que se marque como "Crédito" solo, descomenta estas 2 líneas:
+        // checkCredito.checked = true;
+        // toggleCredito(); 
+    } else {
+        // CASO 2: ES STOCK LIBRE
+        inputCliente.value = ''; // Lo deja vacío para que tú escribas
+        
+        // Aseguramos que empiece limpio
+        if(checkCredito.checked) {
+            checkCredito.checked = false;
+            toggleCredito();
+        }
+    }
+    // =======================================================
+
     const modalVenta = new bootstrap.Modal(document.getElementById('modalVenta'));
     modalVenta.show();
 }

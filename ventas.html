@@ -82,7 +82,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Fecha</th>
-                        <th>Producto</th>
+                        <th>Cliente</th> <th>Producto</th>
                         <th>Utilidad Total</th>
                         <th>Reparto</th>
                         <th>Acciones</th>
@@ -236,6 +236,44 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalAbono" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-gold fw-bold">💰 Registrar Abono</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="abono-id-venta">
+                
+                <div class="alert alert-dark border-secondary text-center">
+                    <small class="text-muted">Deuda Actual:</small>
+                    <h3 class="fw-bold text-danger mt-1" id="abono-deuda-actual">$0.00</h3>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-warning fw-bold">Monto a Abonar</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-secondary border-secondary text-white">$</span>
+                        <input type="number" class="form-control bg-dark text-white border-secondary fw-bold" id="inputMontoAbono" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Nota (Opcional)</label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="inputNotaAbono" placeholder="Ej: Pago quincenal">
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success fw-bold" onclick="guardarAbono()">
+                    <i class="bi bi-check-circle-fill me-2"></i> Confirmar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script src="assets/js/config.js"></script>    <script src="assets/js/utils.js"></script>     <script src="assets/js/inventory.js"></script> <script src="assets/js/sales.js"></script>     <script src="assets/js/cart.js"></script>      <script src="assets/js/backup.js"></script>    <script src="assets/js/main.js"></script>
@@ -313,22 +351,60 @@
 
         ventasDisplay.forEach(venta => {
             totalPeriodo += parseFloat(venta.utilidad);
-            // ... (AQUÍ VA TU CÓDIGO HTML DE LA FILA ORIGINAL) ...
+
+            // 1. Definir nombre del cliente (Tu código actual)
+            const clienteNombre = venta.cliente ? 
+                `<span class="fw-bold text-gold">${venta.cliente}</span>` : 
+                `<span class="text-muted fst-italic">Mostrador / Stock</span>`;
+
+            // ============================================================
+            // 🟢 2. LÓGICA NUEVA: ESTADO DE DEUDA Y BOTÓN DE ABONO
+            // ============================================================
+            let botonAbonar = '';
+            let badgeEstado = ''; // Aquí guardaremos la etiqueta roja o verde
+
+            // Verificamos si existe saldo pendiente (para evitar errores con ventas viejas usamos || 0)
+            const pendiente = parseFloat(venta.saldoPendiente || 0);
+
+            if (pendiente > 0) {
+                // CASO A: TIENE DEUDA ACTIVA
+                badgeEstado = `<div class="mt-1"><span class="badge bg-danger shadow-sm">DEBE: $${pendiente.toFixed(2)}</span></div>`;
+                
+                // Creamos el botón verde de abonar
+                botonAbonar = `
+                    <button class="btn btn-sm btn-success fw-bold" onclick="abrirModalAbono(${venta.id})" title="Registrar Abono">
+                        💲
+                    </button>
+                `;
+            } else if (venta.esCredito) {
+                // CASO B: ERA CRÉDITO PERO YA PAGÓ TODO
+                badgeEstado = `<div class="mt-1"><span class="badge bg-success text-dark border border-success">✅ LIQUIDADO</span></div>`;
+            }
+            // ============================================================
+
+            // 3. Construir la fila (FUSIONADA)
+            // Agregamos 'badgeEstado' debajo del precio y 'botonAbonar' junto a los otros botones
             const row = `
                 <tr>
                     <td><small>${venta.fecha}</small></td>
+                    
+                    <td>${clienteNombre}</td>
+                    
                     <td>
                         <strong>${venta.producto}</strong><br>
                         <small class="text-muted">Venta: $${venta.precioFinal}</small>
-                    </td>
+                        ${badgeEstado} </td>
+
                     <td class="text-success fw-bold">+$${venta.utilidad}</td>
+                    
                     <td>
                         <span class="badge bg-primary">Yo: $${parseFloat(venta.reparto.yo).toFixed(0)}</span>
                         <span class="badge bg-info text-dark">Socio: $${parseFloat(venta.reparto.socio).toFixed(0)}</span>
                     </td>
+                    
                     <td>
                         <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-info text-white" onclick="verDetalle(${venta.id})" title="Ver Ficha">ℹ️</button>
+                            ${botonAbonar} <button class="btn btn-sm btn-info text-white" onclick="verDetalle(${venta.id})" title="Ver Ficha">ℹ️</button>
                             <button class="btn btn-sm btn-warning" onclick="abrirEdicion(${venta.id})" title="Editar">✏️</button>
                             <button class="btn btn-sm btn-danger" onclick="deshacerVenta(${venta.id})" title="Devolver Stock">↩️</button>
                         </div>
@@ -337,7 +413,6 @@
             `;
             tbody.innerHTML += row;
         });
-        
         // (Opcional) Podríamos mostrar el total ganado en este periodo en algún lado
         console.log("Ganancia en este periodo: $" + totalPeriodo);
     }
@@ -579,6 +654,62 @@
         btn.classList.add('active', 'btn-primary', 'text-dark', 'fw-bold');
 
         // 2. Redibujar la tabla con el nuevo filtro
+        renderVentas();
+    }
+
+// --- NUEVAS FUNCIONES PARA LOS ABONOS ---
+
+function abrirModalAbono(idVenta) {
+        const venta = ventas.find(v => v.id === idVenta);
+        if(!venta) return;
+
+        // Llenamos el modal con los datos actuales
+        document.getElementById('abono-id-venta').value = idVenta;
+        document.getElementById('abono-deuda-actual').innerText = '$' + venta.saldoPendiente.toFixed(2);
+        document.getElementById('inputMontoAbono').value = '';
+        document.getElementById('inputNotaAbono').value = '';
+
+        // Abrimos el modal
+        new bootstrap.Modal(document.getElementById('modalAbono')).show();
+    }
+
+    function guardarAbono() {
+        const idVenta = parseInt(document.getElementById('abono-id-venta').value);
+        const monto = parseFloat(document.getElementById('inputMontoAbono').value);
+        const nota = document.getElementById('inputNotaAbono').value.trim() || 'Abono parcial';
+
+        if (!monto || monto <= 0) return alert("❌ Ingresa un monto válido.");
+
+        // Buscar la venta en la base de datos real
+        const index = ventas.findIndex(v => v.id === idVenta);
+        if (index === -1) return;
+
+        const venta = ventas[index];
+
+        if (monto > venta.saldoPendiente) {
+            return alert(`❌ Error: El cliente solo debe $${venta.saldoPendiente}. No puedes abonar más que eso.`);
+        }
+
+        // 1. ACTUALIZAR DEUDA
+        venta.saldoPendiente -= monto;
+
+        // 2. REGISTRAR EN HISTORIAL INTERNO DE LA VENTA
+        if (!venta.historialAbonos) venta.historialAbonos = [];
+        venta.historialAbonos.push({
+            fecha: new Date().toLocaleString(),
+            monto: monto,
+            nota: nota
+        });
+
+        // 3. GUARDAR EN LOCALSTORAGE
+        ventas[index] = venta;
+        localStorage.setItem(SALES_KEY, JSON.stringify(ventas));
+
+        // 4. CERRAR Y REFRESCAR
+        alert(`✅ Abono de $${monto} registrado correctamente.`);
+        bootstrap.Modal.getInstance(document.getElementById('modalAbono')).hide();
+        
+        // Recargar la tabla para ver que la deuda bajó
         renderVentas();
     }
 
