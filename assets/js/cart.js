@@ -186,9 +186,20 @@ function procesarVentaMasiva() {
         }
 
         // Calcular utilidades (Tu lógica original)
-        if (item.inversion === 'mio') nuevaVenta.reparto.yo = nuevaVenta.utilidad;
-        else if (item.inversion === 'socio') nuevaVenta.reparto.socio = nuevaVenta.utilidad;
-        else { nuevaVenta.reparto.yo = nuevaVenta.utilidad / 2; nuevaVenta.reparto.socio = nuevaVenta.utilidad / 2; }
+        if (item.inversion === 'mio') {
+            nuevaVenta.reparto.yo = nuevaVenta.utilidad;
+        } else if (item.inversion === 'socio') {
+            nuevaVenta.reparto.socio = nuevaVenta.utilidad;
+        } else if (item.inversion === 'personalizado') {
+            // AQUÍ AGREGAMOS LA LÓGICA QUE FALTABA
+            const factor = (item.porcentajeSocio || 0) / 100;
+            nuevaVenta.reparto.socio = nuevaVenta.utilidad * factor;
+            nuevaVenta.reparto.yo = nuevaVenta.utilidad - nuevaVenta.reparto.socio;
+        } else { 
+            // Default: Mitad y Mitad
+            nuevaVenta.reparto.yo = nuevaVenta.utilidad / 2; 
+            nuevaVenta.reparto.socio = nuevaVenta.utilidad / 2; 
+        }
 
         historialVentas.push(nuevaVenta);
 

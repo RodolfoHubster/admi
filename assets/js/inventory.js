@@ -77,6 +77,20 @@ function cargarInventario() {
             const imgUrl = principal.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
             const ganancia = principal.precioVenta - principal.costo;
 
+            // --- CÁLCULO DE DEUDA SOCIO PARA TODO EL LOTE ---
+            let deudaSocioTotal = 0;
+            items.forEach(item => {
+                let din = 0;
+                if (item.inversion === 'mitad') din = item.costo / 2;
+                else if (item.inversion === 'socio') din = item.costo;
+                else if (item.inversion === 'personalizado') {
+                    const pct = item.porcentajeSocio || 0;
+                    din = item.costo * (pct / 100);
+                }
+                deudaSocioTotal += din;
+            });
+            // -----------------------------------------------
+
             const filaPadre = `
                 <tr class="align-middle fw-bold table-group-header">
                     <td><span class="badge bg-dark">LOTE (${grupo.totalStock})</span></td>
@@ -92,13 +106,16 @@ function cargarInventario() {
                     <td>$${principal.precioVenta}</td>
                     <td class="text-success">+$${ganancia}</td>
                     <td class="text-center">${grupo.totalStock} Unid.</td>
+                    
+                    <td class="text-center">
+                         ${deudaSocioTotal > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${deudaSocioTotal.toFixed(0)}</span>` : '-'}
+                    </td>
                     <td>
                         <button class="btn btn-sm btn-outline-dark w-100" type="button" data-bs-toggle="collapse" data-bs-target="#${accordionId}">Ver ${grupo.totalStock} 🔽</button>
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="9" class="p-0 border-0">
-                        <div class="collapse" id="${accordionId}">
+                    <td colspan="10" class="p-0 border-0"> <div class="collapse" id="${accordionId}">
                             <table class="table table-sm mb-0 align-middle bg-transparent" style="table-layout: fixed; width: 100%;">
                                 <tbody class="border-start border-4 border-warning">
                                     ${items.map(item => renderFilaHija(item, item.originalIndex)).join('')}
@@ -118,7 +135,15 @@ function renderFila(prod, index) {
     const ganancia = prod.precioVenta - prod.costo;
     const cantidad = prod.cantidad || 1;
     
-    // CLASE BASE POR DEFECTO: VACÍA (Para que tome el color del CSS oscuro)
+    // CÁLCULO DINERO SOCIO
+    let dineroSocio = 0;
+    if (prod.inversion === 'mitad') dineroSocio = prod.costo / 2;
+    else if (prod.inversion === 'socio') dineroSocio = prod.costo;
+    else if (prod.inversion === 'personalizado') {
+        const pct = prod.porcentajeSocio || 0;
+        dineroSocio = prod.costo * (pct / 100);
+    }
+    
     let claseFila = ''; 
     let badgeUbicacion = '';
     let botonRecibir = '';
@@ -128,7 +153,6 @@ function renderFila(prod, index) {
         badgeUbicacion = '<span class="badge bg-warning text-dark border border-dark animation-blink">🚚 En Camino</span>';
         botonRecibir = `<button class="btn btn-sm btn-outline-dark ms-1" onclick="marcarComoRecibido(${index})" title="Recibir">📥</button>`;
     } else {
-        // Solo si NO está en camino, ponemos En Mano
         badgeUbicacion = '<span class="badge bg-success bg-opacity-10 text-success border border-success">✅ En Mano</span>';
     }
 
@@ -147,6 +171,10 @@ function renderFila(prod, index) {
             <td>$${prod.precioVenta}</td>
             <td class="fw-bold text-success">+$${ganancia}</td>
             <td class="text-center fw-bold fs-5">${cantidad}</td>
+            
+            <td class="text-center">
+                ${dineroSocio > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${dineroSocio.toFixed(0)}</span>` : '<span class="text-muted">-</span>'}
+            </td>
             <td>${getBotonesAccion(index)}</td>
         </tr>
     `;
@@ -156,7 +184,15 @@ function renderFilaHija(prod, index) {
     const ganancia = prod.precioVenta - prod.costo;
     const imgSegura = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
 
-    // AQUÍ ESTABA EL ERROR: QUITAMOS 'bg-white'
+    // CÁLCULO DINERO SOCIO
+    let dineroSocio = 0;
+    if (prod.inversion === 'mitad') dineroSocio = prod.costo / 2;
+    else if (prod.inversion === 'socio') dineroSocio = prod.costo;
+    else if (prod.inversion === 'personalizado') {
+        const pct = prod.porcentajeSocio || 0;
+        dineroSocio = prod.costo * (pct / 100);
+    }
+
     let claseFila = ''; 
     let badgeUbicacion = '';
     let botonRecibir = '';
@@ -166,21 +202,25 @@ function renderFilaHija(prod, index) {
         badgeUbicacion = '<span class="badge bg-warning text-dark border border-dark animation-blink">🚚 En Camino</span>';
         botonRecibir = `<button class="btn btn-sm btn-outline-dark ms-1" onclick="marcarComoRecibido(${index})" title="Recibir">📥</button>`;
     } else {
-        // Solo si NO está en camino, ponemos En Mano
         badgeUbicacion = '<span class="badge bg-success bg-opacity-10 text-success border border-success">✅ En Mano</span>';
     }
 
+    // OJO CON LOS ANCHOS (%) - HE AJUSTADO PARA QUE QUEPAN TODOS
     return `
         <tr class="${claseFila}" style="border-bottom: 1px solid #444;">
             <td style="width: 10%; padding-left: 20px; vertical-align: middle;"><small class="text-muted me-1">↳</small><span class="badge bg-light text-dark border border-secondary text-truncate" style="max-width: 100%;">${prod.sku}</span></td>
             <td style="width: 20%; vertical-align: middle;"><div class="d-flex align-items-center"><img src="${imgSegura}" class="img-thumb-mini rounded-circle border js-preview-trigger" data-large-src="${imgSegura}" style="width: 28px; height: 28px; min-width: 28px; object-fit: cover;"><div class="ms-2 text-truncate"><span class="fw-bold text-dark small">${prod.nombre}</span></div></div></td>
-            <td style="width: 10%; vertical-align: middle;" class="badge-multiline">${getBadgeInversion(prod.inversion)}</td>
-            <td style="width: 10%; vertical-align: middle;" class="badge-multiline">${getBadgeDestino(prod)}</td>
-            <td style="width: 12%; vertical-align: middle;"><div class="d-flex align-items-center justify-content-center">${badgeUbicacion}${botonRecibir}</div></td>
+            <td style="width: 9%; vertical-align: middle;" class="badge-multiline">${getBadgeInversion(prod.inversion)}</td>
+            <td style="width: 9%; vertical-align: middle;" class="badge-multiline">${getBadgeDestino(prod)}</td>
+            <td style="width: 11%; vertical-align: middle;"><div class="d-flex align-items-center justify-content-center">${badgeUbicacion}${botonRecibir}</div></td>
             <td style="width: 8%; vertical-align: middle;" class="text-muted small fw-bold">$${prod.precioVenta}</td>
             <td style="width: 8%; vertical-align: middle;" class="text-success fw-bold small">+$${ganancia}</td>
-            <td style="width: 7%; vertical-align: middle;" class="text-center small text-muted">1</td>
-            <td style="width: 15%; vertical-align: middle;">${getBotonesAccion(index)}</td>
+            <td style="width: 5%; vertical-align: middle;" class="text-center small text-muted">1</td>
+            
+            <td style="width: 8%; vertical-align: middle;" class="text-center">
+                 ${dineroSocio > 0 ? `<span class="badge bg-warning text-dark border border-dark text-truncate">$${dineroSocio.toFixed(0)}</span>` : '-'}
+            </td>
+            <td style="width: 12%; vertical-align: middle;">${getBotonesAccion(index)}</td>
         </tr>
     `;
 }
@@ -212,6 +252,8 @@ function guardarProducto() {
     // --- AQUÍ ESTÁ LA CLAVE: CAPTURAR CUÁNTOS QUIERES ---
     const cantidadInput = document.getElementById('inputCantidad').value;
     const cantidadTotal = cantidadInput ? parseInt(cantidadInput) : 1;
+    const inputPct = document.getElementById('inputPorcentaje') || document.getElementById('inputPorcentajeSocio');
+    const porcentajeSocio = (inversion === 'personalizado' && inputPct) ? parseFloat(inputPct.value) : 0;
     // ----------------------------------------------------
     const destinoElement = document.getElementById('inputDestino'); 
     const clienteElement = document.getElementById('inputCliente');
@@ -249,6 +291,7 @@ function guardarProducto() {
             costo: parseFloat(costo),
             precioVenta: parseFloat(precio),
             inversion: inversion,
+            porcentajeSocio: porcentajeSocio,
             destino: destino,
             cliente: cliente,
             ubicacion: ubicacion,
