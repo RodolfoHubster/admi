@@ -271,51 +271,50 @@ function guardarProducto() {
     const precio = document.getElementById('inputPrecio').value;
     const imagenUrl = document.getElementById('inputImagen').value.trim();
     
-    // OJO: Aseguramos capturar bien la inversión (a veces es selectInversion o inputInversion)
+    // Capturar inversión
     const elInversion = document.getElementById('selectInversion') || document.getElementById('inputInversion');
     const inversion = elInversion ? elInversion.value : 'mio';
 
-    // --- AQUÍ ESTÁ LA CLAVE: CAPTURAR CUÁNTOS QUIERES ---
-    const cantidadInput = document.getElementById('inputCantidad').value;
-    const cantidadTotal = cantidadInput ? parseInt(cantidadInput) : 1;
+    // Capturar cantidad
+    const cantidadInput = document.getElementById('inputCantidad');
+    const cantidadTotal = cantidadInput ? parseInt(cantidadInput.value) : 1;
+    
+    // Capturar porcentaje socio
     const inputPct = document.getElementById('inputPorcentaje') || document.getElementById('inputPorcentajeSocio');
     const porcentajeSocio = (inversion === 'personalizado' && inputPct) ? parseFloat(inputPct.value) : 0;
-    // ----------------------------------------------------
+    
+    // Capturar destino
     const destinoElement = document.getElementById('inputDestino'); 
-    const clienteElement = document.getElementById('inputCliente');
-
     const destino = destinoElement ? destinoElement.value : 'stock';
+    
+    // Capturar cliente
+    const clienteElement = document.getElementById('inputCliente');
+    const clienteRaw = clienteElement ? clienteElement.value : '';
+    const cliente = clienteRaw.trim().toUpperCase();
+    
+    // Capturar ubicación
+    const ubicacionElement = document.getElementById('inputUbicacion');
+    const ubicacion = ubicacionElement ? ubicacionElement.value : 'en_inventario';
 
-        // 2. VALIDACIONES
-        if (!nombre || !costo || !precio) return alert("Por favor, llena los campos obligatorios.");
+    // 2. VALIDACIONES
+    if (!nombre || !costo || !precio) {
+        alert("Por favor, llena los campos obligatorios (Nombre, Costo, Precio).");
+        return;
+    }
     
-        // Si no hay SKU, generamos uno aleatorio
-        if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
-    
-        // Valores opcionales (con protección por si no existen en el HTML)
-        const clienteRaw = clienteElement ? clienteElement.value : '';  // ✅ PRIMERO declara
-        const cliente = clienteRaw.trim().toUpperCase();  // ✅ DESPUÉS usa
-        const ubicacion = document.getElementById('inputUbicacion') ? document.getElementById('inputUbicacion').value : 'en_inventario';
-    
+    // Si no hay SKU, generamos uno aleatorio
+    if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
 
     // 3. CARGAR BASE DE DATOS ACTUAL
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
 
-    // ============================================================
-    // 🚀 LA CORRECCIÓN: EL BUCLE DE REPETICIÓN
-    // ============================================================
-    // Si pones cantidad 5, esto se repite 5 veces
+    // 4. CREAR PRODUCTOS (BUCLE DE REPETICIÓN)
     for (let i = 0; i < cantidadTotal; i++) {
-        
         const nuevoPerfume = {
-            // TRUCO IMPORTANTE: Date.now() + i 
-            // Esto asegura que si registras 10 botellas, cada una tenga un ID diferente
-            // y no se sobrescriban entre ellas.
             id: Date.now() + i, 
-            
             nombre: nombre,
             marca: marca,
-            sku: sku, // Todas comparten el mismo SKU (porque son el mismo modelo)
+            sku: sku,
             costo: parseFloat(costo),
             precioVenta: parseFloat(precio),
             inversion: inversion,
@@ -324,70 +323,40 @@ function guardarProducto() {
             cliente: cliente,
             ubicacion: ubicacion,
             imagen: imagenUrl || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
-            
-            cantidad: 1, // <--- AQUÍ CAMBIÓ: Cada fila representa SIEMPRE 1 unidad física
-            
+            cantidad: 1,
             fechaRegistro: new Date().toISOString()
         };
-
-        // Metemos la botella individual a la caja
+        
         productos.push(nuevoPerfume);
     }
-    // ============================================================
 
-     // ============================================================
-
-    // ===== GUARDAR COMO PLANTILLA SI ESTÁ MARCADO =====
-    const checkPlantilla = document.getElementById('checkGuardarPlantilla');
-    if(checkPlantilla && checkPlantilla.checked) {
-        guardarComoPlantilla();
-        checkPlantilla.checked = false; // Desmarcar para próxima vez
-    }
-    // ==================================================
-    
-    // 4. GUARDAR Y CERRAR
+    // 5. GUARDAR EN LOCALSTORAGE
     localStorage.setItem(DB_KEY, JSON.stringify(productos));
 
-// ===== NUEVO: REGISTRAR EL GASTO =====
-    const gastosInventario = JSON.parse(localStorage.getItem('perfume_expenses_v1')) || [];
-
-    const nuevaCompra = {
-        id: Date.now(),
-        fecha: new Date().toISOString(),
-        tipo: 'compra_inventario',
-        monto: parseFloat(costo) * cantidadTotal,  // Total gastado
-        cantidadUnidades: cantidadTotal,
-        producto: nombre,
-        marca: marca,
-        costoUnitario: parseFloat(costo),
-        inversion: inversion,  // Para saber si es tuyo o del socio
-        descripcion: `Compra de ${cantidadTotal}x ${nombre}`
-    };
-
-    gastosInventario.push(nuevaCompra);
-    localStorage.setItem('perfume_expenses_v1', JSON.stringify(gastosInventario));
-    // =====================================
-
-
-    // Cerrar modal y limpiar
+    // 6. CERRAR MODAL Y LIMPIAR
     const modalEl = document.getElementById('modalNuevoPerfume');
     if(modalEl) {
         const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
+        if(modal) modal.hide();
         document.getElementById('form-nuevo-perfume').reset();
     }
 
-    // Refrescar la tabla para ver las nuevas filas
+    // 7. REFRESCAR LA TABLA
     if (typeof cargarInventario === 'function') {
         cargarInventario();
-    } else if (typeof renderInventario === 'function') {
-        renderInventario();
-    } else {
-        location.reload(); // Si no encuentra la función, recarga la página
     }
+
+    // ===== GUARDAR COMO PLANTILLA SI ESTÁ MARCADO =====
+const checkPlantilla = document.getElementById('checkGuardarPlantilla');
+if(checkPlantilla && checkPlantilla.checked) {
+    guardarComoPlantilla();
+    checkPlantilla.checked = false;
+}
+// ==================================================
     
     alert(`✅ Se registraron correctamente ${cantidadTotal} unidades.`);
 }
+
 
 function eliminarProducto(index) {
     if (!solicitarPin()) return alert("❌ PIN Incorrecto.");
