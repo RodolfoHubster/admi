@@ -170,14 +170,46 @@
         const cantidadBotellas = productos.length;
 
         // --- CÁLCULOS DE VENTAS ---
-        
-        // Ganancia Neta Histórica (Suma de todas las utilidades)
-        const totalUtilidad = ventas.reduce((sum, venta) => sum + (parseFloat(venta.utilidad) || 0), 0);
+            
+    // --- CÁLCULOS DE VENTAS REALES ---
+
+    // 1. Calcular solo lo COBRADO (no lo que deben)
+    let gananciaReal = 0;
+    ventas.forEach(venta => {
+        if (venta.esCredito) {
+            // Solo cuenta lo que YA cobraste
+            const cobrado = venta.precioFinal - (venta.saldoPendiente || 0);
+            const porcentajeCobrado = cobrado / venta.precioFinal;
+            gananciaReal += venta.utilidad * porcentajeCobrado;
+        } else {
+            // Venta de contado = 100% cobrada
+            gananciaReal += venta.utilidad;
+        }
+    });
+
+    // 2. Restar los GASTOS de compras
+    const gastosInventario = JSON.parse(localStorage.getItem('perfume_expenses_v1')) || [];
+    const totalGastos = gastosInventario.reduce((sum, gasto) => {
+        // Solo resta TUS gastos (no los del socio)
+        if (gasto.inversion === 'mio' || gasto.inversion === 'mitad') {
+            const porcentajeTuyo = gasto.inversion === 'mitad' ? 0.5 : 1.0;
+            return sum + (gasto.monto * porcentajeTuyo);
+        }
+        return sum;
+    }, 0);
+
+    // 3. Calcular deudas por cobrar
+    const porCobrar = ventas.reduce((sum, v) => sum + (parseFloat(v.saldoPendiente) || 0), 0);
+
+    // 4. CAPITAL REAL = Ganancia Cobrada - Gastos
+    const capitalReal = gananciaReal - totalGastos;
 
         // --- PINTAR EN PANTALLA ---
         document.getElementById('kpi-stock-costo').innerText = formatMoney(totalCostoStock);
         document.getElementById('kpi-stock-venta').innerText = formatMoney(totalVentaStock);
-        document.getElementById('kpi-ganancia-total').innerText = formatMoney(totalUtilidad);
+        document.getElementById('kpi-ganancia-total').innerText = formatMoney(capitalReal);
+        // Opcional: Mostrar por cobrar en otro KPI
+        // document.getElementById('kpi-por-cobrar').innerText = formatMoney(porCobrar);
         document.getElementById('kpi-cantidad-stock').innerText = cantidadBotellas;
 
         // --- GENERAR LISTA TOP (Los 5 perfumes más caros que tienes en stock) ---

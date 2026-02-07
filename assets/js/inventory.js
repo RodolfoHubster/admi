@@ -8,6 +8,32 @@ function cargarInventario() {
     if (!tableBody) return;
 
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    
+    // ===== NUEVO: CALCULAR TOTALES PARA BADGES =====
+    let totalUnidades = 0;
+    let totalEnCamino = 0;
+    
+    productos.forEach(prod => {
+        const cant = prod.cantidad || 1;
+        totalUnidades += cant;
+        
+        if(prod.ubicacion === 'en_camino') {
+            totalEnCamino += cant;
+        }
+    });
+    
+    // Actualizar badges
+    const badgePerfumes = document.querySelector('.badge.bg-primary');
+    const badgeUnidades = document.querySelector('.badge.bg-secondary');
+    const badgeEnCamino = document.querySelector('.badge.bg-warning');
+    const badgeEnCaminoBoton = document.getElementById('badge-en-camino');
+    
+    if(badgePerfumes) badgePerfumes.innerText = `${productos.length} perfumes`;
+    if(badgeUnidades) badgeUnidades.innerText = `${totalUnidades} unidades`;
+    if(badgeEnCamino) badgeEnCamino.innerText = `${totalEnCamino} en camino`;
+    if(badgeEnCaminoBoton) badgeEnCaminoBoton.innerText = totalEnCamino;
+    // ===============================================
+    
     tableBody.innerHTML = '';
 
     // 1. FILTRAR
@@ -260,15 +286,17 @@ function guardarProducto() {
 
     const destino = destinoElement ? destinoElement.value : 'stock';
 
-    // 2. VALIDACIONES
-    if (!nombre || !costo || !precio) return alert("Por favor, llena los campos obligatorios.");
-    // Si no hay SKU, generamos uno aleatorio
-    if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
-
-    // Valores opcionales (con protección por si no existen en el HTML)
-    const cliente = clienteRaw.trim().toUpperCase();
-    const ubicacion = document.getElementById('inputUbicacion') ? document.getElementById('inputUbicacion').value : 'en_inventario';
-    const clienteRaw = clienteElement ? clienteElement.value : '';
+        // 2. VALIDACIONES
+        if (!nombre || !costo || !precio) return alert("Por favor, llena los campos obligatorios.");
+    
+        // Si no hay SKU, generamos uno aleatorio
+        if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
+    
+        // Valores opcionales (con protección por si no existen en el HTML)
+        const clienteRaw = clienteElement ? clienteElement.value : '';  // ✅ PRIMERO declara
+        const cliente = clienteRaw.trim().toUpperCase();  // ✅ DESPUÉS usa
+        const ubicacion = document.getElementById('inputUbicacion') ? document.getElementById('inputUbicacion').value : 'en_inventario';
+    
 
     // 3. CARGAR BASE DE DATOS ACTUAL
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
@@ -307,8 +335,39 @@ function guardarProducto() {
     }
     // ============================================================
 
+     // ============================================================
+
+    // ===== GUARDAR COMO PLANTILLA SI ESTÁ MARCADO =====
+    const checkPlantilla = document.getElementById('checkGuardarPlantilla');
+    if(checkPlantilla && checkPlantilla.checked) {
+        guardarComoPlantilla();
+        checkPlantilla.checked = false; // Desmarcar para próxima vez
+    }
+    // ==================================================
+    
     // 4. GUARDAR Y CERRAR
     localStorage.setItem(DB_KEY, JSON.stringify(productos));
+
+// ===== NUEVO: REGISTRAR EL GASTO =====
+    const gastosInventario = JSON.parse(localStorage.getItem('perfume_expenses_v1')) || [];
+
+    const nuevaCompra = {
+        id: Date.now(),
+        fecha: new Date().toISOString(),
+        tipo: 'compra_inventario',
+        monto: parseFloat(costo) * cantidadTotal,  // Total gastado
+        cantidadUnidades: cantidadTotal,
+        producto: nombre,
+        marca: marca,
+        costoUnitario: parseFloat(costo),
+        inversion: inversion,  // Para saber si es tuyo o del socio
+        descripcion: `Compra de ${cantidadTotal}x ${nombre}`
+    };
+
+    gastosInventario.push(nuevaCompra);
+    localStorage.setItem('perfume_expenses_v1', JSON.stringify(gastosInventario));
+    // =====================================
+
 
     // Cerrar modal y limpiar
     const modalEl = document.getElementById('modalNuevoPerfume');
@@ -415,3 +474,212 @@ function togglePersonalizado() {
     if (tipo === 'personalizado') div.style.display = 'block';
     else div.style.display = 'none';
 }
+
+function calcularKPIsInventario() {
+    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    
+    let totalCosto = 0;
+    let totalVenta = 0;
+    let totalGanancia = 0;
+    let deudaSocio = 0;
+    
+    productos.forEach(prod => {
+        const costo = parseFloat(prod.costo) || 0;
+        const venta = parseFloat(prod.precioVenta) || 0;
+        const cantidad = prod.cantidad || 1;
+        
+        totalCosto += costo;
+        totalVenta += venta;
+        totalGanancia += (venta - costo);
+        
+        // Calcular deuda al socio
+        if (prod.inversion === 'mitad') {
+            deudaSocio += costo * 0.5;
+        } else if (prod.inversion === 'socio') {
+            deudaSocio += costo;
+        } else if (prod.inversion === 'personalizado') {
+            const pct = prod.porcentajeSocio || 0;
+            deudaSocio += costo * (pct / 100);
+        }
+    });
+    
+    // Actualizar en pantalla
+    if(document.getElementById('total-costo-inventario')) {
+        document.getElementById('total-costo-inventario').innerText = '$' + totalCosto.toFixed(0);
+    }
+    if(document.getElementById('total-precio-inventario')) {
+        document.getElementById('total-precio-inventario').innerText = '$' + totalVenta.toFixed(0);
+    }
+    if(document.getElementById('total-ganancia-potencial')) {
+        document.getElementById('total-ganancia-potencial').innerText = '+$' + totalGanancia.toFixed(0);
+    }
+    if(document.getElementById('total-deuda-socio-inventario')) {
+        document.getElementById('total-deuda-socio-inventario').innerText = '$' + deudaSocio.toFixed(0);
+    }
+}
+
+// Llamar al cargar inventario
+document.addEventListener('DOMContentLoaded', () => {
+    if(typeof cargarInventario === 'function') {
+        cargarInventario();
+        calcularKPIsInventario();
+    }
+});
+
+
+function filtrarEnCaminoRapido() {
+    const filtroDestino = document.getElementById('filtroDestino');
+    if(filtroDestino) {
+        filtroDestino.value = 'en_camino';
+        cargarInventario();
+    }
+}
+
+// ========================================
+// SISTEMA DE PLANTILLAS DE PERFUMES
+// ========================================
+
+const TEMPLATES_KEY = 'perfume_templates_v1';
+
+// Cargar lista de plantillas en el selector
+function cargarListaPlantillas() {
+    const select = document.getElementById('selectPlantilla');
+    if(!select) return;
+    
+    const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
+    
+    // Limpiar opciones (excepto la primera)
+    select.innerHTML = '<option value="">-- Nuevo perfume desde cero --</option>';
+    
+    // Agregar cada plantilla
+    plantillas.forEach((template, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${template.nombre} (${template.marca})`;
+        select.appendChild(option);
+    });
+}
+
+// Cargar datos de plantilla seleccionada
+function cargarPlantilla() {
+    const select = document.getElementById('selectPlantilla');
+    const index = select.value;
+    
+    if(index === '') {
+        // Limpiar formulario
+        document.getElementById('form-nuevo-perfume').reset();
+        document.getElementById('inputCantidad').value = 1;
+        return;
+    }
+    
+    const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
+    const template = plantillas[index];
+    
+    if(!template) return;
+    
+    // Autocompletar campos
+    document.getElementById('inputNombre').value = template.nombre;
+    document.getElementById('inputMarca').value = template.marca;
+    document.getElementById('inputSku').value = template.sku || '';
+    document.getElementById('inputImagen').value = template.imagen || '';
+    document.getElementById('inputInversion').value = template.inversion || 'mio';
+    document.getElementById('inputDestino').value = template.destino || 'stock';
+    
+    if(template.inversion === 'personalizado' && template.porcentajeSocio) {
+        document.getElementById('inputPorcentajeSocio').value = template.porcentajeSocio;
+        togglePersonalizado();
+    }
+    
+    // IMPORTANTE: NO autocompletar precio/costo (para que los modifiques)
+    document.getElementById('inputCosto').value = '';
+    document.getElementById('inputPrecio').value = '';
+    document.getElementById('inputCosto').focus(); // Focus en el costo
+    
+    alert(`✅ Plantilla "${template.nombre}" cargada. Ahora ingresa precio/costo actuales.`);
+}
+
+// Guardar perfume como plantilla
+function guardarComoPlantilla() {
+    const nombre = document.getElementById('inputNombre').value.trim();
+    const marca = document.getElementById('inputMarca').value.trim();
+    const sku = document.getElementById('inputSku').value.trim();
+    const imagen = document.getElementById('inputImagen').value.trim();
+    const inversion = document.getElementById('inputInversion').value;
+    const destino = document.getElementById('inputDestino').value;
+    
+    const inputPct = document.getElementById('inputPorcentajeSocio');
+    const porcentajeSocio = (inversion === 'personalizado' && inputPct) ? parseFloat(inputPct.value) : 0;
+    
+    if(!nombre || !marca) {
+        alert('❌ Necesitas al menos nombre y marca para guardar plantilla');
+        return false;
+    }
+    
+    const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
+    
+    // Verificar si ya existe
+    const existe = plantillas.findIndex(t => 
+        t.nombre.toLowerCase() === nombre.toLowerCase() && 
+        t.marca.toLowerCase() === marca.toLowerCase()
+    );
+    
+    const nuevaPlantilla = {
+        id: Date.now(),
+        nombre: nombre,
+        marca: marca,
+        sku: sku,
+        imagen: imagen,
+        inversion: inversion,
+        porcentajeSocio: porcentajeSocio,
+        destino: destino,
+        fechaCreacion: new Date().toISOString()
+    };
+    
+    if(existe !== -1) {
+        // Actualizar existente
+        if(confirm('⚠️ Ya existe una plantilla con este nombre. ¿Actualizar?')) {
+            plantillas[existe] = nuevaPlantilla;
+        } else {
+            return false;
+        }
+    } else {
+        // Agregar nueva
+        plantillas.push(nuevaPlantilla);
+    }
+    
+    localStorage.setItem(TEMPLATES_KEY, JSON.stringify(plantillas));
+    alert(`💾 Plantilla "${nombre}" guardada correctamente`);
+    cargarListaPlantillas();
+    return true;
+}
+
+// Gestionar plantillas (ver/eliminar)
+function gestionarPlantillas() {
+    const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
+    
+    if(plantillas.length === 0) {
+        alert('📋 No tienes plantillas guardadas todavía.\n\nMarca la casilla "Guardar como plantilla" al registrar un perfume.');
+        return;
+    }
+    
+    let mensaje = '📋 PLANTILLAS GUARDADAS:\n\n';
+    plantillas.forEach((t, i) => {
+        mensaje += `${i+1}. ${t.nombre} - ${t.marca}\n`;
+    });
+    mensaje += '\n¿Qué deseas hacer?\n\n';
+    mensaje += '[OK] = Cerrar\n';
+    mensaje += '[Cancelar] = Borrar todas las plantillas';
+    
+    if(!confirm(mensaje)) {
+        if(confirm('⚠️ ¿ELIMINAR TODAS LAS PLANTILLAS? Esta acción no se puede deshacer.')) {
+            localStorage.removeItem(TEMPLATES_KEY);
+            cargarListaPlantillas();
+            alert('🗑️ Todas las plantillas han sido eliminadas');
+        }
+    }
+}
+
+// Llamar al abrir el modal
+document.addEventListener('DOMContentLoaded', () => {
+    cargarListaPlantillas();
+});

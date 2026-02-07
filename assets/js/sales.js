@@ -531,16 +531,65 @@ function eliminarPago(id) {
 }
 
 function calcularTotales() {
+    // 1. Calcular ganancia REAL (solo lo cobrado)
+    let miGananciaReal = 0;
+    let miGananciaTotal = 0;  // Para mostrar el total devengado
+    let totalPorCobrar = 0;
+    
+    listadoVentas.forEach(venta => {
+        const miParteCompleta = parseFloat(venta.reparto.yo || 0);
+        miGananciaTotal += miParteCompleta;  // Total sin importar si cobró
+        
+        if (venta.esCredito) {
+            // Calcular cuánto ha cobrado del precio total
+            const precioTotal = parseFloat(venta.precioFinal);
+            const saldoPendiente = parseFloat(venta.saldoPendiente || 0);
+            const cobrado = precioTotal - saldoPendiente;
+            
+            // Calcular ganancia proporcional a lo cobrado
+            const porcentajeCobrado = cobrado / precioTotal;
+            const gananciaCobrada = miParteCompleta * porcentajeCobrado;
+            
+            miGananciaReal += gananciaCobrada;
+            totalPorCobrar += saldoPendiente;
+        } else {
+            // Venta de contado = 100% cobrada
+            miGananciaReal += miParteCompleta;
+        }
+    });
+
+    // 2. Cálculos del socio
     let generadoSocio = listadoVentas.reduce((acc, v) => acc + parseFloat(v.reparto.socio || 0), 0);
     let pagadoSocio = listadoPagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
     let deudaActual = generadoSocio - pagadoSocio;
-    let miGanancia = listadoVentas.reduce((acc, v) => acc + parseFloat(v.reparto.yo || 0), 0);
 
-    if(document.getElementById('total-mi-ganancia')) document.getElementById('total-mi-ganancia').innerText = formatMoney(miGanancia);
-    if(document.getElementById('saldo-pendiente-socio')) document.getElementById('saldo-pendiente-socio').innerText = formatMoney(deudaActual);
-    if(document.getElementById('modal-deuda-actual')) document.getElementById('modal-deuda-actual').innerText = formatMoney(deudaActual);
-    if(document.getElementById('detalle-pagos')) document.getElementById('detalle-pagos').innerText = `Generado: ${formatMoney(generadoSocio)} | Pagado: ${formatMoney(pagadoSocio)}`;
+    // 3. Actualizar en pantalla
+    if(document.getElementById('total-mi-ganancia')) {
+        document.getElementById('total-mi-ganancia').innerText = formatMoney(miGananciaReal);
+    }
+    if(document.getElementById('saldo-pendiente-socio')) {
+        document.getElementById('saldo-pendiente-socio').innerText = formatMoney(deudaActual);
+    }
+    if(document.getElementById('modal-deuda-actual')) {
+        document.getElementById('modal-deuda-actual').innerText = formatMoney(deudaActual);
+    }
+    if(document.getElementById('detalle-pagos')) {
+        document.getElementById('detalle-pagos').innerText = `Generado: ${formatMoney(generadoSocio)} | Pagado: ${formatMoney(pagadoSocio)}`;
+    }
+    
+    // 4. Nuevos KPIs (si existen en el HTML)
+    if(document.getElementById('total-ventas-bruto')) {
+        const totalVentas = listadoVentas.reduce((sum, v) => sum + parseFloat(v.precioFinal), 0);
+        document.getElementById('total-ventas-bruto').innerText = formatMoney(totalVentas);
+    }
+    if(document.getElementById('total-por-cobrar')) {
+        document.getElementById('total-por-cobrar').innerText = formatMoney(totalPorCobrar);
+    }
+    if(document.getElementById('ganancia-devengada')) {
+        document.getElementById('ganancia-devengada').innerText = formatMoney(miGananciaTotal);
+    }
 }
+
 
 function setFiltroFecha(tipo, btn) {
     filtroFechaActual = tipo;
