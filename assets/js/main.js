@@ -57,3 +57,49 @@ function initImagePreview() {
         }
     });
 }
+
+// Actualizar badge de alertas en todas las páginas
+function actualizarBadgeAlertas() {
+    const badge = document.getElementById('nav-alertas-badge');
+    if (!badge) return;
+    
+    // Generar alertas (copia lógica simplificada)
+    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    
+    let totalAlertas = 0;
+    
+    // Contar alertas críticas básicas
+    const ahora = new Date();
+    
+    // Paquetes retrasados
+    totalAlertas += productos.filter(p => {
+        if (p.ubicacion === 'en_camino') {
+            const dias = Math.floor((ahora - new Date(p.fechaRegistro)) / (1000 * 60 * 60 * 24));
+            return dias >= 7;
+        }
+        return false;
+    }).length;
+    
+    // Deudas críticas
+    const deudasCriticas = ventas.filter(v => {
+        if (v.esCredito && v.saldoPendiente > 1000) return true;
+        if (v.esCredito && v.saldoPendiente > 0) {
+            const dias = Math.floor((ahora - new Date(v.fecha)) / (1000 * 60 * 60 * 24));
+            return dias > 15;
+        }
+        return false;
+    });
+    totalAlertas += deudasCriticas.length;
+    
+    // Mostrar badge si hay alertas
+    if (totalAlertas > 0) {
+        badge.innerText = totalAlertas > 9 ? '9+' : totalAlertas;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// Ejecutar al cargar cualquier página
+document.addEventListener('DOMContentLoaded', actualizarBadgeAlertas);

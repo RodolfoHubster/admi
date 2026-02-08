@@ -1,294 +1,272 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Fitoscents</title>
-        
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-        
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitoscents - Dashboard</title>
     
-        <link rel="stylesheet" href="assets/css/main.css">
-        
-    </head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">👑 Fitoscents</a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<div class="container my-4">
     
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <div class="navbar-nav gap-2">
-                    <a href="index.html" class="nav-link active">Inicio</a>
-                    <a href="products.html" class="nav-link ">📦 Inventario</a>
-                    <a href="ventas.html" class="nav-link">💰 Ventas</a>
-                    <a href="clientes.html" class="nav-link">👥 Clientes</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-<div class="container">
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col">
-            <h2 class="fw-bold text-dark">Resumen del Negocio</h2>
-            <p class="text-muted">Estado actual de tu inversión y ganancias.</p>
+            <h2 class="fw-bold">📊 Dashboard de Negocio</h2>
+            <p class="text-muted mb-0">Vista general de tu operación - <span id="fecha-actual"></span></p>
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
-    
-        <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi kpi-capital h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0 text-secondary">CAPITAL INVERTIDO</h6>
-                        <i class="bi bi-box-seam icon-box"></i>
+    <!-- SECCIÓN 1: DINERO REAL (Lo más importante) -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <h5 class="text-uppercase text-muted fw-bold mb-3">💰 TU DINERO REAL</h5>
+        </div>
+        
+        <!-- Ganancia Neta (Lo que realmente ganaste) -->
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <small class="opacity-75 d-block mb-1">💵 GANANCIA NETA REAL</small>
+                            <h1 class="display-4 fw-bold mb-0" id="ganancia-neta-real">$0</h1>
+                        </div>
+                        <i class="bi bi-cash-stack" style="font-size: 3rem; opacity: 0.3;"></i>
                     </div>
-                    <h3 class="fw-bold mb-0 kpi-value" id="kpi-stock-costo">$0.00</h3>
-                    <small class="text-muted">Dinero parado en botellas</small>
+                    <div class="mt-3 pt-3 border-top border-white border-opacity-25">
+                        <small class="opacity-75">Ventas cobradas - Gastos operativos</small>
+                        <div class="mt-2">
+                            <span class="badge bg-white bg-opacity-25" id="badge-cobrado">Cobrado: $0</span>
+                            <span class="badge bg-white bg-opacity-25 ms-2" id="badge-gastos-desc">Gastos: $0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    
-        <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi kpi-venta h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0 text-secondary">VENTA POTENCIAL</h6>
-                        <i class="bi bi-graph-up-arrow icon-box"></i>
+
+        <!-- Por Cobrar (Dinero que te deben) -->
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <small class="opacity-75 d-block mb-1">⏳ POR COBRAR A CLIENTES</small>
+                            <h1 class="display-4 fw-bold mb-0" id="dinero-por-cobrar">$0</h1>
+                        </div>
+                        <i class="bi bi-hourglass-split" style="font-size: 3rem; opacity: 0.3;"></i>
                     </div>
-                    <h3 class="fw-bold mb-0 kpi-value" id="kpi-stock-venta">$0.00</h3>
+                    <div class="mt-3 pt-3 border-top border-white border-opacity-25">
+                        <small class="opacity-75">Ventas a crédito pendientes</small>
+                        <div class="mt-2">
+                            <span class="badge bg-white bg-opacity-25" id="clientes-deudores">0 clientes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 2: INVENTARIO (Capital invertido) -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <h5 class="text-uppercase text-muted fw-bold mb-3">📦 INVENTARIO ACTUAL</h5>
+        </div>
+
+        <!-- Capital Invertido -->
+        <div class="col-md-4">
+            <div class="card shadow border-0 bg-danger bg-opacity-10 border-danger border-2 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-danger fw-bold">💸 CAPITAL INVERTIDO</small>
+                        <i class="bi bi-coin text-danger fs-3 opacity-50"></i>
+                    </div>
+                    <h2 class="fw-bold text-danger mb-2" id="capital-invertido">$0</h2>
+                    <small class="text-muted">Dinero "congelado" en botellas</small>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 0%" id="progress-capital"></div>
+                    </div>
+                    <small class="text-muted d-block mt-1"><span id="botellas-stock">0</span> botellas en stock</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Valor Potencial -->
+        <div class="col-md-4">
+            <div class="card shadow border-0 bg-primary bg-opacity-10 border-primary border-2 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-primary fw-bold">💎 VALOR POTENCIAL</small>
+                        <i class="bi bi-gem text-primary fs-3 opacity-50"></i>
+                    </div>
+                    <h2 class="fw-bold text-primary mb-2" id="valor-potencial">$0</h2>
                     <small class="text-muted">Si vendes todo hoy</small>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                    </div>
+                    <small class="text-muted d-block mt-1">Ganancia proyectada: <span class="text-primary fw-bold" id="ganancia-proyectada">$0</span></small>
                 </div>
             </div>
         </div>
-    
-        <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi kpi-ganancia h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0 text-secondary">GANANCIA TOTAL</h6>
-                        <i class="bi bi-cash-stack icon-box"></i>
+
+        <!-- En Camino -->
+        <div class="col-md-4">
+            <div class="card shadow border-0 bg-warning bg-opacity-10 border-warning border-2 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-warning fw-bold">🚚 EN CAMINO</small>
+                        <i class="bi bi-truck text-warning fs-3 opacity-50"></i>
                     </div>
-                    <h3 class="fw-bold mb-0 kpi-value text-gold" id="kpi-ganancia-total">$0.00</h3>
-                    <small class="text-muted">Utilidad Neta Histórica</small>
-                </div>
-            </div>
-        </div>
-    
-        <div class="col-md-6 col-lg-3">
-            <div class="card card-kpi kpi-stock h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0 text-secondary">BOTELLAS EN STOCK</h6>
-                        <i class="bi bi-upc-scan icon-box"></i>
+                    <h2 class="fw-bold text-warning mb-2" id="valor-en-camino">$0</h2>
+                    <small class="text-muted">Paquetes en tránsito</small>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" id="progress-camino"></div>
                     </div>
-                    <h3 class="fw-bold mb-0 kpi-value" id="kpi-cantidad-stock">0</h3>
-                    <small class="text-muted">Unidades físicas</small>
+                    <small class="text-muted d-block mt-1"><span id="paquetes-camino">0</span> paquetes esperando</small>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- SECCIÓN 3: GRÁFICAS -->
+    <div class="row g-4 mb-4">
+        <!-- Gráfica: Ventas por Mes -->
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h6 class="mb-0 fw-bold">📈 Ventas por Mes (Últimos 6 meses)</h6>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="chartVentasMes" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfica: Distribución Inventario -->
+        <div class="col-md-4">
+            <div class="card shadow border-0 h-100">
+                <div class="card-header bg-dark text-white py-3">
+                    <h6 class="mb-0 fw-bold">🎯 Estado del Inventario</h6>
+                </div>
+                <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                    <canvas id="chartInventario"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 4: TOP PRODUCTOS -->
+    <div class="row g-4 mb-4">
+        <!-- Top Más Rentables -->
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-success text-white py-3">
+                    <h6 class="mb-0 fw-bold">💰 Top 5 Más Rentables</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Producto</th>
+                                    <th class="text-end">Ganancia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-rentables">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Más Vendidos -->
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-info text-white py-3">
+                    <h6 class="mb-0 fw-bold">🔥 Top 5 Más Vendidos (30 días)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Producto</th>
+                                    <th class="text-end">Vendidos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-vendidos">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 5: ACCIONES RÁPIDAS -->
     <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-dark fw-bold py-3">
-                    🏆 Top Perfumes (Más Stock)
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h6 class="mb-0 fw-bold">🚀 Acciones Rápidas</h6>
                 </div>
-                <ul class="list-group list-group-flush" id="list-top-stock" >
-                    </ul>
-                <div class="card-footer bg-dark text-center">
-                    <a href="products.html" class="btn btn-sm btn-outline-primary">Ir a Inventario Completo</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-dark fw-bold py-3">
-                    🚀 Acciones Rápidas
-                </div>
-                <div class="card-body d-grid gap-3">
-                    <a href="products.html" class="btn btn-action text-start">
-                        <i class="bi bi-plus-circle me-2 text-gold"></i> Registrar Nueva Compra
-                    </a>
-                    
-                    <a href="ventas.html" class="btn btn-action text-start">
-                        <i class="bi bi-wallet2 me-2 text-gold"></i> Ver Deudas y Pagos
-                    </a>
-                    
-                    <button onclick="descargarRespaldoGlobal()" class="btn btn-action text-start">
-                        <i class="bi bi-cloud-arrow-down me-2 text-gold"></i> Respaldar Todo Ahora
-                    </button>
-                    
-                    <a href="clientes.html" class="btn btn-action text-start">
-                        <i class="bi bi-people me-2 text-gold"></i> Cobrar a Clientes
-                    </a>
-                
-                    <button onclick="exportarExcel()" class="btn btn-gold text-start fw-bold text-dark">
-                        <i class="bi bi-file-earmark-spreadsheet me-2"></i> Descargar Excel
-                    </button>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="products.html" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-plus-circle fs-4 d-block mb-2"></i>
+                                Registrar Compra
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="ventas.html" class="btn btn-outline-success w-100 py-3">
+                                <i class="bi bi-cart-check fs-4 d-block mb-2"></i>
+                                Ver Ventas
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="clientes.html" class="btn btn-outline-danger w-100 py-3">
+                                <i class="bi bi-people fs-4 d-block mb-2"></i>
+                                Cobrar Deudas
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <button onclick="descargarRespaldoGlobal()" class="btn btn-outline-dark w-100 py-3">
+                                <i class="bi bi-cloud-download fs-4 d-block mb-2"></i>
+                                Respaldar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
-<script src="assets/js/config.js"></script>    <script src="assets/js/utils.js"></script>     <script src="assets/js/inventory.js"></script> <script src="assets/js/sales.js"></script>     <script src="assets/js/cart.js"></script>      <script src="assets/js/backup.js"></script>    <script src="assets/js/main.js"></script>      ```
-<script>
-    // --- LÓGICA DEL DASHBOARD ---
-    //const DB_KEY = 'perfume_inventory_v1';
-    //const SALES_KEY = 'perfume_sales_v1';
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="components/header.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/inventory.js"></script>
+<script src="assets/js/sales.js"></script>
+<script src="assets/js/backup.js"></script>
+<script src="assets/js/dashboard.js"></script>
 
-    document.addEventListener('DOMContentLoaded', () => {
-        calcularKPIs();
-    });
-
-    function calcularKPIs() {
-        // 1. Obtener Datos
-        const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-
-        // --- CÁLCULOS DE INVENTARIO ---
-        
-        // Sumar Costo Total (Capital invertido)
-        const totalCostoStock = productos.reduce((sum, prod) => sum + (parseFloat(prod.costo) || 0), 0);
-        
-        // Sumar Venta Potencial (Si vendieras todo hoy)
-        const totalVentaStock = productos.reduce((sum, prod) => sum + (parseFloat(prod.precioVenta) || 0), 0);
-        
-        // Cantidad de Botellas
-        const cantidadBotellas = productos.length;
-
-        // --- CÁLCULOS DE VENTAS ---
-            
-    // --- CÁLCULOS DE VENTAS REALES ---
-
-    // 1. Calcular solo lo COBRADO (no lo que deben)
-    let gananciaReal = 0;
-    ventas.forEach(venta => {
-        if (venta.esCredito) {
-            // Solo cuenta lo que YA cobraste
-            const cobrado = venta.precioFinal - (venta.saldoPendiente || 0);
-            const porcentajeCobrado = cobrado / venta.precioFinal;
-            gananciaReal += venta.utilidad * porcentajeCobrado;
-        } else {
-            // Venta de contado = 100% cobrada
-            gananciaReal += venta.utilidad;
-        }
-    });
-
-    // 2. Restar los GASTOS de compras
-    const gastosInventario = JSON.parse(localStorage.getItem('perfume_expenses_v1')) || [];
-    const totalGastos = gastosInventario.reduce((sum, gasto) => {
-        // Solo resta TUS gastos (no los del socio)
-        if (gasto.inversion === 'mio' || gasto.inversion === 'mitad') {
-            const porcentajeTuyo = gasto.inversion === 'mitad' ? 0.5 : 1.0;
-            return sum + (gasto.monto * porcentajeTuyo);
-        }
-        return sum;
-    }, 0);
-
-    // 3. Calcular deudas por cobrar
-    const porCobrar = ventas.reduce((sum, v) => sum + (parseFloat(v.saldoPendiente) || 0), 0);
-
-    // 4. CAPITAL REAL = Ganancia Cobrada - Gastos
-    const capitalReal = gananciaReal - totalGastos;
-
-        // --- PINTAR EN PANTALLA ---
-        document.getElementById('kpi-stock-costo').innerText = formatMoney(totalCostoStock);
-        document.getElementById('kpi-stock-venta').innerText = formatMoney(totalVentaStock);
-        document.getElementById('kpi-ganancia-total').innerText = formatMoney(capitalReal);
-        // Opcional: Mostrar por cobrar en otro KPI
-        // document.getElementById('kpi-por-cobrar').innerText = formatMoney(porCobrar);
-        document.getElementById('kpi-cantidad-stock').innerText = cantidadBotellas;
-
-        // --- GENERAR LISTA TOP (Los 5 perfumes más caros que tienes en stock) ---
-        const listaTop = document.getElementById('list-top-stock');
-        listaTop.innerHTML = '';
-        
-        // Ordenar productos por precio de venta (Mayor a menor) y tomar los 5 primeros
-        const topProductos = [...productos].sort((a, b) => b.precioVenta - a.precioVenta).slice(0, 5);
-
-        if (topProductos.length === 0) {
-            listaTop.innerHTML = '<li class="list-group-item text-muted text-center">Sin inventario</li>';
-        } else {
-            topProductos.forEach(prod => {
-                listaTop.innerHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${prod.nombre}</strong>
-                            <div class="small text-muted">${prod.marca}</div>
-                        </div>
-                        <span class="badge bg-light text-dark border">$${prod.precioVenta}</span>
-                    </li>
-                `;
-            });
-        }
-    }
-
-    // Función auxiliar para respaldo rápido desde el Dashboard
-    function descargarRespaldoGlobal() {
-    // Capturamos TODAS las bases de datos
-    const backupData = {
-        inventory: JSON.parse(localStorage.getItem(DB_KEY) || '[]'),
-        sales: JSON.parse(localStorage.getItem(SALES_KEY) || '[]'),
-        payouts: JSON.parse(localStorage.getItem('perfume_payouts_v1') || '[]'), // Asegúrate de usar la misma key que en clientes.html
-        timestamp: new Date().toISOString()
-    };
-
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `RESPALDO_COMPLETO_${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
-
-    function formatMoney(amount) {
-        return '$' + amount.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
-
-    // --- AGREGAR ESTO AQUÍ EN INDEX.HTML PARA QUE FUNCIONE EL BOTÓN ---
-    function exportarExcel() {
-        // Leemos la base de datos directo del navegador
-        const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        
-        if (productos.length === 0) return alert("Nada que exportar.");
-
-        // 1. Crear encabezados CSV
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "SKU,Producto,Marca,Costo,Precio Venta,Inversion,Destino,ImagenURL\n";
-
-        // 2. Recorrer datos
-        productos.forEach(p => {
-            const nombreLimpio = p.nombre.replace(/,/g, " "); // Evitar errores con comas
-            // Agregamos la imagen al final
-            const fila = `${p.sku},${nombreLimpio},${p.marca},${p.costo},${p.precioVenta},${p.inversion},${p.destino},${p.imagen || ''}`;
-            csvContent += fila + "\n";
-        });
-
-        // 3. Descargar archivo
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        const fecha = new Date().toISOString().slice(0,10);
-        link.setAttribute("download", `Inventario_Excel_${fecha}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-</script>
 </body>
 </html>
