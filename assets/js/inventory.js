@@ -1,5 +1,21 @@
 // --- INVENTARIO (VERSIÓN DARK LUXURY) ---
 
+// ===== PROTECCIÓN CONTRA IMÁGENES INVÁLIDAS =====
+function validarURLImagen(url) {
+    if(!url || url.trim() === '' || url.length < 10) {
+        return 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+    }
+    try {
+        new URL(url);
+        return url;
+    } catch {
+        return 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+    }
+}
+// ===============================================
+
+const TEMPLATES_KEY = 'perfume_templates_v1';
+
 function cargarInventario() {
     const tableBody = document.getElementById('inventory-table-body');
     const emptyMsg = document.getElementById('empty-msg');
@@ -9,30 +25,20 @@ function cargarInventario() {
 
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     
-    // ===== NUEVO: CALCULAR TOTALES PARA BADGES =====
+    // Calcular totales para badges
     let totalUnidades = 0;
     let totalEnCamino = 0;
     
     productos.forEach(prod => {
         const cant = prod.cantidad || 1;
         totalUnidades += cant;
-        
         if(prod.ubicacion === 'en_camino') {
             totalEnCamino += cant;
         }
     });
     
-    // Actualizar badges
-    const badgePerfumes = document.querySelector('.badge.bg-primary');
-    const badgeUnidades = document.querySelector('.badge.bg-secondary');
-    const badgeEnCamino = document.querySelector('.badge.bg-warning');
     const badgeEnCaminoBoton = document.getElementById('badge-en-camino');
-    
-    if(badgePerfumes) badgePerfumes.innerText = `${productos.length} perfumes`;
-    if(badgeUnidades) badgeUnidades.innerText = `${totalUnidades} unidades`;
-    if(badgeEnCamino) badgeEnCamino.innerText = `${totalEnCamino} en camino`;
     if(badgeEnCaminoBoton) badgeEnCaminoBoton.innerText = totalEnCamino;
-    // ===============================================
     
     tableBody.innerHTML = '';
 
@@ -98,12 +104,10 @@ function cargarInventario() {
         if (items.length === 1) {
             tableBody.innerHTML += renderFila(items[0], items[0].originalIndex);
         } else {
-            // GRUPO (LOTE)
             const accordionId = `grupo-${grupo.nombre.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}`; 
             const imgUrl = principal.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
             const ganancia = principal.precioVenta - principal.costo;
 
-            // --- CÁLCULO DE DEUDA SOCIO PARA TODO EL LOTE ---
             let deudaSocioTotal = 0;
             items.forEach(item => {
                 let din = 0;
@@ -115,7 +119,6 @@ function cargarInventario() {
                 }
                 deudaSocioTotal += din;
             });
-            // -----------------------------------------------
 
             const filaPadre = `
                 <tr class="align-middle fw-bold table-group-header">
@@ -132,7 +135,6 @@ function cargarInventario() {
                     <td>$${principal.precioVenta}</td>
                     <td class="text-success">+$${ganancia}</td>
                     <td class="text-center">${grupo.totalStock} Unid.</td>
-                    
                     <td class="text-center">
                          ${deudaSocioTotal > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${deudaSocioTotal.toFixed(0)}</span>` : '-'}
                     </td>
@@ -141,7 +143,7 @@ function cargarInventario() {
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="10" class="p-0 border-0"> <div class="collapse" id="${accordionId}">
+                    <td colspan="10" class="p-0 border-0"><div class="collapse" id="${accordionId}">
                             <table class="table table-sm mb-0 align-middle bg-transparent" style="table-layout: fixed; width: 100%;">
                                 <tbody class="border-start border-4 border-warning">
                                     ${items.map(item => renderFilaHija(item, item.originalIndex)).join('')}
@@ -154,14 +156,15 @@ function cargarInventario() {
             tableBody.innerHTML += filaPadre;
         }
     });
+    
+    calcularKPIsInventario();
 }
 
 function renderFila(prod, index) {
-    const imgSegura = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+    const imgSegura = validarURLImagen(prod.imagen);
     const ganancia = prod.precioVenta - prod.costo;
     const cantidad = prod.cantidad || 1;
     
-    // CÁLCULO DINERO SOCIO
     let dineroSocio = 0;
     if (prod.inversion === 'mitad') dineroSocio = prod.costo / 2;
     else if (prod.inversion === 'socio') dineroSocio = prod.costo;
@@ -197,7 +200,6 @@ function renderFila(prod, index) {
             <td>$${prod.precioVenta}</td>
             <td class="fw-bold text-success">+$${ganancia}</td>
             <td class="text-center fw-bold fs-5">${cantidad}</td>
-            
             <td class="text-center">
                 ${dineroSocio > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${dineroSocio.toFixed(0)}</span>` : '<span class="text-muted">-</span>'}
             </td>
@@ -210,7 +212,6 @@ function renderFilaHija(prod, index) {
     const ganancia = prod.precioVenta - prod.costo;
     const imgSegura = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
 
-    // CÁLCULO DINERO SOCIO
     let dineroSocio = 0;
     if (prod.inversion === 'mitad') dineroSocio = prod.costo / 2;
     else if (prod.inversion === 'socio') dineroSocio = prod.costo;
@@ -231,22 +232,20 @@ function renderFilaHija(prod, index) {
         badgeUbicacion = '<span class="badge bg-success bg-opacity-10 text-success border border-success">✅ En Mano</span>';
     }
 
-    // OJO CON LOS ANCHOS (%) - HE AJUSTADO PARA QUE QUEPAN TODOS
     return `
         <tr class="${claseFila}" style="border-bottom: 1px solid #444;">
-            <td style="width: 10%; padding-left: 20px; vertical-align: middle;"><small class="text-muted me-1">↳</small><span class="badge bg-light text-dark border border-secondary text-truncate" style="max-width: 100%;">${prod.sku}</span></td>
-            <td style="width: 20%; vertical-align: middle;"><div class="d-flex align-items-center"><img src="${imgSegura}" class="img-thumb-mini rounded-circle border js-preview-trigger" data-large-src="${imgSegura}" style="width: 28px; height: 28px; min-width: 28px; object-fit: cover;"><div class="ms-2 text-truncate"><span class="fw-bold text-dark small">${prod.nombre}</span></div></div></td>
-            <td style="width: 9%; vertical-align: middle;" class="badge-multiline">${getBadgeInversion(prod.inversion)}</td>
-            <td style="width: 9%; vertical-align: middle;" class="badge-multiline">${getBadgeDestino(prod)}</td>
-            <td style="width: 11%; vertical-align: middle;"><div class="d-flex align-items-center justify-content-center">${badgeUbicacion}${botonRecibir}</div></td>
-            <td style="width: 8%; vertical-align: middle;" class="text-muted small fw-bold">$${prod.precioVenta}</td>
-            <td style="width: 8%; vertical-align: middle;" class="text-success fw-bold small">+$${ganancia}</td>
-            <td style="width: 5%; vertical-align: middle;" class="text-center small text-muted">1</td>
-            
-            <td style="width: 8%; vertical-align: middle;" class="text-center">
-                 ${dineroSocio > 0 ? `<span class="badge bg-warning text-dark border border-dark text-truncate">$${dineroSocio.toFixed(0)}</span>` : '-'}
+            <td style="width: 10%; padding-left: 20px;"><small class="text-muted me-1">↳</small><span class="badge bg-light text-dark border border-secondary">${prod.sku}</span></td>
+            <td style="width: 20%;"><div class="d-flex align-items-center"><img src="${imgSegura}" class="img-thumb-mini rounded-circle border js-preview-trigger" data-large-src="${imgSegura}" style="width: 28px; height: 28px;"><div class="ms-2"><span class="fw-bold text-dark small">${prod.nombre}</span></div></div></td>
+            <td style="width: 9%;">${getBadgeInversion(prod.inversion)}</td>
+            <td style="width: 9%;">${getBadgeDestino(prod)}</td>
+            <td style="width: 11%;"><div class="d-flex align-items-center justify-content-center">${badgeUbicacion}${botonRecibir}</div></td>
+            <td style="width: 8%;" class="text-muted small fw-bold">$${prod.precioVenta}</td>
+            <td style="width: 8%;" class="text-success fw-bold small">+$${ganancia}</td>
+            <td style="width: 5%;" class="text-center small">1</td>
+            <td style="width: 8%;" class="text-center">
+                 ${dineroSocio > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${dineroSocio.toFixed(0)}</span>` : '-'}
             </td>
-            <td style="width: 12%; vertical-align: middle;">${getBotonesAccion(index)}</td>
+            <td style="width: 12%;">${getBotonesAccion(index)}</td>
         </tr>
     `;
 }
@@ -263,7 +262,6 @@ function cambiarOrden(campo) {
 function filtrarTabla() { cargarInventario(); }
 
 function guardarProducto() {
-    // 1. CAPTURAR DATOS DEL FORMULARIO
     const nombre = document.getElementById('inputNombre').value.trim();
     const marca = document.getElementById('inputMarca').value.trim();
     let sku = document.getElementById('inputSku').value.trim();
@@ -271,44 +269,34 @@ function guardarProducto() {
     const precio = document.getElementById('inputPrecio').value;
     const imagenUrl = document.getElementById('inputImagen').value.trim();
     
-    // Capturar inversión
-    const elInversion = document.getElementById('selectInversion') || document.getElementById('inputInversion');
+    const elInversion = document.getElementById('inputInversion');
     const inversion = elInversion ? elInversion.value : 'mio';
 
-    // Capturar cantidad
     const cantidadInput = document.getElementById('inputCantidad');
     const cantidadTotal = cantidadInput ? parseInt(cantidadInput.value) : 1;
     
-    // Capturar porcentaje socio
-    const inputPct = document.getElementById('inputPorcentaje') || document.getElementById('inputPorcentajeSocio');
+    const inputPct = document.getElementById('inputPorcentajeSocio');
     const porcentajeSocio = (inversion === 'personalizado' && inputPct) ? parseFloat(inputPct.value) : 0;
     
-    // Capturar destino
     const destinoElement = document.getElementById('inputDestino'); 
     const destino = destinoElement ? destinoElement.value : 'stock';
     
-    // Capturar cliente
     const clienteElement = document.getElementById('inputCliente');
     const clienteRaw = clienteElement ? clienteElement.value : '';
     const cliente = clienteRaw.trim().toUpperCase();
     
-    // Capturar ubicación
     const ubicacionElement = document.getElementById('inputUbicacion');
     const ubicacion = ubicacionElement ? ubicacionElement.value : 'en_inventario';
 
-    // 2. VALIDACIONES
     if (!nombre || !costo || !precio) {
-        alert("Por favor, llena los campos obligatorios (Nombre, Costo, Precio).");
+        alert("Por favor, llena los campos obligatorios.");
         return;
     }
     
-    // Si no hay SKU, generamos uno aleatorio
     if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
 
-    // 3. CARGAR BASE DE DATOS ACTUAL
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
 
-    // 4. CREAR PRODUCTOS (BUCLE DE REPETICIÓN)
     for (let i = 0; i < cantidadTotal; i++) {
         const nuevoPerfume = {
             id: Date.now() + i, 
@@ -330,10 +318,15 @@ function guardarProducto() {
         productos.push(nuevoPerfume);
     }
 
-    // 5. GUARDAR EN LOCALSTORAGE
+    // Guardar plantilla si está marcado
+    const checkPlantilla = document.getElementById('checkGuardarPlantilla');
+    if(checkPlantilla && checkPlantilla.checked) {
+        guardarComoPlantilla();
+        checkPlantilla.checked = false;
+    }
+    
     localStorage.setItem(DB_KEY, JSON.stringify(productos));
 
-    // 6. CERRAR MODAL Y LIMPIAR
     const modalEl = document.getElementById('modalNuevoPerfume');
     if(modalEl) {
         const modal = bootstrap.Modal.getInstance(modalEl);
@@ -341,22 +334,9 @@ function guardarProducto() {
         document.getElementById('form-nuevo-perfume').reset();
     }
 
-    // 7. REFRESCAR LA TABLA
-    if (typeof cargarInventario === 'function') {
-        cargarInventario();
-    }
-
-    // ===== GUARDAR COMO PLANTILLA SI ESTÁ MARCADO =====
-const checkPlantilla = document.getElementById('checkGuardarPlantilla');
-if(checkPlantilla && checkPlantilla.checked) {
-    guardarComoPlantilla();
-    checkPlantilla.checked = false;
-}
-// ==================================================
-    
+    cargarInventario();
     alert(`✅ Se registraron correctamente ${cantidadTotal} unidades.`);
 }
-
 
 function eliminarProducto(index) {
     if (!solicitarPin()) return alert("❌ PIN Incorrecto.");
@@ -396,7 +376,6 @@ function guardarCambiosEdicion() {
     if (indiceEdicion === null) return;
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     const p = productos[indiceEdicion];
-    productos[indiceEdicion].cantidad = parseInt(document.getElementById('inputCantidad').value) || 1;
     
     p.nombre = document.getElementById('inputNombre').value;
     p.marca = document.getElementById('inputMarca').value;
@@ -408,12 +387,13 @@ function guardarCambiosEdicion() {
     p.cliente = document.getElementById('inputCliente').value;
     p.ubicacion = document.getElementById('inputUbicacion').value;
     p.imagen = document.getElementById('inputImagen').value || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+    p.cantidad = parseInt(document.getElementById('inputCantidad').value) || 1;
 
     localStorage.setItem(DB_KEY, JSON.stringify(productos));
 
     const modalEl = document.getElementById('modalNuevoPerfume');
     const modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
+    if(modal) modal.hide();
     
     restaurarModalNuevo();
     cargarInventario();
@@ -426,6 +406,7 @@ function restaurarModalNuevo() {
     const btnGuardar = document.querySelector('#modalNuevoPerfume .modal-footer .btn-primary');
     btnGuardar.innerText = "Guardar Perfume";
     btnGuardar.onclick = guardarProducto;
+    cargarListaPlantillas();
 }
 
 function marcarComoRecibido(index) {
@@ -455,13 +436,11 @@ function calcularKPIsInventario() {
     productos.forEach(prod => {
         const costo = parseFloat(prod.costo) || 0;
         const venta = parseFloat(prod.precioVenta) || 0;
-        const cantidad = prod.cantidad || 1;
         
         totalCosto += costo;
         totalVenta += venta;
         totalGanancia += (venta - costo);
         
-        // Calcular deuda al socio
         if (prod.inversion === 'mitad') {
             deudaSocio += costo * 0.5;
         } else if (prod.inversion === 'socio') {
@@ -472,7 +451,6 @@ function calcularKPIsInventario() {
         }
     });
     
-    // Actualizar en pantalla
     if(document.getElementById('total-costo-inventario')) {
         document.getElementById('total-costo-inventario').innerText = '$' + totalCosto.toFixed(0);
     }
@@ -487,15 +465,6 @@ function calcularKPIsInventario() {
     }
 }
 
-// Llamar al cargar inventario
-document.addEventListener('DOMContentLoaded', () => {
-    if(typeof cargarInventario === 'function') {
-        cargarInventario();
-        calcularKPIsInventario();
-    }
-});
-
-
 function filtrarEnCaminoRapido() {
     const filtroDestino = document.getElementById('filtroDestino');
     if(filtroDestino) {
@@ -504,23 +473,15 @@ function filtrarEnCaminoRapido() {
     }
 }
 
-// ========================================
-// SISTEMA DE PLANTILLAS DE PERFUMES
-// ========================================
+// ========== SISTEMA DE PLANTILLAS ==========
 
-const TEMPLATES_KEY = 'perfume_templates_v1';
-
-// Cargar lista de plantillas en el selector
 function cargarListaPlantillas() {
     const select = document.getElementById('selectPlantilla');
     if(!select) return;
     
     const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
-    
-    // Limpiar opciones (excepto la primera)
     select.innerHTML = '<option value="">-- Nuevo perfume desde cero --</option>';
     
-    // Agregar cada plantilla
     plantillas.forEach((template, index) => {
         const option = document.createElement('option');
         option.value = index;
@@ -529,13 +490,11 @@ function cargarListaPlantillas() {
     });
 }
 
-// Cargar datos de plantilla seleccionada
 function cargarPlantilla() {
     const select = document.getElementById('selectPlantilla');
     const index = select.value;
     
     if(index === '') {
-        // Limpiar formulario
         document.getElementById('form-nuevo-perfume').reset();
         document.getElementById('inputCantidad').value = 1;
         return;
@@ -546,7 +505,6 @@ function cargarPlantilla() {
     
     if(!template) return;
     
-    // Autocompletar campos
     document.getElementById('inputNombre').value = template.nombre;
     document.getElementById('inputMarca').value = template.marca;
     document.getElementById('inputSku').value = template.sku || '';
@@ -559,15 +517,13 @@ function cargarPlantilla() {
         togglePersonalizado();
     }
     
-    // IMPORTANTE: NO autocompletar precio/costo (para que los modifiques)
     document.getElementById('inputCosto').value = '';
     document.getElementById('inputPrecio').value = '';
-    document.getElementById('inputCosto').focus(); // Focus en el costo
+    document.getElementById('inputCosto').focus();
     
     alert(`✅ Plantilla "${template.nombre}" cargada. Ahora ingresa precio/costo actuales.`);
 }
 
-// Guardar perfume como plantilla
 function guardarComoPlantilla() {
     const nombre = document.getElementById('inputNombre').value.trim();
     const marca = document.getElementById('inputMarca').value.trim();
@@ -586,7 +542,6 @@ function guardarComoPlantilla() {
     
     const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
     
-    // Verificar si ya existe
     const existe = plantillas.findIndex(t => 
         t.nombre.toLowerCase() === nombre.toLowerCase() && 
         t.marca.toLowerCase() === marca.toLowerCase()
@@ -605,14 +560,12 @@ function guardarComoPlantilla() {
     };
     
     if(existe !== -1) {
-        // Actualizar existente
         if(confirm('⚠️ Ya existe una plantilla con este nombre. ¿Actualizar?')) {
             plantillas[existe] = nuevaPlantilla;
         } else {
             return false;
         }
     } else {
-        // Agregar nueva
         plantillas.push(nuevaPlantilla);
     }
     
@@ -622,7 +575,6 @@ function guardarComoPlantilla() {
     return true;
 }
 
-// Gestionar plantillas (ver/eliminar)
 function gestionarPlantillas() {
     const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
     
@@ -648,7 +600,9 @@ function gestionarPlantillas() {
     }
 }
 
-// Llamar al abrir el modal
+// Inicializar al cargar
 document.addEventListener('DOMContentLoaded', () => {
+    cargarInventario();
     cargarListaPlantillas();
+    calcularKPIsInventario();
 });

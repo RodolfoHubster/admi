@@ -408,10 +408,19 @@ function renderVentas() {
                         <span class="text-warning text-dark">Soc: $${parseFloat(venta.reparto.socio).toFixed(0)}</span>
                     </div>
                 </td>
-                <td class="bg-warning bg-opacity-10 border-start border-warning">
-                    <strong class="text-dark fs-6">$${totalPagarSocio.toFixed(2)}</strong>
-                    <br><small class="text-muted" style="font-size:10px;">(Inv: $${inversionSocio.toFixed(0)} + Gan: $${parseFloat(venta.reparto.socio).toFixed(0)})</small>
-                </td>
+                <td class=\"bg-warning bg-opacity-10 border-start border-warning text-center\">
+    ${totalPagarSocio > 0 ? `
+        ${venta.pagadoAlSocio ? 
+            `<span class=\"badge bg-success text-white\">✅ PAGADO</span>
+             <br><small class=\"text-muted\">$${totalPagarSocio.toFixed(0)}</small>` 
+            : 
+            `<strong class=\"text-dark fs-6\">$${totalPagarSocio.toFixed(2)}</strong>
+             <br><small class=\"text-muted\" style=\"font-size:10px;\">(Inv: $${inversionSocio.toFixed(0)} + Gan: $${parseFloat(venta.reparto.socio).toFixed(0)})</small>
+             <br><button class=\"btn btn-sm btn-success mt-1\" onclick=\"marcarPagadoSocio(${venta.id})\" title=\"Marcar como pagado\">💰 Pagar</button>`
+        }
+    ` : '<span class=\"text-muted\">-</span>'}
+</td>
+
                 <td>
                     <div class="d-flex gap-1">
                         ${botonAbonar} 
@@ -631,4 +640,92 @@ function guardarAbono() {
     localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
     bootstrap.Modal.getInstance(document.getElementById('modalAbono')).hide();
     renderVentas();
+}
+
+// =========================================================
+// MARCAR VENTA COMO PAGADA AL SOCIO
+// =========================================================
+
+function marcarPagadoSocio(idVenta) {
+    const venta = listadoVentas.find(v => v.id === idVenta);
+    if(!venta) return;
+    
+    // Calcular cuánto se va a pagar
+    let inversionSocio = 0;
+    let tipo = venta.reglasReparto ? venta.reglasReparto.tipo : 'mio';
+    let pct = venta.reglasReparto ? venta.reglasReparto.pctSocio : 0;
+    const costo = venta.costoOriginal || 0;
+    
+    if (tipo === 'mitad') inversionSocio = costo * 0.50;
+    else if (tipo === 'socio') inversionSocio = costo;
+    else if (tipo === 'personalizado') inversionSocio = costo * (pct / 100);
+    
+    const totalPagar = inversionSocio + (venta.reparto.socio || 0);
+    
+    if(confirm(`💸 ¿Confirmar pago de $${totalPagar.toFixed(2)} al socio por "${venta.producto}"?`)) {
+        // Marcar como pagado
+        const index = listadoVentas.findIndex(v => v.id === idVenta);
+        listadoVentas[index].pagadoAlSocio = true;
+        listadoVentas[index].fechaPagoSocio = new Date().toLocaleString();
+        
+        // Registrar en historial de pagos global
+        const nuevoPago = {
+            id: Date.now(),
+            monto: totalPagar,
+            nota: `Pago por venta: ${venta.producto} (${venta.sku || 'Sin SKU'})`
+        };
+        
+        listadoPagos.push(nuevoPago);
+        
+        // Guardar
+        localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
+        localStorage.setItem(PAYOUTS_KEY, JSON.stringify(listadoPagos));
+        
+        // Recargar
+        cargarDatosVentas();
+        alert(`✅ Pago de $${totalPagar.toFixed(2)} registrado correctamente`);
+    }
+}
+
+function desmarcarPagadoSocio(idVenta) {
+    if(!solicitarPin()) return;
+    
+    const venta = listadoVentas.find(v => v.id === idVenta);
+    if(!venta || !venta.pagadoAlSocio) return;
+    
+    if(confirm(`⚠️ ¿Desmarcar pago de "${venta.producto}"? Esto eliminará el registro del pago.`)) {
+        // Calcular monto del pago
+        let inversionSocio = 0;
+        let tipo = venta.reglasReparto ? venta.reglasReparto.tipo : 'mio';
+        let pct = venta.reglasReparto ? venta.reglasReparto.pctSocio : 0;
+        const costo = venta.costoOriginal || 0;
+        
+        if (tipo === 'mitad') inversionSocio = costo * 0.50;
+        else if (tipo === 'socio') inversionSocio = costo;
+        else if (tipo === 'personalizado') inversionSocio = costo * (pct / 100);
+        
+        const totalPagado = inversionSocio + (venta.reparto.socio || 0);
+        
+        // Buscar y eliminar el pago del historial
+        const indexPago = listadoPagos.findIndex(p => 
+            p.nota && p.nota.includes(venta.producto) && 
+            Math.abs(p.monto - totalPagado) < 0.01
+        );
+        
+        if(indexPago !== -1) {
+            listadoPagos.splice(indexPago, 1);
+        }
+        
+        // Desmarcar venta
+        const index = listadoVentas.findIndex(v => v.id === idVenta);
+        listadoVentas[index].pagadoAlSocio = false;
+        delete listadoVentas[index].fechaPagoSocio;
+        
+        // Guardar
+        localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
+        localStorage.setItem(PAYOUTS_KEY, JSON.stringify(listadoPagos));
+        
+        cargarDatosVentas();
+        alert('✅ Pago desmarcado correctamente');
+    }
 }
