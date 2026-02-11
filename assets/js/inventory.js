@@ -109,16 +109,16 @@ function cargarInventario() {
             const ganancia = principal.precioVenta - principal.costo;
 
             let deudaSocioTotal = 0;
-            items.forEach(item => {
-                let din = 0;
-                if (item.inversion === 'mitad') din = item.costo / 2;
-                else if (item.inversion === 'socio') din = item.costo;
-                else if (item.inversion === 'personalizado') {
-                    const pct = item.porcentajeSocio || 0;
-                    din = item.costo * (pct / 100);
-                }
-                deudaSocioTotal += din;
-            });
+items.forEach(item => {
+    const datosSocio = calcularDeudaSocioPorPieza(
+        item.costo,
+        item.precioVenta,
+        item.inversion,
+        item.porcentajeSocio || 0
+    );
+    deudaSocioTotal += datosSocio.totalPagarSocio;
+});
+
 
             const filaPadre = `
                 <tr class="align-middle fw-bold table-group-header">
@@ -165,13 +165,16 @@ function renderFila(prod, index) {
     const ganancia = prod.precioVenta - prod.costo;
     const cantidad = prod.cantidad || 1;
     
-    let dineroSocio = 0;
-    if (prod.inversion === 'mitad') dineroSocio = prod.costo / 2;
-    else if (prod.inversion === 'socio') dineroSocio = prod.costo;
-    else if (prod.inversion === 'personalizado') {
-        const pct = prod.porcentajeSocio || 0;
-        dineroSocio = prod.costo * (pct / 100);
-    }
+    const datosSocio = calcularDeudaSocioPorPieza(
+        prod.costo,
+        prod.precioVenta,
+        prod.inversion,
+        prod.porcentajeSocio || 0
+    );
+    
+    // Esto es lo que le tienes que dar si se vende
+    const dineroSocio = datosSocio.totalPagarSocio;
+    
     
     let claseFila = ''; 
     let badgeUbicacion = '';
@@ -201,7 +204,12 @@ function renderFila(prod, index) {
             <td class="fw-bold text-success">+$${ganancia}</td>
             <td class="text-center fw-bold fs-5">${cantidad}</td>
             <td class="text-center">
-                ${dineroSocio > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${dineroSocio.toFixed(0)}</span>` : '<span class="text-muted">-</span>'}
+            ${dineroSocio > 0 
+                ? `<span class="badge bg-warning text-dark border border-dark" 
+                        title="Inversión: $${datosSocio.inversionSocio.toFixed(0)} + Ganancia: $${datosSocio.gananciaSocio.toFixed(0)}">
+                    $${dineroSocio.toFixed(0)}
+                </span>` 
+                : '-'}
             </td>
             <td>${getBotonesAccion(index)}</td>
         </tr>
@@ -212,13 +220,15 @@ function renderFilaHija(prod, index) {
     const ganancia = prod.precioVenta - prod.costo;
     const imgSegura = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
 
-    let dineroSocio = 0;
-    if (prod.inversion === 'mitad') dineroSocio = prod.costo / 2;
-    else if (prod.inversion === 'socio') dineroSocio = prod.costo;
-    else if (prod.inversion === 'personalizado') {
-        const pct = prod.porcentajeSocio || 0;
-        dineroSocio = prod.costo * (pct / 100);
-    }
+    const datosSocio = calcularDeudaSocioPorPieza(
+        prod.costo,
+        prod.precioVenta,
+        prod.inversion,
+        prod.porcentajeSocio || 0
+    );
+    
+    const dineroSocio = datosSocio.totalPagarSocio;
+    
 
     let claseFila = ''; 
     let badgeUbicacion = '';
@@ -243,7 +253,12 @@ function renderFilaHija(prod, index) {
             <td style="width: 8%;" class="text-success fw-bold small">+$${ganancia}</td>
             <td style="width: 5%;" class="text-center small">1</td>
             <td style="width: 8%;" class="text-center">
-                 ${dineroSocio > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${dineroSocio.toFixed(0)}</span>` : '-'}
+                ${dineroSocio > 0 
+                    ? `<span class="badge bg-warning text-dark border border-dark" 
+                            title="Inversión: $${datosSocio.inversionSocio.toFixed(0)} + Ganancia: $${datosSocio.gananciaSocio.toFixed(0)}">
+                        $${dineroSocio.toFixed(0)}
+                    </span>` 
+                    : '-'}
             </td>
             <td style="width: 12%;">${getBotonesAccion(index)}</td>
         </tr>

@@ -35,3 +35,42 @@ function getBotonesAccion(index) {
         </div>
     `;
 }
+
+// Calcula cuánto se le debe al socio POR UNA PIEZA,
+// dado costo, precioVenta, tipo de inversión y porcentaje
+function calcularDeudaSocioPorPieza(costo, precioVenta, tipoInversion, porcentajeSocio) {
+    costo = parseFloat(costo) || 0;
+    precioVenta = parseFloat(precioVenta) || 0;
+    porcentajeSocio = parseFloat(porcentajeSocio) || 0;
+
+    const utilidadTotal = precioVenta - costo; // ganancia total de esa pieza
+
+    // 1) Inversión del socio
+    let inversionSocio = 0;
+    if (tipoInversion === 'mitad') {
+        inversionSocio = costo * 0.5;
+    } else if (tipoInversion === 'socio') {
+        inversionSocio = costo;
+    } else if (tipoInversion === 'personalizado') {
+        inversionSocio = costo * (porcentajeSocio / 100);
+    }
+
+    // 2) Ganancia del socio
+    let gananciaSocio = 0;
+    if (tipoInversion === 'mitad') {
+        gananciaSocio = utilidadTotal * 0.5;
+    } else if (tipoInversion === 'socio') {
+        gananciaSocio = utilidadTotal; // toda la ganancia
+    } else if (tipoInversion === 'personalizado') {
+        gananciaSocio = utilidadTotal * (porcentajeSocio / 100);
+    }
+
+    // 3) Total que le deberías entregar si se vende
+    const totalPagarSocio = inversionSocio + gananciaSocio;
+
+    return {
+        inversionSocio,
+        gananciaSocio,
+        totalPagarSocio
+    };
+}

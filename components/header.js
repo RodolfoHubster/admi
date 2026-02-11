@@ -20,11 +20,17 @@ function cargarHeader() {
                         <a href="products.html" class="nav-link" data-page="products">
                             📦 Inventario
                         </a>
+                        <a href="catalogo.html" class="nav-link" data-page="catalogo">
+                            📸 Catálogo
+                        </a>
                         <a href="ventas.html" class="nav-link" data-page="ventas">
                             💰 Ventas
                         </a>
                         <a href="gastos.html" class="nav-link" data-page="gastos">
                             💸 Gastos
+                        </a>
+                        <a href="mensajes.html" class="nav-link" data-page="mensajes">
+                            💬 Mensajes
                         </a>
                         <a href="alertas.html" class="nav-link position-relative" data-page="alertas">
                             🔔 Alertas
