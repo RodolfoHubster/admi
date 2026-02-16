@@ -19,10 +19,14 @@ const STORAGE_KEYS = {
 function getData(key) {
     try {
         const data = localStorage.getItem(STORAGE_KEYS[key]);
-        return data ? JSON.parse(data) : [];
+        if (!data) {
+            // Retornar objeto vacío para config, array para otros
+            return key === 'config' ? {} : [];
+        }
+        return JSON.parse(data);
     } catch (error) {
         console.error(`❌ Error al cargar ${key}:`, error);
-        return [];
+        return key === 'config' ? {} : [];
     }
 }
 
@@ -54,7 +58,7 @@ function exportarTodo() {
     Object.keys(STORAGE_KEYS).forEach(key => {
         const data = getData(key);
         backup.datos[key] = data;
-        totalItems += Array.isArray(data) ? data.length : 0;
+        totalItems += Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
     });
     
     // Crear archivo JSON
@@ -87,10 +91,32 @@ function importarTodo(file) {
             try {
                 const backup = JSON.parse(e.target.result);
                 
-                // Validar estructura
-                if (!backup.datos) {
-                    throw new Error('Formato de archivo inválido');
+                // Validar estructura básica
+                if (!backup.datos || typeof backup.datos !== 'object') {
+                    throw new Error('Formato de archivo inválido: falta estructura de datos');
                 }
+                
+                // Validar que tenga al menos una categoría válida
+                const categoriasValidas = Object.keys(backup.datos).filter(key => STORAGE_KEYS[key]);
+                if (categoriasValidas.length === 0) {
+                    throw new Error('El archivo no contiene datos válidos');
+                }
+                
+                // Validar tipos de datos
+                Object.keys(backup.datos).forEach(key => {
+                    if (STORAGE_KEYS[key]) {
+                        const data = backup.datos[key];
+                        if (key === 'config') {
+                            if (typeof data !== 'object' || Array.isArray(data)) {
+                                throw new Error(`Datos de ${key} inválidos: debe ser un objeto`);
+                            }
+                        } else {
+                            if (!Array.isArray(data)) {
+                                throw new Error(`Datos de ${key} inválidos: debe ser un array`);
+                            }
+                        }
+                    }
+                });
                 
                 // Restaurar TODOS los datos
                 let importados = 0;
@@ -100,7 +126,8 @@ function importarTodo(file) {
                     if (STORAGE_KEYS[key]) {
                         setData(key, backup.datos[key]);
                         importados++;
-                        totalItems += Array.isArray(backup.datos[key]) ? backup.datos[key].length : 0;
+                        const data = backup.datos[key];
+                        totalItems += Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
                     }
                 });
                 
