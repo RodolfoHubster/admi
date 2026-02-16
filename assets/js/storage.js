@@ -3,9 +3,11 @@
 // =========================================================
 
 const STORAGE_KEYS = {
-    perfumes: 'perfumes_db',
-    ventas: 'ventas_db',
-    gastos: 'gastos_db',
+    perfumes: 'perfume_inventory_v1',      // ⬅️ CORREGIDO
+    ventas: 'perfume_sales_v1',            // ⬅️ CORREGIDO
+    gastos: 'perfume_expenses_v1',         // ⬅️ CORREGIDO
+    plantillas: 'perfume_templates_v1',    // ⬅️ AGREGADO
+    pagos: 'perfume_payouts_v1',           // ⬅️ AGREGADO
     sugerencias: 'sugerencias_db',
     clientes: 'clientes_db',
     mensajes: 'mensajes_db',
@@ -48,18 +50,35 @@ function setData(key, data) {
 
 function exportarTodo() {
     const backup = {
-        version: '1.0',
+        version: '1.1',
         fecha: new Date().toISOString(),
-        datos: {}
+        datos: {},
+        metadata: {
+            total_items: 0,
+            categorias: []
+        }
     };
     
-    // Recopilar TODOS los datos
+    // Recopilar TODOS los datos de las claves definidas
     let totalItems = 0;
     Object.keys(STORAGE_KEYS).forEach(key => {
         const data = getData(key);
         backup.datos[key] = data;
-        totalItems += Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
+        
+        const count = Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
+        totalItems += count;
+        
+        backup.metadata.categorias.push({
+            nombre: key,
+            clave_real: STORAGE_KEYS[key],
+            items: count,
+            tipo: Array.isArray(data) ? 'array' : 'object'
+        });
+        
+        console.log(`📦 ${key} (${STORAGE_KEYS[key]}): ${count} items`);
     });
+    
+    backup.metadata.total_items = totalItems;
     
     // Crear archivo JSON
     const json = JSON.stringify(backup, null, 2);
@@ -76,7 +95,14 @@ function exportarTodo() {
     URL.revokeObjectURL(url);
     
     console.log('✅ Backup completo exportado');
-    alert(`✅ Backup exportado!\n\n📦 Total de items: ${totalItems}`);
+    console.table(backup.metadata.categorias);
+    
+    const detalles = backup.metadata.categorias
+        .filter(c => c.items > 0)
+        .map(c => `• ${c.nombre}: ${c.items}`)
+        .join('\n');
+    
+    alert(`✅ Backup exportado!\n\n📦 Total de items: ${totalItems}\n\nDetalles:\n${detalles || '(Sin datos)'}`);
 }
 
 // =========================================================
@@ -121,21 +147,30 @@ function importarTodo(file) {
                 // Restaurar TODOS los datos
                 let importados = 0;
                 let totalItems = 0;
+                const detalles = [];
                 
                 Object.keys(backup.datos).forEach(key => {
                     if (STORAGE_KEYS[key]) {
-                        setData(key, backup.datos[key]);
-                        importados++;
                         const data = backup.datos[key];
-                        totalItems += Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
+                        setData(key, data);
+                        importados++;
+                        
+                        const count = Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
+                        totalItems += count;
+                        detalles.push(`• ${key}: ${count} items`);
+                        
+                        console.log(`✅ ${key}: ${count} items importados`);
                     }
                 });
                 
                 console.log(`✅ ${importados} categorías importadas (${totalItems} items)`);
+                console.log('Detalles:\n' + detalles.join('\n'));
+                
                 resolve({ 
                     success: true, 
                     categorias: importados,
-                    items: totalItems 
+                    items: totalItems,
+                    detalles: detalles
                 });
                 
             } catch (error) {
