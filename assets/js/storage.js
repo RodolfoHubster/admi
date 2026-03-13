@@ -172,35 +172,30 @@ function importarTodo(file) {
 // INIT — Al cargar la página, sincroniza Firebase → localStorage
 // =========================================================
 async function initApp() {
-    if (typeof getDataCloud !== 'function') return;
+    // Esperar hasta que Firebase esté disponible (máx 3 segundos)
+    let intentos = 0;
+    while (typeof getDataCloud !== 'function' && intentos < 15) {
+        await new Promise(r => setTimeout(r, 200));
+        intentos++;
+    }
+    
+    if (typeof getDataCloud !== 'function') {
+        console.warn('⚠️ Firebase no disponible, usando localStorage');
+        return;
+    }
 
     const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas'];
-    let sincronizado = false;
 
     for (const key of claves) {
         try {
             const data = await getDataCloud(key);
             if (Array.isArray(data) && data.length > 0) {
                 localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(data));
-                sincronizado = true;
             }
         } catch(e) {
-            console.warn(`⚠️ No se pudo sincronizar ${key} desde Firebase`);
+            console.warn(`⚠️ No se pudo sincronizar ${key}`);
         }
     }
-
-    if (sincronizado) {
-        console.log('🔄 Datos sincronizados desde Firebase');
-        // Recargar la UI si existe la función de render de la página
-        if (typeof renderInventario === 'function') renderInventario();
-        if (typeof renderVentas === 'function') renderVentas();
-        if (typeof renderGastos === 'function') renderGastos();
-        if (typeof renderDashboard === 'function') renderDashboard();
-    }
+    console.log('🔄 Sincronizado desde Firebase');
 }
 
-// Ejecutar al cargar cualquier página
-window.addEventListener('DOMContentLoaded', () => {
-    // Pequeño delay para que firebase.js cargue primero
-    setTimeout(initApp, 1500);
-});
