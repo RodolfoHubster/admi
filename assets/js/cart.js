@@ -44,30 +44,41 @@ function renderizarContenidoCarrito() {
 
     carrito.forEach((prod, idx) => {
         total += parseFloat(prod.precioVenta);
-        
-        // Detectar si tiene dueño para mostrarlo
-        const etiquetaDueno = (prod.cliente && prod.cliente !== 'Mostrador') 
-            ? `<span class="badge bg-warning text-dark ms-2">👤 ${prod.cliente}</span>` 
+
+        // ✅ FIX 1: Imagen con fallback si no tiene
+        const imgSrc = prod.imagen && prod.imagen.trim() !== ''
+            ? prod.imagen
+            : 'https://via.placeholder.com/48x48?text=🧴';
+
+        // ✅ FIX 2: Badge cliente SOLO si el destino es 'pedido' (no en stock libre)
+        const etiquetaCliente = (prod.destino === 'pedido' && prod.cliente && prod.cliente !== 'Mostrador')
+            ? `<span class="badge bg-info text-dark ms-2" style="font-size:0.7rem;">👤 ${prod.cliente}</span>`
             : '';
 
         lista.innerHTML += `
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-danger me-3" onclick="quitarDelCarrito(${idx})">×</button>
+            <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center py-2">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-sm btn-outline-danger" onclick="quitarDelCarrito(${idx})">×</button>
+                    <img src="${imgSrc}" 
+                         alt="${prod.nombre}"
+                         style="width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid #444;"
+                         onerror="this.src='https://via.placeholder.com/48x48?text=🧴'">
                     <div>
-                        <div class="fw-bold">
-                            ${prod.nombre} 
-                            ${etiquetaDueno} </div>
+                        <div class="fw-bold" style="font-size:0.9rem;">
+                            ${prod.nombre}
+                            ${etiquetaCliente}
+                        </div>
                         <small class="text-muted">${prod.marca}</small>
                     </div>
                 </div>
-                <span class="fw-bold">$${prod.precioVenta}</span>
+                <span class="fw-bold text-warning">$${parseFloat(prod.precioVenta).toFixed(2)}</span>
             </li>
         `;
     });
     
     if(totalEl) totalEl.innerText = formatMoney(total);
 }
+
 
 function abrirModalCarrito() {
     renderizarContenidoCarrito();
@@ -82,8 +93,11 @@ function abrirModalCarrito() {
     if (inputCliente) {
         // Buscamos si hay ALGÚN producto en el carrito que ya tenga dueño
         // (Priorizamos el primero que encontremos que no sea "Mostrador")
-        const itemConDueno = carrito.find(p => p.cliente && p.cliente.trim() !== '' && p.cliente !== 'Mostrador');
-
+        const itemConDueno = carrito.find(p => 
+            p.destino === 'pedido' && 
+            p.cliente && p.cliente.trim() !== '' && 
+            p.cliente !== 'Mostrador'
+        );
         if (itemConDueno) {
             // ¡Bingo! Encontramos un dueño, lo ponemos en el input
             inputCliente.value = itemConDueno.cliente;
@@ -222,7 +236,7 @@ function procesarVentaMasiva() {
 
     // Resetear todo
     carrito = [];
-    actualizarBadgeCarrito();
+    actualizarBarraCarrito();
     bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
     
     // Recargar inventario si estamos ahí

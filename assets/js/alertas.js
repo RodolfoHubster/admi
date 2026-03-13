@@ -44,38 +44,29 @@ function generarAlertasInventario(productos, ventas) {
     const ahora = new Date();
     
     productos.forEach(prod => {
-        const fechaRegistro = new Date(prod.fechaRegistro);
-        const diasEnStock = Math.floor((ahora - fechaRegistro) / (1000 * 60 * 60 * 24));
+        const diasEnStock = diasDesde(prod.fechaRegistro);
         
-        // Capital muerto (más de 60 días sin vender)
-        if (diasEnStock >= 60) {
+        if (prod.ubicacion === 'en_inventario' && diasEnStock >= 60) {
             alertasActivas.push({
                 id: `stock-${prod.id}`,
                 tipo: 'importante',
                 categoria: 'inventario',
                 titulo: '⏰ Capital Muerto Detectado',
-                mensaje: `"${prod.nombre}" lleva ${diasEnStock} días en inventario sin venderse. Capital inmovilizado: $${prod.costo}`,
-                accion: {
-                    texto: 'Ver Producto',
-                    link: 'products.html'
-                },
+                mensaje: `"${prod.nombre}" lleva ${diasEnStock} días sin venderse. Capital inmovilizado: $${prod.costo.toFixed(2)}`,
+                accion: { texto: 'Ver Producto', link: 'products.html' },
                 fecha: ahora.toISOString(),
                 datos: { productoId: prod.id }
             });
         }
         
-        // Perfume de alto valor sin asegurar
         if (prod.precioVenta > 2000 && !prod.asegurado) {
             alertasActivas.push({
                 id: `valor-alto-${prod.id}`,
                 tipo: 'info',
                 categoria: 'inventario',
                 titulo: '💎 Perfume de Alto Valor',
-                mensaje: `"${prod.nombre}" vale $${prod.precioVenta}. Considera asegurarlo o guardarlo en lugar seguro.`,
-                accion: {
-                    texto: 'Ver Detalles',
-                    link: 'products.html'
-                },
+                mensaje: `"${prod.nombre}" vale $${prod.precioVenta.toFixed(2)}. Guárdalo en lugar seguro.`,
+                accion: { texto: 'Ver Detalles', link: 'products.html' },
                 fecha: ahora.toISOString(),
                 datos: { productoId: prod.id }
             });
@@ -83,14 +74,13 @@ function generarAlertasInventario(productos, ventas) {
     });
 }
 
+
 // =========================================================
 // 2. ALERTAS DE CLIENTES
 // =========================================================
-
 function generarAlertasClientes(ventas) {
     const ahora = new Date();
     
-    // Agrupar deudas por cliente
     const deudasPorCliente = {};
     
     ventas.forEach(venta => {
@@ -99,57 +89,80 @@ function generarAlertasClientes(ventas) {
                 deudasPorCliente[venta.cliente] = {
                     total: 0,
                     ventas: [],
-                    fechaMasAntigua: new Date(venta.fecha)
+                    fechaMasAntigua: parsearFecha(venta.fecha) || ahora
                 };
             }
             deudasPorCliente[venta.cliente].total += venta.saldoPendiente;
             deudasPorCliente[venta.cliente].ventas.push(venta);
             
-            const fechaVenta = new Date(venta.fecha);
-            if (fechaVenta < deudasPorCliente[venta.cliente].fechaMasAntigua) {
+            const fechaVenta = parsearFecha(venta.fecha);
+            if (fechaVenta && fechaVenta < deudasPorCliente[venta.cliente].fechaMasAntigua) {
                 deudasPorCliente[venta.cliente].fechaMasAntigua = fechaVenta;
             }
         }
     });
     
-    // Generar alertas
     Object.keys(deudasPorCliente).forEach(cliente => {
         const info = deudasPorCliente[cliente];
-        const diasDeuda = Math.floor((ahora - info.fechaMasAntigua) / (1000 * 60 * 60 * 24));
+        const diasDeuda = diasDesde(info.fechaMasAntigua);
         
-        // Deuda crítica (más de $1000 o más de 15 días)
         if (info.total > 1000 || diasDeuda > 15) {
             alertasActivas.push({
                 id: `deuda-${cliente}`,
                 tipo: 'critica',
                 categoria: 'clientes',
                 titulo: '🚨 Deuda Crítica',
-                mensaje: `${cliente} debe $${info.total.toFixed(2)} desde hace ${diasDeuda} días. Total de ${info.ventas.length} venta(s) pendiente(s).`,
-                accion: {
-                    texto: 'Cobrar Ahora',
-                    link: 'clientes.html'
-                },
+                mensaje: `${cliente} debe $${info.total.toFixed(2)} desde hace ${diasDeuda} día${diasDeuda !== 1 ? 's' : ''}. Total de ${info.ventas.length} venta(s) pendiente(s).`,
+                accion: { texto: 'Cobrar Ahora', link: 'clientes.html' },
                 fecha: ahora.toISOString(),
                 datos: { cliente, totalDeuda: info.total, dias: diasDeuda }
             });
-        }
-        // Deuda importante (más de $500)
-        else if (info.total > 500) {
+        } else if (info.total > 500) {
             alertasActivas.push({
                 id: `deuda-${cliente}`,
                 tipo: 'importante',
                 categoria: 'clientes',
                 titulo: '⚠️ Deuda Significativa',
-                mensaje: `${cliente} debe $${info.total.toFixed(2)}. Considera recordarle el pago.`,
-                accion: {
-                    texto: 'Ver Cliente',
-                    link: 'clientes.html'
-                },
+                mensaje: `${cliente} debe $${info.total.toFixed(2)} desde hace ${diasDeuda} día${diasDeuda !== 1 ? 's' : ''}. Considera recordarle el pago.`,
+                accion: { texto: 'Ver Cliente', link: 'clientes.html' },
                 fecha: ahora.toISOString(),
                 datos: { cliente, totalDeuda: info.total }
             });
         }
     });
+}
+// =========================================================
+// HELPER: PARSEAR FECHA EN CUALQUIER FORMATO
+// =========================================================
+
+function parsearFecha(fechaStr) {
+    if (!fechaStr) return null;
+    
+    // Si ya es un objeto Date válido
+    if (fechaStr instanceof Date) return fechaStr;
+    
+    // Formato ISO: "2026-02-07T06:17:27.529Z"
+    if (fechaStr.includes('T') || fechaStr.includes('-')) {
+        const d = new Date(fechaStr);
+        if (!isNaN(d)) return d;
+    }
+    
+    // Formato español: "6/2/2026, 22:26:48" o "6/2/2026"
+    const partes = fechaStr.split(',')[0].trim().split('/');
+    if (partes.length === 3) {
+        const [dia, mes, año] = partes;
+        const d = new Date(parseInt(año), parseInt(mes) - 1, parseInt(dia));
+        if (!isNaN(d)) return d;
+    }
+    
+    return null;
+}
+
+function diasDesde(fechaStr) {
+    const fecha = parsearFecha(fechaStr);
+    if (!fecha) return 0;
+    const ahora = new Date();
+    return Math.max(0, Math.floor((ahora - fecha) / (1000 * 60 * 60 * 24)));
 }
 
 // =========================================================
@@ -161,8 +174,7 @@ function generarAlertasPaqueteria(productos) {
     
     productos.forEach(prod => {
         if (prod.ubicacion === 'en_camino') {
-            const fechaRegistro = new Date(prod.fechaRegistro);
-            const diasEnCamino = Math.floor((ahora - fechaRegistro) / (1000 * 60 * 60 * 24));
+            const diasEnCamino = diasDesde(prod.fechaRegistro);
             
             if (diasEnCamino >= 7) {
                 alertasActivas.push({
@@ -170,11 +182,8 @@ function generarAlertasPaqueteria(productos) {
                     tipo: 'critica',
                     categoria: 'paqueteria',
                     titulo: '📦 Paquete Retrasado',
-                    mensaje: `"${prod.nombre}" lleva ${diasEnCamino} días "en camino". Verifica el estado del envío.`,
-                    accion: {
-                        texto: 'Ver Paquetes',
-                        link: 'products.html'
-                    },
+                    mensaje: `"${prod.nombre}" lleva ${diasEnCamino} días en camino. Verifica el estado del envío.`,
+                    accion: { texto: 'Ver Paquetes', link: 'products.html' },
                     fecha: ahora.toISOString(),
                     datos: { productoId: prod.id, dias: diasEnCamino }
                 });
@@ -184,11 +193,8 @@ function generarAlertasPaqueteria(productos) {
                     tipo: 'importante',
                     categoria: 'paqueteria',
                     titulo: '🚚 Paquete en Tránsito',
-                    mensaje: `"${prod.nombre}" está en camino desde hace ${diasEnCamino} días. Mantente atento.`,
-                    accion: {
-                        texto: 'Ver Detalles',
-                        link: 'products.html'
-                    },
+                    mensaje: `"${prod.nombre}" está en camino desde hace ${diasEnCamino} días.`,
+                    accion: { texto: 'Ver Detalles', link: 'products.html' },
                     fecha: ahora.toISOString(),
                     datos: { productoId: prod.id, dias: diasEnCamino }
                 });
@@ -196,6 +202,7 @@ function generarAlertasPaqueteria(productos) {
         }
     });
 }
+
 
 // =========================================================
 // 4. ALERTAS FINANCIERAS
@@ -206,19 +213,16 @@ function generarAlertasFinancieras(ventas, gastos) {
     const mesActual = ahora.getMonth();
     const añoActual = ahora.getFullYear();
     
-    // Calcular gastos del mes
     const gastosMes = gastos.filter(g => {
-        const fecha = new Date(g.fecha);
-        return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+        const f = parsearFecha(g.fecha);
+        return f && f.getMonth() === mesActual && f.getFullYear() === añoActual;
     }).reduce((sum, g) => sum + g.monto, 0);
     
-    // Calcular ventas del mes
     const ventasMes = ventas.filter(v => {
-        const fecha = new Date(v.fecha);
-        return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+        const f = parsearFecha(v.fecha);
+        return f && f.getMonth() === mesActual && f.getFullYear() === añoActual;
     }).reduce((sum, v) => sum + v.precioFinal, 0);
     
-    // Alerta: Gastos superan el 30% de las ventas
     if (ventasMes > 0 && gastosMes > (ventasMes * 0.3)) {
         const porcentaje = ((gastosMes / ventasMes) * 100).toFixed(1);
         alertasActivas.push({
@@ -226,20 +230,19 @@ function generarAlertasFinancieras(ventas, gastos) {
             tipo: 'importante',
             categoria: 'financiero',
             titulo: '💸 Gastos Elevados',
-            mensaje: `Tus gastos este mes ($${gastosMes.toFixed(2)}) representan el ${porcentaje}% de tus ventas. Considera optimizar gastos.`,
-            accion: {
-                texto: 'Ver Gastos',
-                link: 'gastos.html'
-            },
+            mensaje: `Tus gastos este mes ($${gastosMes.toFixed(2)}) representan el ${porcentaje}% de tus ventas ($${ventasMes.toFixed(2)}).`,
+            accion: { texto: 'Ver Gastos', link: 'gastos.html' },
             fecha: ahora.toISOString(),
             datos: { gastos: gastosMes, ventas: ventasMes }
         });
     }
     
-    // Alerta: No hay ventas en los últimos 3 días
     const hace3dias = new Date();
     hace3dias.setDate(hace3dias.getDate() - 3);
-    const ventasRecientes = ventas.filter(v => new Date(v.fecha) >= hace3dias);
+    const ventasRecientes = ventas.filter(v => {
+        const f = parsearFecha(v.fecha);
+        return f && f >= hace3dias;
+    });
     
     if (ventasRecientes.length === 0 && ventas.length > 0) {
         alertasActivas.push({
@@ -248,15 +251,13 @@ function generarAlertasFinancieras(ventas, gastos) {
             categoria: 'financiero',
             titulo: '📉 Sin Ventas Recientes',
             mensaje: 'No has registrado ventas en los últimos 3 días. ¿Necesitas promocionar más?',
-            accion: {
-                texto: 'Ver Inventario',
-                link: 'products.html'
-            },
+            accion: { texto: 'Ver Inventario', link: 'products.html' },
             fecha: ahora.toISOString(),
             datos: {}
         });
     }
 }
+
 
 // =========================================================
 // 5. ALERTAS DE STOCK BAJO
