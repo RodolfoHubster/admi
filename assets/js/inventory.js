@@ -340,7 +340,7 @@ function guardarProducto() {
         checkPlantilla.checked = false;
     }
     
-    localStorage.setItem(DB_KEY, JSON.stringify(productos));
+    setData('perfumes', productos);
 
     const modalEl = document.getElementById('modalNuevoPerfume');
     if(modalEl) {
@@ -357,7 +357,7 @@ function eliminarProducto(index) {
     if (!solicitarPin()) return alert("❌ PIN Incorrecto.");
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     productos.splice(index, 1); 
-    localStorage.setItem(DB_KEY, JSON.stringify(productos)); 
+    setData('perfumes', productos);
     cargarInventario(); 
 }
 
@@ -404,7 +404,7 @@ function guardarCambiosEdicion() {
     p.imagen = document.getElementById('inputImagen').value || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
     p.cantidad = parseInt(document.getElementById('inputCantidad').value) || 1;
 
-    localStorage.setItem(DB_KEY, JSON.stringify(productos));
+    setData('perfumes', productos);
 
     const modalEl = document.getElementById('modalNuevoPerfume');
     const modal = bootstrap.Modal.getInstance(modalEl);
@@ -428,7 +428,7 @@ function marcarComoRecibido(index) {
     if(confirm("📦 ¿Confirmas que este perfume YA LLEGÓ?")) {
         const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         productos[index].ubicacion = 'en_inventario';
-        localStorage.setItem(DB_KEY, JSON.stringify(productos));
+        setData('perfumes', productos);
         cargarInventario();
     }
 }
@@ -584,7 +584,7 @@ function guardarComoPlantilla() {
         plantillas.push(nuevaPlantilla);
     }
     
-    localStorage.setItem(TEMPLATES_KEY, JSON.stringify(plantillas));
+    setData('perfumes', productos);
     alert(`💾 Plantilla "${nombre}" guardada correctamente`);
     cargarListaPlantillas();
     return true;
