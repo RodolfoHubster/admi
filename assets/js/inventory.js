@@ -584,7 +584,7 @@ function guardarComoPlantilla() {
         plantillas.push(nuevaPlantilla);
     }
     
-    setData('perfumes', productos);
+    setData('plantillas', plantillas);
     alert(`💾 Plantilla "${nombre}" guardada correctamente`);
     cargarListaPlantillas();
     return true;
