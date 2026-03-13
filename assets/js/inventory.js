@@ -616,7 +616,8 @@ function gestionarPlantillas() {
 }
 
 // Inicializar al cargar
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await initApp(); // ← espera Firebase primero
     cargarInventario();
     cargarListaPlantillas();
     calcularKPIsInventario();

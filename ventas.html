@@ -325,11 +325,12 @@
 <script src="assets/js/main.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        if(typeof cargarDatosVentas === 'function') {
-            cargarDatosVentas();
-        }
-    });
+    document.addEventListener('DOMContentLoaded', async () => {
+    await initApp();
+    if (typeof cargarDatosVentas === 'function') {
+        cargarDatosVentas();
+    }
+});
 </script>
 </body>
 </html>

@@ -5,7 +5,8 @@
 let chartVentas = null;
 let chartInventario = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await initApp();
     cargarDashboard();
 });
 

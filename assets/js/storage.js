@@ -202,5 +202,5 @@ async function initApp() {
 // Ejecutar al cargar cualquier página
 window.addEventListener('DOMContentLoaded', () => {
     // Pequeño delay para que firebase.js cargue primero
-    setTimeout(initApp, 800);
+    setTimeout(initApp, 1500);
 });
