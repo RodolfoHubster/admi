@@ -9,7 +9,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyB-iJPqwK8GcoiUm2bsZsn8wLSJObrNJrs",
+    apiKey: "AIzaSyCgyk8dmNoxG0C-hDIHqyeVAh_r68i7X0A",
     authDomain: "fitoscents-admin.firebaseapp.com",
     projectId: "fitoscents-admin",
     storageBucket: "fitoscents-admin.firebasestorage.app",
