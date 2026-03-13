@@ -4,6 +4,7 @@
 let listadoVentas = [];
 let listadoPagos = [];
 let filtroFechaActual = 'todos';
+let filtroEstadoActual = 'todos'; // nueva variable
 
 // =========================================================
 // 2. FUNCIONES DE VENTA (CREAR)
@@ -328,21 +329,39 @@ function renderVentas() {
 
     // Filtros de Fecha (Igual que antes)
     const ventasFiltradas = listadoVentas.filter(v => {
-        if (filtroFechaActual === 'todos') return true;
-        const fechaVenta = new Date(v.id).setHours(0,0,0,0);
-        const hoy = new Date().setHours(0,0,0,0);
-        if (filtroFechaActual === 'hoy') return fechaVenta === hoy;
-        if (filtroFechaActual === 'semana') {
-            const hace7 = new Date(); hace7.setDate(hace7.getDate() - 7);
-            return new Date(v.id) >= hace7;
+        // Filtro por fecha
+        if (filtroFechaActual !== 'todos') {
+            const fechaVenta = new Date(v.id).setHours(0,0,0,0);
+            const hoy = new Date().setHours(0,0,0,0);
+            if (filtroFechaActual === 'hoy' && fechaVenta !== hoy) return false;
+            if (filtroFechaActual === 'semana') {
+                const hace7 = new Date(); hace7.setDate(hace7.getDate() - 7);
+                if (new Date(v.id) < hace7) return false;
+            }
+            if (filtroFechaActual === 'mes') {
+                const d = new Date(v.id);
+                const now = new Date();
+                if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return false;
+            }
         }
-        if (filtroFechaActual === 'mes') {
-            const d = new Date(v.id);
-            const now = new Date();
-            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    
+        // Filtro por estado
+        if (filtroEstadoActual === 'pendiente' && !(parseFloat(v.saldoPendiente || 0) > 0)) return false;
+        if (filtroEstadoActual === 'liquidado' && !(v.esCredito && parseFloat(v.saldoPendiente || 0) <= 0)) return false;
+        if (filtroEstadoActual === 'contado' && v.esCredito) return false;
+    
+        // Filtro por texto
+        const texto = (document.getElementById('filtro-texto-ventas')?.value || '').toLowerCase();
+        if (texto) {
+            const enProducto = (v.producto || '').toLowerCase().includes(texto);
+            const enCliente = (v.cliente || '').toLowerCase().includes(texto);
+            if (!enProducto && !enCliente) return false;
         }
+    
         return true;
     });
+
+    
 
     const ventasDisplay = ventasFiltradas.sort((a, b) => b.id - a.id);
 
@@ -398,7 +417,7 @@ function renderVentas() {
                 <td>${clienteNombre}</td>
                 <td>
                     <strong>${venta.producto}</strong><br>
-                    <small class="text-muted">Venta: $${formatMoney(venta.precioFinal)}</small>
+                    <small class="text-muted">Venta: ${formatMoney(venta.precioFinal)}</small>
                     ${badgeEstado}
                 </td>
                 <td class="text-success fw-bold">+$${venta.utilidad.toFixed(2)}</td>
@@ -432,6 +451,8 @@ function renderVentas() {
             </tr>
         `;
         tbody.innerHTML += row;
+        const counter = document.getElementById('contador-ventas');
+        if (counter) counter.innerText = ventasDisplay.length;
     });
 }
 
@@ -609,6 +630,17 @@ function setFiltroFecha(tipo, btn) {
     });
     btn.classList.remove('btn-outline-secondary');
     btn.classList.add('active', 'btn-primary', 'text-dark', 'fw-bold');
+    renderVentas();
+}
+
+function setFiltroEstado(tipo, btn) {
+    filtroEstadoActual = tipo;
+    btn.closest('.btn-group').querySelectorAll('.btn').forEach(b => {
+        b.classList.remove('active','btn-warning','btn-danger','btn-success','fw-bold');
+        b.classList.add('btn-outline-secondary');
+    });
+    btn.classList.remove('btn-outline-secondary','btn-outline-danger','btn-outline-success');
+    btn.classList.add('active','fw-bold');
     renderVentas();
 }
 

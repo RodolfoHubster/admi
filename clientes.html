@@ -12,6 +12,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
         <link rel="stylesheet" href="assets/css/main.css">
+        <script type="module" src="assets/js/firebase.js"></script>
         <script src="components/header.js"></script>
     </head>
 <body>
@@ -125,6 +126,7 @@
 <script src="assets/js/config.js"></script>
 <script src="assets/js/utils.js"></script>
 <script>
+
     // Referencias a Datos
     const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
     const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || []; // LEEMOS INVENTARIO TAMBIÉN
@@ -190,11 +192,60 @@
                 </td>
                 <td class="text-danger fw-bold fs-5">$${c.deudaActual.toFixed(2)}</td>
                 <td>
-                    <a href="ventas.html?cliente=${c.nombre}" class="btn btn-sm btn-outline-light">
-                        <i class="bi bi-wallet2"></i> Ver Detalles
-                    </a>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success btn-sm fw-bold" onclick="abrirAbonoCliente('${c.nombre}')">
+                            💵 Abonar
+                        </button>
+                        <button class="btn btn-warning btn-sm fw-bold text-dark" onclick="abrirAbonoCliente('${c.nombre}', true)">
+                            💯 Pagar Todo
+                        </button>
+                    </div>
                 </td>
             </tr>
+            <div class="modal fade" id="modalAbonoCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-warning">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title fw-bold">💸 Registrar Abono</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card bg-secondary bg-opacity-25 border-0 mb-3 p-3 rounded">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted">Cliente</small>
+                            <strong class="text-warning fs-5 d-block" id="modal-abono-nombre">---</strong>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">Deuda Total</small>
+                            <strong class="text-danger fs-4 d-block" id="modal-abono-deuda">$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-warning fw-bold">Monto a Recibir ($)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark text-white border-secondary">$</span>
+                        <input type="number" class="form-control bg-dark text-white border-secondary fw-bold fs-5"
+                               id="modal-abono-monto" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Nota (Opcional)</label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary"
+                           id="modal-abono-nota" placeholder="Ej: Transferencia, Efectivo...">
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success fw-bold px-4" onclick="confirmarAbonoCliente()">
+                    ✅ Confirmar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
         `;
     });
 
@@ -268,6 +319,53 @@
     function formatMoney(amount) {
         return '$' + amount.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
+
+    let clienteActualAbono = null;
+
+function abrirAbonoCliente(nombreCliente, pagarTodo = false) {
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventasCliente = ventas.filter(v => v.cliente === nombreCliente && v.saldoPendiente > 0);
+    if (!ventasCliente.length) return alert('Sin deudas pendientes.');
+
+    clienteActualAbono = nombreCliente;
+    const deudaTotal = ventasCliente.reduce((s, v) => s + parseFloat(v.saldoPendiente), 0);
+
+    // Llenar modal
+    document.getElementById('modal-abono-nombre').innerText = nombreCliente;
+    document.getElementById('modal-abono-deuda').innerText = formatMoney(deudaTotal);
+    document.getElementById('modal-abono-monto').value = pagarTodo ? deudaTotal.toFixed(2) : '';
+    document.getElementById('modal-abono-nota').value = '';
+
+    new bootstrap.Modal(document.getElementById('modalAbonoCliente')).show();
+}
+
+function confirmarAbonoCliente() {
+    const monto = parseFloat(document.getElementById('modal-abono-monto').value);
+    const nota = document.getElementById('modal-abono-nota').value.trim() || 'Abono desde Clientes';
+    if (!monto || monto <= 0) return alert('❌ Ingresa un monto válido.');
+
+    let ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    let restante = monto;
+
+    ventas
+        .map((v, i) => ({ ...v, _i: i }))
+        .filter(v => v.cliente === clienteActualAbono && v.saldoPendiente > 0)
+        .sort((a, b) => a.id - b.id)
+        .forEach(v => {
+            if (restante <= 0) return;
+            const abonar = Math.min(restante, parseFloat(v.saldoPendiente));
+            ventas[v._i].saldoPendiente -= abonar;
+            ventas[v._i].historialAbonos = ventas[v._i].historialAbonos || [];
+            ventas[v._i].historialAbonos.push({ fecha: new Date().toLocaleString(), monto: abonar, nota });
+            restante -= abonar;
+        });
+
+    localStorage.setItem(SALES_KEY, JSON.stringify(ventas));
+    bootstrap.Modal.getInstance(document.getElementById('modalAbonoCliente')).hide();
+    alert(`✅ Abono de ${formatMoney(monto)} registrado para ${clienteActualAbono}`);
+    renderDeudas();
+}
+
 </script>
 <script src="assets/js/storage.js"></script> 
 </body>
