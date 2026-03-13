@@ -168,3 +168,39 @@ function importarTodo(file) {
         reader.readAsText(file);
     });
 }
+// =========================================================
+// INIT — Al cargar la página, sincroniza Firebase → localStorage
+// =========================================================
+async function initApp() {
+    if (typeof getDataCloud !== 'function') return;
+
+    const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas'];
+    let sincronizado = false;
+
+    for (const key of claves) {
+        try {
+            const data = await getDataCloud(key);
+            if (Array.isArray(data) && data.length > 0) {
+                localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(data));
+                sincronizado = true;
+            }
+        } catch(e) {
+            console.warn(`⚠️ No se pudo sincronizar ${key} desde Firebase`);
+        }
+    }
+
+    if (sincronizado) {
+        console.log('🔄 Datos sincronizados desde Firebase');
+        // Recargar la UI si existe la función de render de la página
+        if (typeof renderInventario === 'function') renderInventario();
+        if (typeof renderVentas === 'function') renderVentas();
+        if (typeof renderGastos === 'function') renderGastos();
+        if (typeof renderDashboard === 'function') renderDashboard();
+    }
+}
+
+// Ejecutar al cargar cualquier página
+window.addEventListener('DOMContentLoaded', () => {
+    // Pequeño delay para que firebase.js cargue primero
+    setTimeout(initApp, 800);
+});
