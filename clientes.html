@@ -125,13 +125,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/utils.js"></script>
+<script src="assets/js/storage.js"></script>
 <script>
 
-    // Referencias a Datos
-    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-    const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || []; // LEEMOS INVENTARIO TAMBIÉN
-
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Esperar a que Firebase sincronice ANTES de renderizar
+        await initApp();
         renderDeudas();
         renderEncargos();
     });
@@ -149,12 +148,11 @@
                 clientesMap[v.cliente] = { 
                     nombre: v.cliente, 
                     deudaActual: 0, 
-                    totalOriginal: 0, // Nuevo: Cuánto era la venta original total
+                    totalOriginal: 0,
                     items: [] 
                 };
             }
             clientesMap[v.cliente].deudaActual += parseFloat(v.saldoPendiente);
-            // Calculamos cuánto costaba el producto originalmente para sacar el porcentaje
             clientesMap[v.cliente].totalOriginal += parseFloat(v.precioFinal);
             clientesMap[v.cliente].items.push(v.producto);
             totalCalle += parseFloat(v.saldoPendiente);
@@ -168,11 +166,9 @@
     tbody.innerHTML = '';
 
     Object.values(clientesMap).forEach(c => {
-        // Cálculos para la barra
         const pagado = c.totalOriginal - c.deudaActual;
         const porcentajePagado = (pagado / c.totalOriginal) * 100;
         
-        // Color de la barra según progreso
         let colorBarra = 'bg-danger';
         if(porcentajePagado > 50) colorBarra = 'bg-warning';
         if(porcentajePagado > 80) colorBarra = 'bg-success';
@@ -255,30 +251,24 @@
 }
     // --- 2. LÓGICA DE ENCARGOS (TAB 2) ---
     function renderEncargos() {
+        const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         const tbody = document.getElementById('encargos-table-body');
         tbody.innerHTML = '';
         let contadorEncargos = 0;
 
-        // Filtramos inventario donde haya un cliente asignado
         const encargos = inventario.filter(prod => prod.cliente && prod.cliente.trim() !== '');
-
-        // Ordenamos: Primero los que YA LLEGARON ("en_inventario")
         encargos.sort((a, b) => (a.ubicacion === 'en_inventario' ? -1 : 1));
 
         encargos.forEach(prod => {
             contadorEncargos++;
             
-            // Lógica de Estado Inteligente
             let estadoBadge = '';
             let accionBtn = '';
 
             if (prod.ubicacion === 'en_inventario' || prod.ubicacion === 'stock') {
-                // YA LLEGÓ
                 estadoBadge = `<span class="badge bg-success shadow-sm p-2"><i class="bi bi-check-circle-fill"></i> LISTO PARA ENTREGA</span>`;
-                // El botón lleva a procesar la venta directamente
                 accionBtn = `<button class="btn btn-sm btn-success" onclick="venderEncargo(${prod.id})">Entregar y Cobrar</button>`;
             } else {
-                // VIENE EN CAMINO
                 estadoBadge = `<span class="badge bg-warning text-dark p-2"><i class="bi bi-truck"></i> EN TRANSITO</span>`;
                 accionBtn = `<small class="text-muted">Esperando llegada...</small>`;
             }
@@ -309,9 +299,7 @@
         }
     }
 
-    // Función auxiliar para ir directo a vender
     function venderEncargo(id) {
-        // Redirigimos al carrito o inventario filtrando ese ID (simulado por ahora)
         alert("Para entregar, ve a Inventario y dale a 'Vender' en este producto. El sistema ya sabe que es de este cliente.");
         window.location.href = 'products.html'; 
     }
@@ -330,7 +318,6 @@ function abrirAbonoCliente(nombreCliente, pagarTodo = false) {
     clienteActualAbono = nombreCliente;
     const deudaTotal = ventasCliente.reduce((s, v) => s + parseFloat(v.saldoPendiente), 0);
 
-    // Llenar modal
     document.getElementById('modal-abono-nombre').innerText = nombreCliente;
     document.getElementById('modal-abono-deuda').innerText = formatMoney(deudaTotal);
     document.getElementById('modal-abono-monto').value = pagarTodo ? deudaTotal.toFixed(2) : '';
@@ -367,6 +354,5 @@ function confirmarAbonoCliente() {
 }
 
 </script>
-<script src="assets/js/storage.js"></script> 
 </body>
 </html>
