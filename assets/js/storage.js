@@ -16,7 +16,7 @@ const STORAGE_KEYS = {
 };
 
 // =========================================================
-// LEER — igual que antes, desde localStorage
+// LEER
 // =========================================================
 function getData(key) {
     try {
@@ -34,37 +34,30 @@ function getData(key) {
 // =========================================================
 function setData(key, data) {
     try {
-        // 1. Guardar en localStorage (instantáneo, como siempre)
         localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(data));
-        console.log(`✅ ${key} guardado en local`);
-
-        // 2. Sincronizar con Firebase en segundo plano (sin bloquear)
         if (typeof setDataCloud === 'function') {
             setDataCloud(key, data)
                 .then(() => console.log(`☁️ ${key} sincronizado con Firebase`))
                 .catch(err => console.warn(`⚠️ Firebase offline, solo guardado local:`, err));
         }
-
         return true;
     } catch (error) {
         console.error(`❌ Error al guardar ${key}:`, error);
-        alert(`Error al guardar ${key}. Verifica el espacio disponible.`);
+        showToast(`Error al guardar ${key}. Verifica el espacio disponible.`, 'error');
         return false;
     }
 }
 
 // =========================================================
-// RESTAURAR DESDE FIREBASE — por si se borra localStorage
+// RESTAURAR DESDE FIREBASE
 // =========================================================
 async function restaurarDesdeFirebase() {
     if (typeof getDataCloud !== 'function') {
-        return alert('❌ Firebase no está conectado.');
+        return showToast('Firebase no está conectado.', 'error');
     }
-
     const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas'];
     let total = 0;
     const log = [];
-
     for (const key of claves) {
         try {
             const data = await getDataCloud(key);
@@ -73,17 +66,15 @@ async function restaurarDesdeFirebase() {
                 total += data.length;
                 log.push(`✅ ${key}: ${data.length} items`);
             } else {
-                log.push(`⚪ ${key}: vacío en Firebase`);
+                log.push(`⚪ ${key}: vacío`);
             }
         } catch(e) {
             log.push(`❌ ${key}: error`);
         }
     }
-
-    alert(`🔄 Restauración completa!\n\n${log.join('\n')}\n\nTotal: ${total} registros restaurados.\n\nRecarga la página para ver los datos.`);
+    showToast(`Restauración completa! ${total} registros. Recarga la página.`, 'success');
+    console.log('Restauración:', log.join(' | '));
 }
-
-// Exponer globalmente
 window.restaurarDesdeFirebase = restaurarDesdeFirebase;
 
 // =========================================================
@@ -96,36 +87,23 @@ function exportarTodo() {
         datos: {},
         metadata: { total_items: 0, categorias: [] }
     };
-    
     let totalItems = 0;
     Object.keys(STORAGE_KEYS).forEach(key => {
         const data = getData(key);
         backup.datos[key] = data;
         const count = Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
         totalItems += count;
-        backup.metadata.categorias.push({
-            nombre: key,
-            clave_real: STORAGE_KEYS[key],
-            items: count,
-            tipo: Array.isArray(data) ? 'array' : 'object'
-        });
+        backup.metadata.categorias.push({ nombre: key, items: count });
     });
-    
     backup.metadata.total_items = totalItems;
-    const json = JSON.stringify(backup, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `fitoscents_backup_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
-
-    const detalles = backup.metadata.categorias
-        .filter(c => c.items > 0)
-        .map(c => `• ${c.nombre}: ${c.items}`)
-        .join('\n');
-    alert(`✅ Backup exportado!\n\n📦 Total: ${totalItems}\n\n${detalles || '(Sin datos)'}`);
+    showToast(`✅ Backup exportado! ${totalItems} registros.`, 'success');
 }
 
 // =========================================================
@@ -139,28 +117,17 @@ function importarTodo(file) {
                 const backup = JSON.parse(e.target.result);
                 if (!backup.datos || typeof backup.datos !== 'object')
                     throw new Error('Formato inválido');
-
-                const categoriasValidas = Object.keys(backup.datos).filter(key => STORAGE_KEYS[key]);
-                if (categoriasValidas.length === 0)
-                    throw new Error('No contiene datos válidos');
-
                 let importados = 0, totalItems = 0;
-                const detalles = [];
-
                 Object.keys(backup.datos).forEach(key => {
                     if (STORAGE_KEYS[key]) {
                         const data = backup.datos[key];
-                        setData(key, data); // <-- esto también sincroniza Firebase
+                        setData(key, data);
                         importados++;
-                        const count = Array.isArray(data) ? data.length : (Object.keys(data).length || 0);
-                        totalItems += count;
-                        detalles.push(`• ${key}: ${count} items`);
+                        totalItems += Array.isArray(data) ? data.length : 0;
                     }
                 });
-
-                resolve({ success: true, categorias: importados, items: totalItems, detalles });
+                resolve({ success: true, categorias: importados, items: totalItems });
             } catch (error) {
-                console.error('❌ Error al importar:', error);
                 reject(error);
             }
         };
@@ -168,23 +135,54 @@ function importarTodo(file) {
         reader.readAsText(file);
     });
 }
+
 // =========================================================
-// INIT — Al cargar la página, sincroniza Firebase → localStorage
+// SPINNER DE CARGA
+// =========================================================
+function mostrarSpinner(mensaje = 'Sincronizando...') {
+    let el = document.getElementById('__app-spinner');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = '__app-spinner';
+        el.innerHTML = `
+            <div class="__spinner-inner">
+                <div class="__spinner-ring"></div>
+                <p class="__spinner-msg" id="__spinner-msg">${mensaje}</p>
+            </div>`;
+        document.body.appendChild(el);
+    }
+    document.getElementById('__spinner-msg').innerText = mensaje;
+    el.style.display = 'flex';
+}
+
+function ocultarSpinner() {
+    const el = document.getElementById('__app-spinner');
+    if (el) el.style.display = 'none';
+}
+
+// =========================================================
+// INIT — Sincroniza Firebase → localStorage
+// FIX: Ya NO llama funciones de render aquí.
+//      Cada página las llama por su cuenta después del await.
 // =========================================================
 async function initApp() {
+    mostrarSpinner('Conectando con Firebase...');
+
     let intentos = 0;
     while (typeof getDataCloud !== 'function' && intentos < 15) {
         await new Promise(r => setTimeout(r, 200));
         intentos++;
     }
-    
+
     if (typeof getDataCloud !== 'function') {
         console.warn('⚠️ Firebase no disponible, usando localStorage');
+        ocultarSpinner();
         return;
     }
 
-    const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas'];
+    mostrarSpinner('Cargando datos...');
 
+    const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas'];
     for (const key of claves) {
         try {
             const data = await getDataCloud(key);
@@ -195,15 +193,7 @@ async function initApp() {
             console.warn(`⚠️ No se pudo sincronizar ${key}`);
         }
     }
-    
+
+    ocultarSpinner();
     console.log('🔄 Sincronizado desde Firebase');
-
-    // ← AGREGA ESTO:
-    if (typeof cargarInventario === 'function') cargarInventario();
-    if (typeof cargarDatosVentas === 'function') cargarDatosVentas();
-    if (typeof renderGastos === 'function') renderGastos();
-    if (typeof renderDashboard === 'function') renderDashboard();
-    if (typeof generarAlertas === 'function') generarAlertas();
 }
-
-
