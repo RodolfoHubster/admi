@@ -129,7 +129,6 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // Esperar a que Firebase sincronice ANTES de renderizar
         await initApp();
         renderDeudas();
         renderEncargos();
@@ -141,7 +140,6 @@
     const clientesMap = {};
     let totalCalle = 0;
 
-    // Agrupar
     ventas.forEach(v => {
         if (v.saldoPendiente > 0 && v.cliente) {
             if (!clientesMap[v.cliente]) {
@@ -347,7 +345,9 @@ function confirmarAbonoCliente() {
             restante -= abonar;
         });
 
-    localStorage.setItem(SALES_KEY, JSON.stringify(ventas));
+    // USA setData() para guardar en localStorage Y Firebase al mismo tiempo
+    setData('ventas', ventas);
+
     bootstrap.Modal.getInstance(document.getElementById('modalAbonoCliente')).hide();
     alert(`✅ Abono de ${formatMoney(monto)} registrado para ${clienteActualAbono}`);
     renderDeudas();
