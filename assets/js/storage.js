@@ -172,7 +172,6 @@ function importarTodo(file) {
 // INIT — Al cargar la página, sincroniza Firebase → localStorage
 // =========================================================
 async function initApp() {
-    // Esperar hasta que Firebase esté disponible (máx 3 segundos)
     let intentos = 0;
     while (typeof getDataCloud !== 'function' && intentos < 15) {
         await new Promise(r => setTimeout(r, 200));
@@ -196,6 +195,15 @@ async function initApp() {
             console.warn(`⚠️ No se pudo sincronizar ${key}`);
         }
     }
+    
     console.log('🔄 Sincronizado desde Firebase');
+
+    // ← AGREGA ESTO:
+    if (typeof cargarInventario === 'function') cargarInventario();
+    if (typeof cargarDatosVentas === 'function') cargarDatosVentas();
+    if (typeof renderGastos === 'function') renderGastos();
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof generarAlertas === 'function') generarAlertas();
 }
+
 
