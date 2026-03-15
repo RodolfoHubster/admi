@@ -100,7 +100,7 @@ function confirmarVentaFinal() {
     // Guardar
     const historial = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
     historial.push(nuevaVenta);
-    localStorage.setItem(SALES_KEY, JSON.stringify(historial));
+    setData('ventas', historial);
 
     // Actualizar Stock
     if (producto.cantidad && producto.cantidad > 1) {
@@ -109,7 +109,7 @@ function confirmarVentaFinal() {
     } else {
         productos.splice(index, 1);
     }
-    localStorage.setItem(DB_KEY, JSON.stringify(productos));
+    setData('perfumes', productos)
 
     // UI
     bootstrap.Modal.getInstance(document.getElementById('modalVenta')).hide();
@@ -232,7 +232,7 @@ function guardarEdicionVenta() {
         pctSocio: nuevoPct 
     };
 
-    localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
+    setData('ventas', listadoVentas)
     
     bootstrap.Modal.getInstance(document.getElementById('modalEditarVenta')).hide();
     
@@ -492,10 +492,10 @@ function deshacerVenta(id) {
         };
 
         inventario.push(productoRecuperado);
-        localStorage.setItem(DB_KEY, JSON.stringify(inventario));
+        setData('perfumes', inventario)
 
         listadoVentas = listadoVentas.filter(v => v.id !== id);
-        localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
+        setData('ventas', listadoVentas);
 
         cargarDatosVentas();
         alert("✅ Venta deshecha. Producto devuelto.");
@@ -546,7 +546,7 @@ function guardarPago() {
     if (!monto || monto <= 0) return alert("Ingresa un monto válido");
 
     listadoPagos.push({ id: Date.now(), monto: monto, nota: nota });
-    localStorage.setItem(PAYOUTS_KEY, JSON.stringify(listadoPagos));
+    setData('pagos', listadoPagos)
 
     bootstrap.Modal.getInstance(document.getElementById('modalPagarSocio')).hide();
     document.getElementById('inputMontoPago').value = '';
@@ -556,7 +556,7 @@ function guardarPago() {
 function eliminarPago(id) {
     if(!solicitarPin()) return;
     listadoPagos = listadoPagos.filter(p => p.id !== id);
-    localStorage.setItem(PAYOUTS_KEY, JSON.stringify(listadoPagos));
+    setData('pagos', listadoPagos)
     cargarDatosVentas();
 }
 
@@ -669,7 +669,7 @@ function guardarAbono() {
     
     listadoVentas[index].historialAbonos.push({ fecha: new Date().toLocaleString(), monto: monto, nota: nota });
 
-    localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
+    setData('ventas', listadoVentas);
     bootstrap.Modal.getInstance(document.getElementById('modalAbono')).hide();
     renderVentas();
 }
@@ -710,8 +710,8 @@ function marcarPagadoSocio(idVenta) {
         listadoPagos.push(nuevoPago);
         
         // Guardar
-        localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
-        localStorage.setItem(PAYOUTS_KEY, JSON.stringify(listadoPagos));
+        setData('ventas', listadoVentas);
+        setData('pagos', listadoPagos)
         
         // Recargar
         cargarDatosVentas();
@@ -754,8 +754,8 @@ function desmarcarPagadoSocio(idVenta) {
         delete listadoVentas[index].fechaPagoSocio;
         
         // Guardar
-        localStorage.setItem(SALES_KEY, JSON.stringify(listadoVentas));
-        localStorage.setItem(PAYOUTS_KEY, JSON.stringify(listadoPagos));
+        setData('ventas', listadoVentas);
+        setData('pagos', listadoPagos)
         
         cargarDatosVentas();
         alert('✅ Pago desmarcado correctamente');
