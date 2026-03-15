@@ -20,10 +20,10 @@
 .text-muted { color: var(--text-secondary) !important; }
 
 /* --- TABLAS DE LUJO --- */
-.table { 
+.table {
     --bs-table-bg: transparent;
     --bs-table-color: var(--text-primary);
-    border-color: rgba(194, 79, 79, 0.1);
+    border-color: rgba(255, 215, 0, 0.1); /* FIX: era rojo random rgba(194,79,79,0.1) */
 }
 .table thead th {
     background-color: #000;
@@ -42,7 +42,7 @@
 .form-control, .form-select {
     background-color: var(--bg-tertiary) !important;
     border: 1px solid #555;
-    color: #fff !important; /* Texto blanco al escribir */
+    color: #fff !important;
 }
 .form-control::placeholder { color: #888; }
 .form-control:focus, .form-select:focus {
@@ -60,11 +60,12 @@
     color: var(--gold-flat) !important;
 }
 
-/* --- MODALES (VENTANAS EMERGENTES) - EL ARREGLO PRINCIPAL --- */
+/* --- MODALES --- */
 .modal-content {
-    background-color: #1a1a1a !important; /* Fondo negro suave */
+    background-color: #1a1a1a !important;
     border: 1px solid var(--gold-muted);
     box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    color: #fff !important;
 }
 .modal-header {
     background-color: #000 !important;
@@ -75,23 +76,23 @@
     font-weight: bold;
 }
 .modal-body {
-    color: #eee !important; /* Texto del cuerpo blanco */
+    color: #eee !important;
 }
 .modal-footer {
     border-top: 1px solid #333;
 }
 .btn-close {
-    filter: invert(1) grayscale(100%) brightness(200%); /* Hace la X blanca */
+    filter: invert(1) grayscale(100%) brightness(200%);
 }
 
-/* Arreglo para bloques internos que tengan 'bg-light' (Como el de Inversión) */
+/* Arreglo para bloques internos que tengan 'bg-light' */
 .modal-body .bg-light {
-    background-color: #2D2D30 !important; /* Lo forzamos a gris oscuro */
+    background-color: #2D2D30 !important;
     color: #fff !important;
     border: 1px solid #444 !important;
 }
 .modal-body label {
-    color: var(--gold-flat); /* Etiquetas doradas */
+    color: var(--gold-flat);
     font-weight: 500;
 }
 
@@ -99,7 +100,9 @@
 .table .text-dark { color: #fff !important; }
 .table strong, .table b, .fw-bold { color: var(--gold-flat) !important; font-weight: 600; }
 .table small, .table .small { color: var(--text-secondary) !important; }
-.text-success { color: #69F0AE !important; }
+
+/* FIX: text-success sin !important para no romper badges verdes en otras páginas */
+.text-success { color: #69F0AE; }
 
 /* --- BOTONES --- */
 .btn { border-radius: 8px; font-weight: 600; border: none; }
@@ -112,86 +115,70 @@
 .table-warning > td { background-color: rgba(255, 215, 0, 0.15) !important; }
 .badge.bg-warning { background-color: var(--gold-flat) !important; color: #000 !important; border: none; }
 
-/* 1. ARREGLO PARA LA LISTA "TOP PERFUMES" */
+/* --- LISTA GROUP --- */
 .list-group-item {
     background-color: var(--bg-secondary) !important;
     border-color: var(--border-subtle) !important;
     color: var(--text-primary) !important;
 }
-
-/* El precio (badge) dentro de la lista */
 .list-group-item .badge {
     background-color: #000 !important;
     color: var(--gold-flat) !important;
     border: 1px solid var(--gold-muted) !important;
 }
 
-/* 2. FUERZA BRUTA PARA EL MODAL OSCURO */
-.modal-content {
-    background-color: #1a1a1a !important;
-    color: #fff !important;
-}
-
-/* Arreglar los inputs dentro del modal para que no se pierdan */
-.modal-body input, 
-.modal-body select, 
+/* --- INPUTS DENTRO DE MODAL --- */
+.modal-body input,
+.modal-body select,
 .modal-body textarea {
     background-color: #2D2D30 !important;
     border: 1px solid #555 !important;
     color: #fff !important;
 }
-
-/* Arreglar el placeholder (texto de ayuda) */
 .modal-body input::placeholder {
     color: #888 !important;
     opacity: 1;
 }
-
-/* Etiquetas (Labels) doradas */
 .modal-body label {
     color: var(--gold-flat) !important;
     font-weight: 500;
 }
 
-/* --- BOTÓN DE ACCIÓN UNIFICADO (ACCIONES RÁPIDAS) --- */
+/* --- BOTÓN DE ACCIÓN UNIFICADO --- */
 .btn-action {
     background-color: #252525;
     border: 1px solid #333;
     color: #e0e0e0;
     transition: all 0.3s ease;
-    padding: 12px 20px; /* Más gorditos */
+    padding: 12px 20px;
 }
-
 .btn-action:hover {
     background-color: #333;
     border-color: var(--gold-muted);
     color: #fff;
-    transform: translateX(5px); /* Efecto de moverse a la derecha */
+    transform: translateX(5px);
 }
 
 /* --- BOTÓN GOLD PRINCIPAL --- */
 .btn-gold {
-    background-color: #FFD700 !important; /* El !important fuerza el color */
+    background-color: #FFD700 !important;
     color: #000000 !important;
     border: none !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .btn-gold:hover {
     background-color: #e6c200 !important;
-    transform: scale(1.05); /* Efecto de crecer un poco */
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); /* Brillo dorado */
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
-/* --- ARREGLO FILTROS DE FECHA (El botón amarillo) --- */
-/* Cuando el botón de filtro está activo */
+/* --- FILTROS DE FECHA --- */
 .btn-group .btn.active {
-    background-color: var(--gold-flat) !important; /* Dorado */
-    color: #000 !important; /* Texto NEGRO para contraste */
+    background-color: var(--gold-flat) !important;
+    color: #000 !important;
     border-color: var(--gold-flat) !important;
     font-weight: 700;
 }
-
-/* Estado normal (inactivo) */
 .btn-group .btn-outline-secondary {
     border-color: #444;
     color: #aaa;
@@ -202,32 +189,24 @@
     border-color: #666;
 }
 
-/* --- BOTÓN DE LUJO (CLASE INVENCIBLE) --- */
+/* --- BOTÓN LUXURY GOLD --- */
 .btn-luxury-gold {
-    /* Fondo Dorado Intenso */
-    background-color: #FFD700 !important; 
+    background-color: #FFD700 !important;
     border: 1px solid #FFD700 !important;
-    color: #000 !important; /* Texto Negro para contraste */
+    color: #000 !important;
     font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 10px 20px;
-    
-    /* Animación suave */
     transition: all 0.3s ease-in-out !important;
 }
-
-/* Efecto Hover (Cuando pasas el mouse) */
 .btn-luxury-gold:hover {
-    /* Se oscurece un poco y brilla */
-    background-color: #e6c200 !important; 
+    background-color: #e6c200 !important;
     border-color: #e6c200 !important;
     color: #000 !important;
-    transform: translateY(-2px); /* Se levanta tantito */
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4) !important; /* Resplandor dorado */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4) !important;
 }
-
-/* Asegurar que el icono también sea negro */
 .btn-luxury-gold i {
     color: #000 !important;
 }

@@ -389,7 +389,6 @@ function deshacerVenta(id) {
     });
 }
 
-// Helper interno: inversión del socio en una venta
 function _calcInversionSocio(venta) {
     const tipo = venta.reglasReparto?.tipo || 'mio';
     const pct  = venta.reglasReparto?.pctSocio || 0;
@@ -453,8 +452,6 @@ function eliminarPago(id) {
 
 // =========================================================
 // calcularTotales
-// Si deudaActual < 0 significa que ya pagaste de más al socio
-// en ese caso mostramos $0.00 y un badge "Al día"
 // =========================================================
 function calcularTotales() {
     let miGananciaReal  = 0;
@@ -465,9 +462,9 @@ function calcularTotales() {
         const miParteCompleta = parseFloat(venta.reparto.yo || 0);
         miGananciaTotal += miParteCompleta;
         if (venta.esCredito) {
-            const precioTotal      = parseFloat(venta.precioFinal);
-            const saldoPendiente   = parseFloat(venta.saldoPendiente || 0);
-            const cobrado          = precioTotal - saldoPendiente;
+            const precioTotal       = parseFloat(venta.precioFinal);
+            const saldoPendiente    = parseFloat(venta.saldoPendiente || 0);
+            const cobrado           = precioTotal - saldoPendiente;
             const porcentajeCobrado = cobrado / precioTotal;
             miGananciaReal += miParteCompleta * porcentajeCobrado;
             totalPorCobrar += saldoPendiente;
@@ -482,7 +479,6 @@ function calcularTotales() {
     let pagadoSocio = listadoPagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
     let deudaActual = generadoSocio - pagadoSocio;
 
-    // Nunca mostrar negativo: si pagaste de más, deuda = 0
     const deudaMostrar = deudaActual > 0 ? deudaActual : 0;
     const estaAlDia    = deudaActual <= 0;
 
@@ -490,15 +486,10 @@ function calcularTotales() {
         document.getElementById('total-mi-ganancia').innerText = formatMoney(miGananciaReal);
 
     const elDeuda = document.getElementById('saldo-pendiente-socio');
-    if(elDeuda) {
-        elDeuda.innerText = estaAlDia ? '$0.00' : formatMoney(deudaMostrar);
-    }
+    if(elDeuda) elDeuda.innerText = estaAlDia ? '$0.00' : formatMoney(deudaMostrar);
 
-    // Badge "Al día" debajo del monto si no hay deuda
     const elBadge = document.getElementById('badge-socio-al-dia');
-    if(elBadge) {
-        elBadge.style.display = estaAlDia ? 'inline-block' : 'none';
-    }
+    if(elBadge) elBadge.style.display = estaAlDia ? 'inline-block' : 'none';
 
     if(document.getElementById('modal-deuda-actual'))
         document.getElementById('modal-deuda-actual').innerText = estaAlDia ? '$0.00' : formatMoney(deudaMostrar);
@@ -540,9 +531,9 @@ function setFiltroEstado(tipo, btn) {
 function abrirModalAbono(idVenta) {
     const venta = listadoVentas.find(v => v.id === idVenta);
     if(!venta) return;
-    document.getElementById('abono-id-venta').value      = idVenta;
+    document.getElementById('abono-id-venta').value         = idVenta;
     document.getElementById('abono-deuda-actual').innerText = '$' + venta.saldoPendiente.toFixed(2);
-    document.getElementById('inputMontoAbono').value     = '';
+    document.getElementById('inputMontoAbono').value        = '';
     new bootstrap.Modal(document.getElementById('modalAbono')).show();
 }
 
@@ -560,6 +551,7 @@ function guardarAbono() {
     setData('ventas', listadoVentas);
     bootstrap.Modal.getInstance(document.getElementById('modalAbono')).hide();
     renderVentas();
+    calcularTotales(); // FIX: actualizar "por cobrar" inmediatamente tras abonar
 }
 
 function marcarPagadoSocio(idVenta) {
@@ -568,8 +560,8 @@ function marcarPagadoSocio(idVenta) {
     const totalPagar = _calcInversionSocio(venta) + (venta.reparto.socio || 0);
     showConfirm(`¿Confirmar pago de $${totalPagar.toFixed(2)} al socio por "${venta.producto}"?`, () => {
         const index = listadoVentas.findIndex(v => v.id === idVenta);
-        listadoVentas[index].pagadoAlSocio    = true;
-        listadoVentas[index].fechaPagoSocio   = new Date().toLocaleString();
+        listadoVentas[index].pagadoAlSocio  = true;
+        listadoVentas[index].fechaPagoSocio = new Date().toLocaleString();
         listadoPagos.push({
             id: Date.now(), monto: totalPagar,
             nota: `Pago por venta: ${venta.producto} (${venta.sku || 'Sin SKU'})`
