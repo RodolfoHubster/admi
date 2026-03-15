@@ -19,7 +19,7 @@
     </div>
 
     <div class="row mb-4">
-        <!-- Card 1: Mi Ganancia (YA EXISTE) -->
+        <!-- Card 1: Mi Ganancia -->
         <div class="col-md-4">
             <div class="card text-white bg-success mb-3 shadow">
                 <div class="card-header">Mi Ganancia Acumulada</div>
@@ -29,82 +29,84 @@
                 </div>
             </div>
         </div>
+
+        <!-- Card 2: Deuda con Socio (NUEVO) -->
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3 shadow">
+                <div class="card-header text-dark fw-bold">💸 Le Debo al Socio</div>
+                <div class="card-body">
+                    <h2 class="card-title text-dark" id="saldo-pendiente-socio">$0.00</h2>
+                    <small class="text-dark" id="detalle-pagos">Generado: $0 | Pagado: $0</small>
+                    <div class="mt-2">
+                        <button class="btn btn-dark btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalPagarSocio">
+                            💰 Registrar Pago
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        
-        <!-- Card 3: NUEVO - Métricas -->
+        <!-- Card 3: Métricas -->
         <div class="col-md-4">
             <div class="card bg-dark mb-3 shadow-lg border border-warning border-2">
                 <div class="card-header bg-warning text-dark fw-bold">
                     📊 Métricas de Ventas
                 </div>
                 <div class="card-body text-white">
-                    <!-- Por Cobrar -->
                     <div class="mb-3 p-2 rounded" style="background: rgba(255, 193, 7, 0.1);">
                         <small class="d-block text-warning mb-1">Por Cobrar a Clientes:</small>
                         <h4 class="fw-bold text-warning mb-0" id="total-por-cobrar">$0.00</h4>
                     </div>
-                    
                     <hr class="border-secondary my-3">
-                    
-                    <!-- Ganancia Devengada -->
                     <div class="p-2 rounded" style="background: rgba(23, 162, 184, 0.15);">
                         <small class="d-block text-info mb-1">Ganancia Devengada:</small>
                         <h5 class="fw-bold text-info mb-1" id="ganancia-devengada">$0.00</h5>
-                        <small class="text-muted d-block" style="font-size: 0.7rem;">
-                            (Total si cobraras todo)
-                        </small>
+                        <small class="text-muted d-block" style="font-size: 0.7rem;">(Total si cobraras todo)</small>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-    <!-- ===== BARRA DE FILTROS ===== -->
-<div class="card bg-dark border-secondary shadow-sm mb-3">
-    <div class="card-body py-2 px-3">
-        <div class="row g-2 align-items-center">
-
-            <div class="col-auto">
-                <small class="text-muted fw-bold d-block mb-1">📅 PERIODO</small>
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-warning fw-bold active" onclick="setFiltroFecha('todos', this)">Todo</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="setFiltroFecha('hoy', this)">Hoy</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="setFiltroFecha('semana', this)">Semana</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="setFiltroFecha('mes', this)">Mes</button>
+    <!-- BARRA DE FILTROS -->
+    <div class="card bg-dark border-secondary shadow-sm mb-3">
+        <div class="card-body py-2 px-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <small class="text-muted fw-bold d-block mb-1">📅 PERIODO</small>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-warning fw-bold active" onclick="setFiltroFecha('todos', this)">Todo</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="setFiltroFecha('hoy', this)">Hoy</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="setFiltroFecha('semana', this)">Semana</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="setFiltroFecha('mes', this)">Mes</button>
+                    </div>
+                </div>
+                <div class="col-auto d-none d-md-block"><div style="width:1px; height:40px; background:#444;"></div></div>
+                <div class="col-auto">
+                    <small class="text-muted fw-bold d-block mb-1">💳 ESTADO</small>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-warning fw-bold active" onclick="setFiltroEstado('todos', this)">Todos</button>
+                        <button type="button" class="btn btn-outline-danger" onclick="setFiltroEstado('pendiente', this)">Con Deuda</button>
+                        <button type="button" class="btn btn-outline-success" onclick="setFiltroEstado('liquidado', this)">Liquidados</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="setFiltroEstado('contado', this)">Contado</button>
+                    </div>
+                </div>
+                <div class="col-auto d-none d-md-block"><div style="width:1px; height:40px; background:#444;"></div></div>
+                <div class="col">
+                    <small class="text-muted fw-bold d-block mb-1">🔍 BUSCAR</small>
+                    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary"
+                           id="filtro-texto-ventas" placeholder="Cliente o producto..."
+                           oninput="renderVentas()">
+                </div>
+                <div class="col-auto text-end">
+                    <small class="text-muted d-block">Mostrando</small>
+                    <span class="fw-bold text-warning" id="contador-ventas">0</span>
+                    <small class="text-muted"> ventas</small>
                 </div>
             </div>
-
-            <div class="col-auto d-none d-md-block"><div style="width:1px; height:40px; background:#444;"></div></div>
-
-            <div class="col-auto">
-                <small class="text-muted fw-bold d-block mb-1">💳 ESTADO</small>
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-warning fw-bold active" onclick="setFiltroEstado('todos', this)">Todos</button>
-                    <button type="button" class="btn btn-outline-danger" onclick="setFiltroEstado('pendiente', this)">Con Deuda</button>
-                    <button type="button" class="btn btn-outline-success" onclick="setFiltroEstado('liquidado', this)">Liquidados</button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="setFiltroEstado('contado', this)">Contado</button>
-                </div>
-            </div>
-
-            <div class="col-auto d-none d-md-block"><div style="width:1px; height:40px; background:#444;"></div></div>
-
-            <div class="col">
-                <small class="text-muted fw-bold d-block mb-1">🔍 BUSCAR</small>
-                <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary"
-                       id="filtro-texto-ventas" placeholder="Cliente o producto..."
-                       oninput="renderVentas()">
-            </div>
-
-            <div class="col-auto text-end">
-                <small class="text-muted d-block">Mostrando</small>
-                <span class="fw-bold text-warning" id="contador-ventas">0</span>
-                <small class="text-muted"> ventas</small>
-            </div>
-
         </div>
     </div>
-</div>
 
-    
     <div class="card shadow mb-5">
         <div class="card-body p-0">
             <table class="table table-striped table-hover mb-0 align-middle">
@@ -114,7 +116,9 @@
                         <th>Cliente</th>
                         <th>Producto</th>
                         <th>Utilidad Total</th>
-                        <th>Reparto Ganancia</th> <th>💰 A Pagar Socio</th> <th>Acciones</th>
+                        <th>Reparto Ganancia</th>
+                        <th>💰 A Pagar Socio</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="sales-table-body"></tbody>
@@ -143,6 +147,7 @@
     </div>
 </div>
 
+<!-- Modal Pagar Socio -->
 <div class="modal fade" id="modalPagarSocio" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -160,7 +165,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Nota (Opcional)</label>
-                    <input type="text" class="form-control" id="inputNotaPago" placeholder="Ej: Transferencia, Efectivo, Parte de la deuda...">
+                    <input type="text" class="form-control" id="inputNotaPago" placeholder="Ej: Transferencia, Efectivo...">
                 </div>
             </div>
             <div class="modal-footer">
@@ -171,6 +176,7 @@
     </div>
 </div>
 
+<!-- Modal Detalle Venta -->
 <div class="modal fade" id="modalDetalleVenta" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -219,6 +225,7 @@
     </div>
 </div>
 
+<!-- Modal Editar Venta -->
 <div class="modal fade" id="modalEditarVenta" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -228,12 +235,10 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="edit-id-venta">
-                
                 <div class="mb-3">
                     <label class="form-label fw-bold">Producto</label>
                     <input type="text" class="form-control bg-light" id="edit-producto" disabled readonly>
                 </div>
-
                 <div class="row mb-3 p-2 border rounded bg-light mx-0">
                     <div class="col-12 mb-2">
                         <label class="form-label text-primary fw-bold">Tipo de Trato / Inversión</label>
@@ -244,7 +249,6 @@
                             <option value="personalizado">Personalizado (Definir %)</option>
                         </select>
                     </div>
-                    
                     <div class="col-12" id="div-edit-pct" style="display:none;">
                         <label class="form-label fw-bold text-danger">¿Qué porcentaje se lleva el SOCIO?</label>
                         <div class="input-group">
@@ -254,7 +258,6 @@
                         <small class="text-muted">Ejemplo: Si pones 30, tú te llevas el 70%.</small>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-6 mb-3">
                         <label class="form-label">Precio Final ($)</label>
@@ -265,7 +268,6 @@
                         <input type="number" class="form-control" id="edit-utilidad" disabled>
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label class="form-label">Cliente / Nota</label>
                     <input type="text" class="form-control" id="edit-cliente">
@@ -279,6 +281,7 @@
     </div>
 </div>
 
+<!-- Modal Abono -->
 <div class="modal fade" id="modalAbono" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark text-white border-secondary">
@@ -306,9 +309,7 @@
             </div>
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success fw-bold" onclick="guardarAbono()">
-                    Confirmar Pago
-                </button>
+                <button type="button" class="btn btn-success fw-bold" onclick="guardarAbono()">Confirmar Pago</button>
             </div>
         </div>
     </div>
@@ -326,11 +327,11 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-    await initApp();
-    if (typeof cargarDatosVentas === 'function') {
-        cargarDatosVentas();
-    }
-});
+        await initApp();
+        if (typeof cargarDatosVentas === 'function') {
+            cargarDatosVentas();
+        }
+    });
 </script>
 </body>
 </html>

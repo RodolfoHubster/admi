@@ -12,10 +12,7 @@
 </head>
 <body>
 
-
-
 <div class="container mt-4 mb-5">
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2>💸 Gastos Operativos</h2>
@@ -26,7 +23,6 @@
         </button>
     </div>
 
-    <!-- KPIs de Gastos -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card bg-danger bg-opacity-10 border-danger">
@@ -42,7 +38,8 @@
                 <div class="card-body">
                     <small class="text-warning fw-bold">ESTE MES</small>
                     <h3 class="fw-bold text-warning mb-0" id="gastos-mes">$0.00</h3>
-                    <small class="text-muted">Gastos de febrero</small>
+                    <!-- FIX: mes dinámico en lugar de hardcoded "febrero" -->
+                    <small class="text-muted">Gastos de <span id="label-mes-actual"></span></small>
                 </div>
             </div>
         </div>
@@ -66,7 +63,6 @@
         </div>
     </div>
 
-    <!-- Filtros -->
     <div class="card shadow-sm mb-3">
         <div class="card-body">
             <div class="row align-items-end">
@@ -97,7 +93,6 @@
         </div>
     </div>
 
-    <!-- Tabla de Gastos -->
     <div class="card shadow">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -114,9 +109,7 @@
                     </thead>
                     <tbody id="gastos-table-body">
                         <tr>
-                            <td colspan="6" class="text-center text-muted p-4">
-                                No hay gastos registrados
-                            </td>
+                            <td colspan="6" class="text-center text-muted p-4">No hay gastos registrados</td>
                         </tr>
                     </tbody>
                 </table>
@@ -124,15 +117,12 @@
         </div>
     </div>
 
-    <!-- Resumen por Categoría -->
     <div class="card shadow mt-4">
         <div class="card-header bg-dark text-white fw-bold">
             📊 Resumen por Categoría
         </div>
         <div class="card-body">
-            <div id="resumen-categorias" class="row g-3">
-                <!-- Se llena dinámicamente -->
-            </div>
+            <div id="resumen-categorias" class="row g-3"></div>
         </div>
     </div>
 </div>
@@ -154,7 +144,6 @@
                             <input type="number" class="form-control" id="inputMontoGasto" placeholder="0.00" step="0.01" required>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label fw-bold">Categoría</label>
                         <select class="form-select" id="inputCategoriaGasto" required>
@@ -167,12 +156,10 @@
                             <option value="otro">❓ Otro</option>
                         </select>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Concepto/Descripción</label>
                         <input type="text" class="form-control" id="inputConceptoGasto" placeholder="Ej: Envío a Guadalajara, Gasolina semana 1">
                     </div>
-
                     <div class="mb-3 p-3 bg-light rounded">
                         <label class="form-label fw-bold">¿Quién pagó este gasto?</label>
                         <select class="form-select" id="inputQuienPago" onchange="togglePorcentajeGasto()">
@@ -181,7 +168,6 @@
                             <option value="mitad">50% / 50%</option>
                             <option value="personalizado">Personalizado</option>
                         </select>
-                        
                         <div id="div-porcentaje-gasto" class="mt-2" style="display:none;">
                             <label class="form-label small">¿Qué % pagó el SOCIO?</label>
                             <div class="input-group">
@@ -190,10 +176,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="form-text">
-                        💡 Tip: Solo tus gastos afectan tu ganancia neta
-                    </div>
+                    <div class="form-text">💡 Tip: Solo tus gastos afectan tu ganancia neta</div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -212,6 +195,10 @@
 <script src="assets/js/gastos.js"></script>
 
 <script>
+    // Poner el nombre del mes actual dinámicamente
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    document.getElementById('label-mes-actual').innerText = meses[new Date().getMonth()];
+
     document.addEventListener('DOMContentLoaded', async () => {
         await initApp();
         cargarGastos();
