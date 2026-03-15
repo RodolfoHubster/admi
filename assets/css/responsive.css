@@ -1,0 +1,334 @@
+/* ============================================================
+   RESPONSIVE.CSS — Optimizado para Samsung S24 FE (412px)
+   y móviles en general (max-width: 768px)
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+    /* ==========================================
+       GLOBAL: Espaciado y fuentes base
+    ========================================== */
+    body {
+        font-size: 14px;
+    }
+
+    .container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    h2 { font-size: 1.3rem !important; }
+    h3 { font-size: 1.1rem !important; }
+    h4 { font-size: 1rem !important; }
+
+    /* ==========================================
+       NAVBAR
+    ========================================== */
+    .navbar {
+        padding: 0.5rem 0 !important;
+    }
+    .navbar-brand {
+        font-size: 1.1rem !important;
+    }
+    /* Menú hamburguesa: links más grandes para dedos */
+    .navbar-nav .nav-link {
+        padding: 10px 16px !important;
+        font-size: 1rem !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* ==========================================
+       TABLAS — Convertir a cards en móvil
+    ========================================== */
+    .table-responsive {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Ocultar encabezados de tabla en móvil */
+    .table thead {
+        display: none !important;
+    }
+
+    /* Cada fila se convierte en una card */
+    .table tbody tr {
+        display: block !important;
+        background-color: var(--bg-secondary) !important;
+        border-radius: 12px !important;
+        margin-bottom: 12px !important;
+        padding: 12px !important;
+        border: 1px solid rgba(255, 215, 0, 0.15) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+    }
+
+    /* Cada celda con etiqueta automática */
+    .table tbody td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 6px 4px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        font-size: 0.85rem !important;
+        flex-wrap: wrap !important;
+        gap: 4px;
+    }
+
+    .table tbody td:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Botones dentro de tabla: full width en móvil */
+    .table tbody td .d-flex.gap-1,
+    .table tbody td .d-flex.gap-2 {
+        width: 100% !important;
+        justify-content: flex-end !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* ==========================================
+       BOTONES — Más táctiles
+    ========================================== */
+    .btn {
+        min-height: 40px !important;
+        font-size: 0.82rem !important;
+        padding: 8px 12px !important;
+    }
+
+    /* Botones de acción en tabla: más pequeños pero usables */
+    .table .btn-sm {
+        min-height: 36px !important;
+        padding: 6px 10px !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* ==========================================
+       CARDS (KPIs / Métricas)
+    ========================================== */
+    .card {
+        border-radius: 12px !important;
+        margin-bottom: 12px !important;
+    }
+    .card-body {
+        padding: 14px !important;
+    }
+    .card-header {
+        padding: 10px 14px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Cards de métricas en fila */
+    .row.g-3 > [class*="col-md"] {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+    /* Cards que deben ser 100% en móvil */
+    .row.g-3 > .col-md-8,
+    .row.g-3 > .col-md-6 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* ==========================================
+       MODALES — Pantalla completa en móvil
+    ========================================== */
+    .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    .modal-dialog-centered {
+        align-items: flex-end !important; /* Sube desde abajo como sheet */
+    }
+    .modal-content {
+        border-radius: 20px 20px 0 0 !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+    }
+    /* Modal lg también full width */
+    .modal-lg .modal-content {
+        border-radius: 20px 20px 0 0 !important;
+    }
+    .modal-body {
+        padding: 16px !important;
+    }
+    .modal-header {
+        padding: 14px 16px !important;
+    }
+    .modal-footer {
+        padding: 12px 16px !important;
+    }
+    /* Inputs dentro de modal: más grandes para dedos */
+    .modal-body .form-control,
+    .modal-body .form-select {
+        min-height: 46px !important;
+        font-size: 1rem !important;
+    }
+    .modal-footer .btn {
+        flex: 1 !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* ==========================================
+       FORMULARIOS
+    ========================================== */
+    .form-control, .form-select {
+        min-height: 44px !important;
+        font-size: 0.95rem !important;
+    }
+    .form-label {
+        font-size: 0.85rem !important;
+        margin-bottom: 4px !important;
+    }
+    .input-group-text {
+        font-size: 0.9rem !important;
+        padding: 0 12px !important;
+    }
+
+    /* ==========================================
+       HEADER DE PÁGINAS (título + botón)
+    ========================================== */
+    .d-flex.justify-content-between.align-items-center {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    .d-flex.justify-content-between.align-items-center .btn {
+        width: 100% !important;
+    }
+
+    /* ==========================================
+       TABS DE NAVEGACIÓN (clientes, etc.)
+    ========================================== */
+    .nav-tabs {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tabs .nav-link {
+        white-space: nowrap !important;
+        padding: 10px 14px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* ==========================================
+       BARRA DE FILTROS (ventas, gastos)
+    ========================================== */
+    .btn-group {
+        flex-wrap: wrap !important;
+    }
+    .btn-group .btn {
+        font-size: 0.75rem !important;
+        padding: 6px 10px !important;
+        min-height: 34px !important;
+    }
+    /* Filtros en columna completa */
+    .card .row.g-2 > .col-auto {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+    .card .row.g-2 > .col {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+    /* Separadores verticales ocultos */
+    .col-auto.d-none.d-md-block {
+        display: none !important;
+    }
+
+    /* ==========================================
+       BARRA ACCIONES RÁPIDAS (index)
+    ========================================== */
+    .row.g-3 > .col-md-3 {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    /* ==========================================
+       BADGES Y TEXTOS
+    ========================================== */
+    .badge {
+        font-size: 0.72rem !important;
+    }
+    .fs-5 { font-size: 1rem !important; }
+    .fs-4 { font-size: 1.1rem !important; }
+    .display-4 { font-size: 2rem !important; }
+
+    /* ==========================================
+       CARDS DE ESTADÍSTICAS (dashboard)
+    ========================================== */
+    .card-body h1.display-4 {
+        font-size: 2rem !important;
+    }
+    .card-body h2 {
+        font-size: 1.4rem !important;
+    }
+    .card-body h3 {
+        font-size: 1.2rem !important;
+    }
+
+    /* ==========================================
+       TABLA DASHBOARD: Top Rentables / Vendidos
+    ========================================== */
+    #table-rentables td,
+    #table-vendidos td {
+        font-size: 0.8rem !important;
+        padding: 8px !important;
+    }
+
+    /* ==========================================
+       PROGRESS BAR en clientes
+    ========================================== */
+    .progress {
+        height: 8px !important;
+    }
+
+    /* ==========================================
+       DETALLES EXTRAS
+    ========================================== */
+    /* Ocultar textos largos en mobile */
+    .d-mobile-none { display: none !important; }
+
+    /* Padding top para no quedar bajo el navbar fijo */
+    body > .container,
+    body > div.container {
+        padding-top: 16px !important;
+    }
+
+    /* mt-5 es demasiado en móvil */
+    .mt-5 { margin-top: 1rem !important; }
+    .mb-5 { margin-bottom: 1.5rem !important; }
+    .mb-4 { margin-bottom: 1rem !important; }
+
+    /* Input de búsqueda full width */
+    #filtro-texto-ventas {
+        width: 100% !important;
+    }
+
+    /* Contador de ventas en línea propia */
+    .col-auto.text-end {
+        width: auto !important;
+        margin-left: auto;
+    }
+}
+
+/* ============================================================
+   BREAKPOINT EXTRA PEQUEÑO — phones < 390px
+   ============================================================ */
+@media (max-width: 390px) {
+    .row.g-3 > [class*="col-md"] {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    .row.g-3 > .col-md-3 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    .btn { font-size: 0.8rem !important; }
+}

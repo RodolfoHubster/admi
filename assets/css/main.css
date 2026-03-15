@@ -6,3 +6,4 @@
 @import 'ui.css';          /* 3. Botones, Tablas y Tarjetas */
 @import 'features.css';    /* 4. Ticket, Foto Preview, Extras */
 @import 'dashboard.css';   /* 5. Estilos específicos del Inicio */
+@import 'responsive.css';  /* 6. Responsivo móvil (Samsung S24 FE y similares) */
