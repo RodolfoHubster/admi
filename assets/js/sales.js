@@ -354,7 +354,6 @@ function deshacerVenta(id) {
     const venta = listadoVentas.find(v => v.id === id);
     if (!venta) return;
 
-    // FIX: calcular generado igual que calcularTotales (inversión + ganancia)
     let generadoSocioTotal = listadoVentas.reduce((acc, v) => {
         const inv = _calcInversionSocio(v);
         return acc + inv + parseFloat(v.reparto.socio || 0);
@@ -453,9 +452,9 @@ function eliminarPago(id) {
 }
 
 // =========================================================
-// calcularTotales — FIX PRINCIPAL: deuda socio ya no es negativa
-// El "Le debo" = suma de (inversión_socio + ganancia_socio) por cada venta
-//                - lo que ya le pagué
+// calcularTotales
+// Si deudaActual < 0 significa que ya pagaste de más al socio
+// en ese caso mostramos $0.00 y un badge "Al día"
 // =========================================================
 function calcularTotales() {
     let miGananciaReal  = 0;
@@ -477,20 +476,32 @@ function calcularTotales() {
         }
     });
 
-    // FIX: generadoSocio = inversión devuelta + ganancia, por cada venta
-    // (igual que como se registra en listadoPagos al hacer marcarPagadoSocio)
     let generadoSocio = listadoVentas.reduce((acc, v) => {
         return acc + _calcInversionSocio(v) + parseFloat(v.reparto.socio || 0);
     }, 0);
     let pagadoSocio = listadoPagos.reduce((acc, p) => acc + parseFloat(p.monto || 0), 0);
     let deudaActual = generadoSocio - pagadoSocio;
 
+    // Nunca mostrar negativo: si pagaste de más, deuda = 0
+    const deudaMostrar = deudaActual > 0 ? deudaActual : 0;
+    const estaAlDia    = deudaActual <= 0;
+
     if(document.getElementById('total-mi-ganancia'))
         document.getElementById('total-mi-ganancia').innerText = formatMoney(miGananciaReal);
-    if(document.getElementById('saldo-pendiente-socio'))
-        document.getElementById('saldo-pendiente-socio').innerText = formatMoney(deudaActual);
+
+    const elDeuda = document.getElementById('saldo-pendiente-socio');
+    if(elDeuda) {
+        elDeuda.innerText = estaAlDia ? '$0.00' : formatMoney(deudaMostrar);
+    }
+
+    // Badge "Al día" debajo del monto si no hay deuda
+    const elBadge = document.getElementById('badge-socio-al-dia');
+    if(elBadge) {
+        elBadge.style.display = estaAlDia ? 'inline-block' : 'none';
+    }
+
     if(document.getElementById('modal-deuda-actual'))
-        document.getElementById('modal-deuda-actual').innerText = formatMoney(deudaActual);
+        document.getElementById('modal-deuda-actual').innerText = estaAlDia ? '$0.00' : formatMoney(deudaMostrar);
     if(document.getElementById('detalle-pagos'))
         document.getElementById('detalle-pagos').innerText =
             `Generado: ${formatMoney(generadoSocio)} | Pagado: ${formatMoney(pagadoSocio)}`;
