@@ -12,13 +12,37 @@
     border-radius: 8px;
 }
 
-/* --- FOTO PREVIEW --- */
+/* =========================================================
+   IMAGEN DE PERFUME EN TABLA DE INVENTARIO
+   Pequeña por defecto, crece suave al hacer hover
+   ========================================================= */
 .foto-preview {
-    width: 80px;
-    height: 80px;
+    width: 52px;
+    height: 52px;
     object-fit: cover;
     border-radius: 8px;
     border: 1px solid #444;
+    cursor: zoom-in;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    display: block;
+}
+.foto-preview:hover {
+    transform: scale(2.8);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+    border-color: #FFD700;
+    z-index: 999;
+    position: relative;
+}
+
+/* =========================================================
+   HOVER DE FILAS DE TABLA
+   ========================================================= */
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+.table-hover > tbody > tr:hover,
+.table-hover > tbody > tr:hover > td {
+    background-color: rgba(255, 215, 0, 0.08) !important;
 }
 
 /* =========================================================
@@ -34,14 +58,12 @@
     justify-content: center;
     backdrop-filter: blur(4px);
 }
-
 .__spinner-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 18px;
 }
-
 .__spinner-ring {
     width: 56px;
     height: 56px;
@@ -50,11 +72,9 @@
     border-radius: 50%;
     animation: __spin 0.85s linear infinite;
 }
-
 @keyframes __spin {
     to { transform: rotate(360deg); }
 }
-
 .__spinner-msg {
     color: #FFD700;
     font-family: 'Poppins', sans-serif;
