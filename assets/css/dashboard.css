@@ -1,41 +1,163 @@
 /* assets/css/dashboard.css */
 /* =========================================================
-   5. DASHBOARD — KPI cards e iconos
-      .text-gold estaba duplicada aquí con !important;
-      la definición correcta vive en global.css
+   5. DASHBOARD — KPI cards, iconos, acciones rápidas
    ========================================================= */
 
 
 /* ---------------------------------------------------------
-   TARJETAS KPI
+   TARJETAS KPI BASE
    --------------------------------------------------------- */
 .card-kpi {
-    background-color: var(--bg-secondary);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: linear-gradient(145deg, var(--bg-secondary) 0%, rgba(14,14,22,0.98) 100%);
+    border: var(--border-glass);
+    border-radius: 16px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     position: relative;
     overflow: hidden;
 }
+/* Brillo de fondo animado al hover */
+.card-kpi::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(255,215,0,0.04), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.card-kpi:hover::before { opacity: 1; }
 .card-kpi:hover {
-    transform: translateY(-5px);
-    border-color: var(--gold-muted);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover), var(--shadow-gold);
 }
 
-/* Degradados por categoría */
-.kpi-capital  { background: linear-gradient(160deg, #1e1e1e 0%, #252525 100%); }
-.kpi-venta    { background: linear-gradient(160deg, #1e1e1e 0%, #1a2e1a 100%); }
-.kpi-ganancia { background: linear-gradient(160deg, #1e1e1e 0%, #2e2a1a 100%); }
-.kpi-stock    { background: linear-gradient(160deg, #1e1e1e 0%, #1a1f2e 100%); }
 
-/* Icono y valor KPI */
+/* ---------------------------------------------------------
+   DEGRADADOS + BORDE DE ACENTO POR TIPO DE KPI
+   --------------------------------------------------------- */
+.kpi-capital {
+    background: linear-gradient(145deg, #1a0e0e 0%, #1e1218 100%);
+    border-left: 3px solid var(--accent-red) !important;
+    box-shadow: var(--shadow-card), -2px 0 16px rgba(255,83,112,0.12);
+}
+.kpi-venta {
+    background: linear-gradient(145deg, #0e1a0e 0%, #121e14 100%);
+    border-left: 3px solid var(--accent-green) !important;
+    box-shadow: var(--shadow-card), -2px 0 16px rgba(195,232,141,0.12);
+}
+.kpi-ganancia {
+    background: linear-gradient(145deg, #1a1500 0%, #1e1a00 100%);
+    border-left: 3px solid var(--gold-flat) !important;
+    box-shadow: var(--shadow-card), -2px 0 16px rgba(255,215,0,0.12);
+}
+.kpi-stock {
+    background: linear-gradient(145deg, #0e0e1a 0%, #12121e 100%);
+    border-left: 3px solid var(--accent-blue) !important;
+    box-shadow: var(--shadow-card), -2px 0 16px rgba(130,170,255,0.12);
+}
+.kpi-cyan {
+    background: linear-gradient(145deg, #0a1518 0%, #0e1a1e 100%);
+    border-left: 3px solid var(--accent-cyan) !important;
+    box-shadow: var(--shadow-card), -2px 0 16px rgba(137,221,255,0.12);
+}
+.kpi-purple {
+    background: linear-gradient(145deg, #140e1a 0%, #18121e 100%);
+    border-left: 3px solid var(--accent-purple) !important;
+    box-shadow: var(--shadow-card), -2px 0 16px rgba(199,146,234,0.12);
+}
+
+
+/* ---------------------------------------------------------
+   ICONO Y VALOR KPI
+   --------------------------------------------------------- */
 .icon-box {
     font-size: 1.8rem;
-    color: var(--gold-flat);
-    opacity: 0.7;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+}
+.card-kpi:hover .icon-box {
+    opacity: 1;
+    transform: scale(1.1);
 }
 .kpi-value {
-    color: #fff;
     font-family: 'Poppins', sans-serif;
-    letter-spacing: 0.5px;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+.kpi-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-secondary);
+}
+.kpi-sub {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+
+/* ---------------------------------------------------------
+   ACCIONES RÁPIDAS (index.html)
+   --------------------------------------------------------- */
+.btn-quick-action {
+    background: var(--bg-glass);
+    border: var(--border-glass);
+    color: var(--text-primary);
+    border-radius: 12px;
+    padding: 20px 16px;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.btn-quick-action i { font-size: 1.6rem; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; }
+.btn-quick-action:hover {
+    background: rgba(255,215,0,0.07);
+    border-color: rgba(255,215,0,0.35);
+    color: var(--gold-flat);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(255,215,0,0.12);
+}
+.btn-quick-action:hover i { opacity: 1; transform: scale(1.15); color: var(--gold-flat); }
+
+
+/* ---------------------------------------------------------
+   CARD HEADERS DEL DASHBOARD (colores de sección)
+   --------------------------------------------------------- */
+.card-header.bg-dark {
+    background: linear-gradient(90deg, #0a0a12 0%, #111118 100%) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    color: var(--text-primary) !important;
+}
+.card-header.bg-success {
+    background: linear-gradient(90deg, rgba(195,232,141,0.15) 0%, rgba(195,232,141,0.05) 100%) !important;
+    border-bottom: 1px solid rgba(195,232,141,0.25);
+    color: var(--accent-green) !important;
+}
+.card-header.bg-info {
+    background: linear-gradient(90deg, rgba(137,221,255,0.15) 0%, rgba(137,221,255,0.05) 100%) !important;
+    border-bottom: 1px solid rgba(137,221,255,0.25);
+    color: var(--accent-cyan) !important;
+}
+
+
+/* ---------------------------------------------------------
+   TABLA DENTRO DE DASHBOARD (thead especial)
+   --------------------------------------------------------- */
+.table thead.table-light th {
+    background: rgba(255,255,255,0.04) !important;
+    color: var(--text-secondary) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
