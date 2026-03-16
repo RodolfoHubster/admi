@@ -1,101 +1,102 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Fitoscents Admin — Clientes</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-        <!-- Sistema CSS Fitoscents (orden obligatorio) -->
-        <link rel="stylesheet" href="assets/css/variables.css">
-        <link rel="stylesheet" href="assets/css/global.css">
-        <link rel="stylesheet" href="assets/css/ui.css">
-        <link rel="stylesheet" href="assets/css/features.css">
-        <link rel="stylesheet" href="assets/css/dashboard.css">
-        <link rel="stylesheet" href="assets/css/responsive.css">
-        <script type="module" src="assets/js/firebase.js"></script>
-        <script src="components/header.js"></script>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitoscents Admin — Clientes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/ui.css">
+    <link rel="stylesheet" href="assets/css/features.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+    <script type="module" src="assets/js/firebase.js"></script>
+    <script src="components/header.js"></script>
+</head>
 <body>
 
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold">Gestión de Clientes</h2>
-                <p class="text-muted">Cobranza y seguimiento de pedidos.</p>
-            </div>
-            <button class="btn btn-dark" onclick="alert('Próximamente: Lista de Interesados/Leads')">
-                <i class="bi bi-notebook"></i> Anotar Interesado
-            </button>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Gestión de Clientes</h2>
+            <p class="text-muted">Cobranza y seguimiento de pedidos.</p>
         </div>
-    
-        <ul class="nav nav-tabs mb-4" id="clientesTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active fw-bold" id="deudas-tab" data-bs-toggle="tab" data-bs-target="#deudas-content" type="button">
-                    💰 Cuentas por Cobrar (<span id="count-deudores">0</span>)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos-content" type="button">
-                    📦 Pedidos y Encargos (<span id="count-pedidos">0</span>)
-                </button>
-            </li>
-        </ul>
-    
-        <div class="tab-content" id="myTabContent">
+        <button class="btn btn-dark" onclick="alert('Próximamente: Lista de Interesados/Leads')">
+            <i class="bi bi-notebook"></i> Anotar Interesado
+        </button>
+    </div>
 
-            <!-- ===== TAB: CUENTAS POR COBRAR ===== -->
-            <div class="tab-pane fade show active" id="deudas-content" role="tabpanel">
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <div class="card text-center p-3">
-                            <h6 class="text-muted">TOTAL EN LA CALLE</h6>
-                            <h2 class="text-gold fw-bold mb-0" id="total-calle">$0.00</h2>
-                        </div>
+    <ul class="nav nav-tabs mb-4" id="clientesTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="deudas-tab"
+                    data-bs-toggle="tab" data-bs-target="#deudas-content" type="button">
+                💰 Cuentas por Cobrar (<span id="count-deudores">0</span>)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="pedidos-tab"
+                    data-bs-toggle="tab" data-bs-target="#pedidos-content" type="button">
+                📦 Pedidos y Encargos (<span id="count-pedidos">0</span>)
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+
+        <!-- TAB: CUENTAS POR COBRAR -->
+        <div class="tab-pane fade show active" id="deudas-content" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="card text-center p-3">
+                        <h6 class="text-muted">TOTAL EN LA CALLE</h6>
+                        <h2 class="text-gold fw-bold mb-0" id="total-calle">$0.00</h2>
                     </div>
                 </div>
-                <div class="table-responsive shadow-sm rounded">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>Progreso de Pago</th>
-                                <th>Saldo Pendiente</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clientes-table-body"></tbody>
-                    </table>
-                </div>
             </div>
-    
-            <!-- ===== TAB: PEDIDOS Y ENCARGOS ===== -->
-            <div class="tab-pane fade" id="pedidos-content" role="tabpanel">
-                <div class="alert alert-info border-0 shadow-sm">
-                    <i class="bi bi-info-circle-fill me-2"></i> 
-                    Estos son perfumes registrados en el <strong>Inventario</strong> asignados a un cliente. 
-                    Si cambias la ubicación a &quot;En Inventario&quot;, aparecerán como listos.
-                </div>
-                <div class="table-responsive shadow-sm rounded">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>Perfume Encargado</th>
-                                <th>Estado Actual</th>
-                                <th>Inversión</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="encargos-table-body"></tbody>
-                    </table>
-                </div>
+            <div class="table-responsive shadow-sm rounded">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Progreso de Pago</th>
+                            <th>Saldo Pendiente</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientes-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: PEDIDOS Y ENCARGOS -->
+        <div class="tab-pane fade" id="pedidos-content" role="tabpanel">
+            <div class="alert alert-info border-0 shadow-sm">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                Estos son perfumes registrados en el <strong>Inventario</strong> asignados a un cliente.
+                Si cambias la ubicación a &quot;En Inventario&quot;, aparecerán como listos.
+            </div>
+            <div class="table-responsive shadow-sm rounded">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Perfume Encargado</th>
+                            <th>Estado Actual</th>
+                            <th>Inversión</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="encargos-table-body"></tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
 
-<!-- ===== Modal Abonar ===== -->
+<!-- Modal Abonar -->
 <div class="modal fade" id="modalAbonoCliente" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -138,7 +139,7 @@
     </div>
 </div>
 
-<!-- ===== Modal Historial Abonos ===== -->
+<!-- Modal Historial -->
 <div class="modal fade" id="modalHistorialAbonos" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -150,13 +151,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Perfume</th>
-                                <th>Precio Total</th>
-                                <th>Abonos</th>
-                                <th>Saldo</th>
-                            </tr>
+                            <tr><th>#</th><th>Perfume</th><th>Precio Total</th><th>Abonos</th><th>Saldo</th></tr>
                         </thead>
                         <tbody id="hist-abonos-body"></tbody>
                     </table>
@@ -175,209 +170,203 @@
 <script src="assets/js/storage.js"></script>
 <script>
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        await initApp();
-        renderDeudas();
-        renderEncargos();
+document.addEventListener('DOMContentLoaded', async () => {
+    await initApp();
+    renderDeudas();
+    renderEncargos();
+});
+
+function renderDeudas() {
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const clientesMap = {};
+    let totalCalle = 0;
+
+    ventas.forEach(v => {
+        if (v.saldoPendiente > 0 && v.cliente) {
+            if (!clientesMap[v.cliente]) {
+                clientesMap[v.cliente] = { nombre: v.cliente, deudaActual: 0, totalOriginal: 0, items: [] };
+            }
+            clientesMap[v.cliente].deudaActual  += parseFloat(v.saldoPendiente);
+            clientesMap[v.cliente].totalOriginal += parseFloat(v.precioFinal);
+            clientesMap[v.cliente].items.push(v.producto);
+            totalCalle += parseFloat(v.saldoPendiente);
+        }
     });
 
-    function renderDeudas() {
-        const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-        const clientesMap = {};
-        let totalCalle = 0;
+    document.getElementById('total-calle').innerText    = formatMoney(totalCalle);
+    document.getElementById('count-deudores').innerText = Object.keys(clientesMap).length;
 
-        ventas.forEach(v => {
-            if (v.saldoPendiente > 0 && v.cliente) {
-                if (!clientesMap[v.cliente]) {
-                    clientesMap[v.cliente] = { nombre: v.cliente, deudaActual: 0, totalOriginal: 0, items: [] };
-                }
-                clientesMap[v.cliente].deudaActual += parseFloat(v.saldoPendiente);
-                clientesMap[v.cliente].totalOriginal += parseFloat(v.precioFinal);
-                clientesMap[v.cliente].items.push(v.producto);
-                totalCalle += parseFloat(v.saldoPendiente);
-            }
-        });
+    const tbody = document.getElementById('clientes-table-body');
+    tbody.innerHTML = '';
 
-        document.getElementById('total-calle').innerText = formatMoney(totalCalle);
-        document.getElementById('count-deudores').innerText = Object.keys(clientesMap).length;
+    Object.values(clientesMap).forEach(c => {
+        const pagado = c.totalOriginal - c.deudaActual;
+        const porcentajePagado = (pagado / c.totalOriginal) * 100;
+        let colorBarra = 'bg-danger';
+        if (porcentajePagado > 50) colorBarra = 'bg-warning';
+        if (porcentajePagado > 80) colorBarra = 'bg-success';
 
-        const tbody = document.getElementById('clientes-table-body');
-        tbody.innerHTML = '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="fw-bold">${c.nombre}</td>
+            <td style="width:30%;">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span>Progreso</span><span class="fw-bold">${Math.round(porcentajePagado)}%</span>
+                </div>
+                <div class="progress" style="height:10px;">
+                    <div class="progress-bar ${colorBarra}" role="progressbar" style="width:${porcentajePagado}%"></div>
+                </div>
+                <small class="text-muted">${c.items.length} perfumes</small>
+            </td>
+            <td class="text-danger fw-bold fs-5">${formatMoney(c.deudaActual)}</td>
+            <td>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-success btn-sm fw-bold" onclick="abrirAbonoCliente('${c.nombre}')">
+                        💵 Abonar
+                    </button>
+                    <button class="btn btn-gold btn-sm fw-bold" onclick="abrirAbonoCliente('${c.nombre}', true)">
+                        💯 Pagar Todo
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="verHistorialAbonos('${c.nombre}')">
+                        📋 Historial
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 
-        Object.values(clientesMap).forEach(c => {
-            const pagado = c.totalOriginal - c.deudaActual;
-            const porcentajePagado = (pagado / c.totalOriginal) * 100;
-            let colorBarra = 'bg-danger';
-            if (porcentajePagado > 50) colorBarra = 'bg-warning';
-            if (porcentajePagado > 80) colorBarra = 'bg-success';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="fw-bold">${c.nombre}</td>
-                <td style="width: 30%;">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span>Progreso</span><span class="fw-bold">${Math.round(porcentajePagado)}%</span>
-                    </div>
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar ${colorBarra}" role="progressbar" style="width: ${porcentajePagado}%"></div>
-                    </div>
-                    <small class="text-muted">${c.items.length} perfumes</small>
-                </td>
-                <td class="text-danger fw-bold fs-5">${formatMoney(c.deudaActual)}</td>
-                <td>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-success btn-sm fw-bold" onclick="abrirAbonoCliente('${c.nombre}')">
-                            💵 Abonar
-                        </button>
-                        <button class="btn btn-warning btn-sm fw-bold" onclick="abrirAbonoCliente('${c.nombre}', true)">
-                            💯 Pagar Todo
-                        </button>
-                        <button class="btn btn-outline-info btn-sm" onclick="verHistorialAbonos('${c.nombre}')">
-                            📋 Historial
-                        </button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        if (Object.keys(clientesMap).length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">🎉 Nadie te debe dinero hoy.</td></tr>`;
-        }
+    if (Object.keys(clientesMap).length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">🎉 Nadie te debe dinero hoy.</td></tr>`;
     }
+}
 
-    function renderEncargos() {
-        const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        const tbody = document.getElementById('encargos-table-body');
-        tbody.innerHTML = '';
-        let contadorEncargos = 0;
+function renderEncargos() {
+    const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const tbody = document.getElementById('encargos-table-body');
+    tbody.innerHTML = '';
+    let contadorEncargos = 0;
 
-        const encargos = inventario.filter(prod => prod.cliente && prod.cliente.trim() !== '');
-        encargos.sort((a, b) => (a.ubicacion === 'en_inventario' ? -1 : 1));
+    const encargos = inventario.filter(prod => prod.cliente && prod.cliente.trim() !== '');
+    encargos.sort((a, b) => (a.ubicacion === 'en_inventario' ? -1 : 1));
 
-        encargos.forEach(prod => {
-            contadorEncargos++;
-            let estadoBadge = '';
-            let accionBtn = '';
-            if (prod.ubicacion === 'en_inventario' || prod.ubicacion === 'stock') {
-                estadoBadge = `<span class="badge bg-success p-2"><i class="bi bi-check-circle-fill"></i> LISTO PARA ENTREGA</span>`;
-                accionBtn = `<button class="btn btn-sm btn-success" onclick="venderEncargo(${prod.id})">Entregar y Cobrar</button>`;
-            } else {
-                estadoBadge = `<span class="badge bg-warning p-2"><i class="bi bi-truck"></i> EN TRANSITO</span>`;
-                accionBtn = `<small class="text-muted">Esperando llegada...</small>`;
-            }
+    encargos.forEach(prod => {
+        contadorEncargos++;
+        let estadoBadge, accionBtn;
+        if (prod.ubicacion === 'en_inventario' || prod.ubicacion === 'stock') {
+            estadoBadge = `<span class="badge bg-success p-2"><i class="bi bi-check-circle-fill"></i> LISTO PARA ENTREGA</span>`;
+            accionBtn   = `<button class="btn btn-sm btn-success" onclick="venderEncargo(${prod.id})">Entregar y Cobrar</button>`;
+        } else {
+            estadoBadge = `<span class="badge p-2" style="background:rgba(255,215,0,0.15);color:#FFD700;border:1px solid rgba(255,215,0,0.4);"><i class="bi bi-truck"></i> EN TRÁNSITO</span>`;
+            accionBtn   = `<small class="text-muted">Esperando llegada...</small>`;
+        }
+        tbody.innerHTML += `
+            <tr>
+                <td class="fw-bold text-gold">${prod.cliente}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="${prod.imagen}" class="img-thumb-mini" alt="${prod.nombre}">
+                        <div><strong>${prod.nombre}</strong><br><small class="text-muted">${prod.marca}</small></div>
+                    </div>
+                </td>
+                <td>${estadoBadge}</td>
+                <td><small class="text-muted">${prod.inversion ? prod.inversion.toUpperCase() : '---'}</small></td>
+                <td>${accionBtn}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('count-pedidos').innerText = contadorEncargos;
+    if (contadorEncargos === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">📭 No tienes encargos activos.</td></tr>`;
+    }
+}
+
+function venderEncargo(id) {
+    alert('Para entregar, ve a Inventario y dale a \'Vender\' en este producto.');
+    window.location.href = 'products.html';
+}
+
+function formatMoney(amount) {
+    return '$' + amount.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+let clienteActualAbono = null;
+
+function abrirAbonoCliente(nombreCliente, pagarTodo = false) {
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventasCliente = ventas.filter(v => v.cliente === nombreCliente && v.saldoPendiente > 0);
+    if (!ventasCliente.length) return alert('Sin deudas pendientes.');
+
+    clienteActualAbono = nombreCliente;
+    const deudaTotal = ventasCliente.reduce((s, v) => s + parseFloat(v.saldoPendiente), 0);
+
+    document.getElementById('modal-abono-nombre').innerText = nombreCliente;
+    document.getElementById('modal-abono-deuda').innerText  = formatMoney(deudaTotal);
+    document.getElementById('modal-abono-monto').value      = pagarTodo ? deudaTotal.toFixed(2) : '';
+    document.getElementById('modal-abono-nota').value       = '';
+
+    new bootstrap.Modal(document.getElementById('modalAbonoCliente')).show();
+}
+
+function confirmarAbonoCliente() {
+    const monto = parseFloat(document.getElementById('modal-abono-monto').value);
+    const nota  = document.getElementById('modal-abono-nota').value.trim() || 'Abono desde Clientes';
+    if (!monto || monto <= 0) return alert('❌ Ingresa un monto válido.');
+
+    let ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    let restante = monto;
+
+    ventas
+        .map((v, i) => ({ ...v, _i: i }))
+        .filter(v => v.cliente === clienteActualAbono && v.saldoPendiente > 0)
+        .sort((a, b) => a.id - b.id)
+        .forEach(v => {
+            if (restante <= 0) return;
+            const abonar = Math.min(restante, parseFloat(v.saldoPendiente));
+            ventas[v._i].saldoPendiente -= abonar;
+            ventas[v._i].historialAbonos = ventas[v._i].historialAbonos || [];
+            ventas[v._i].historialAbonos.push({ fecha: new Date().toLocaleString(), monto: abonar, nota });
+            restante -= abonar;
+        });
+
+    setData('ventas', ventas);
+    bootstrap.Modal.getInstance(document.getElementById('modalAbonoCliente')).hide();
+    alert(`✅ Abono de ${formatMoney(monto)} registrado para ${clienteActualAbono}`);
+    renderDeudas();
+}
+
+function verHistorialAbonos(nombreCliente) {
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventasCliente = ventas.filter(v => v.cliente === nombreCliente);
+
+    document.getElementById('hist-cliente-nombre').innerText = nombreCliente;
+    const tbody = document.getElementById('hist-abonos-body');
+    tbody.innerHTML = '';
+
+    if (!ventasCliente.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sin registros.</td></tr>';
+    } else {
+        ventasCliente.forEach((v, idx) => {
+            const abonos = v.historialAbonos || [];
+            const abonosHtml = abonos.length
+                ? abonos.map(a => `<div class="small text-success">+${formatMoney(a.monto)} <span class="text-muted">${a.fecha} — ${a.nota}</span></div>`).join('')
+                : '<small class="text-muted">Sin abonos</small>';
             tbody.innerHTML += `
                 <tr>
-                    <td class="fw-bold text-gold">${prod.cliente}</td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="${prod.imagen}" class="img-thumb-mini" alt="${prod.nombre}">
-                            <div><strong>${prod.nombre}</strong><br><small class="text-muted">${prod.marca}</small></div>
-                        </div>
+                    <td class="text-muted">${idx + 1}</td>
+                    <td><strong>${v.producto}</strong><br><small class="text-muted">${v.fecha}</small></td>
+                    <td class="fw-bold">${formatMoney(parseFloat(v.precioFinal))}</td>
+                    <td>${abonosHtml}</td>
+                    <td class="fw-bold ${parseFloat(v.saldoPendiente) > 0 ? 'text-danger' : 'text-success'}">
+                        ${parseFloat(v.saldoPendiente) > 0 ? formatMoney(parseFloat(v.saldoPendiente)) + ' pendiente' : '✅ Liquidado'}
                     </td>
-                    <td>${estadoBadge}</td>
-                    <td><small class="text-muted">${prod.inversion ? prod.inversion.toUpperCase() : '---'}</small></td>
-                    <td>${accionBtn}</td>
                 </tr>
             `;
         });
-
-        document.getElementById('count-pedidos').innerText = contadorEncargos;
-        if (contadorEncargos === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">📭 No tienes encargos activos.</td></tr>`;
-        }
     }
-
-    function venderEncargo(id) {
-        alert('Para entregar, ve a Inventario y dale a \'Vender\' en este producto.');
-        window.location.href = 'products.html';
-    }
-
-    function formatMoney(amount) {
-        return '$' + amount.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
-
-    let clienteActualAbono = null;
-
-    function abrirAbonoCliente(nombreCliente, pagarTodo = false) {
-        const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-        const ventasCliente = ventas.filter(v => v.cliente === nombreCliente && v.saldoPendiente > 0);
-        if (!ventasCliente.length) return alert('Sin deudas pendientes.');
-
-        clienteActualAbono = nombreCliente;
-        const deudaTotal = ventasCliente.reduce((s, v) => s + parseFloat(v.saldoPendiente), 0);
-
-        document.getElementById('modal-abono-nombre').innerText = nombreCliente;
-        document.getElementById('modal-abono-deuda').innerText = formatMoney(deudaTotal);
-        document.getElementById('modal-abono-monto').value = pagarTodo ? deudaTotal.toFixed(2) : '';
-        document.getElementById('modal-abono-nota').value = '';
-
-        new bootstrap.Modal(document.getElementById('modalAbonoCliente')).show();
-    }
-
-    function confirmarAbonoCliente() {
-        const monto = parseFloat(document.getElementById('modal-abono-monto').value);
-        const nota = document.getElementById('modal-abono-nota').value.trim() || 'Abono desde Clientes';
-        if (!monto || monto <= 0) return alert('❌ Ingresa un monto válido.');
-
-        let ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-        let restante = monto;
-
-        ventas
-            .map((v, i) => ({ ...v, _i: i }))
-            .filter(v => v.cliente === clienteActualAbono && v.saldoPendiente > 0)
-            .sort((a, b) => a.id - b.id)
-            .forEach(v => {
-                if (restante <= 0) return;
-                const abonar = Math.min(restante, parseFloat(v.saldoPendiente));
-                ventas[v._i].saldoPendiente -= abonar;
-                ventas[v._i].historialAbonos = ventas[v._i].historialAbonos || [];
-                ventas[v._i].historialAbonos.push({ fecha: new Date().toLocaleString(), monto: abonar, nota });
-                restante -= abonar;
-            });
-
-        setData('ventas', ventas);
-        bootstrap.Modal.getInstance(document.getElementById('modalAbonoCliente')).hide();
-        alert(`✅ Abono de ${formatMoney(monto)} registrado para ${clienteActualAbono}`);
-        renderDeudas();
-    }
-
-    function verHistorialAbonos(nombreCliente) {
-        const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-        const ventasCliente = ventas.filter(v => v.cliente === nombreCliente);
-
-        document.getElementById('hist-cliente-nombre').innerText = nombreCliente;
-        const tbody = document.getElementById('hist-abonos-body');
-        tbody.innerHTML = '';
-
-        if (ventasCliente.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sin registros.</td></tr>';
-        } else {
-            ventasCliente.forEach((v, idx) => {
-                const abonos = v.historialAbonos || [];
-                const abonosHtml = abonos.length > 0
-                    ? abonos.map(a => `<div class="small text-success">+${formatMoney(a.monto)} <span class="text-muted">${a.fecha} — ${a.nota}</span></div>`).join('')
-                    : '<small class="text-muted">Sin abonos</small>';
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="text-muted">${idx + 1}</td>
-                        <td>
-                            <strong>${v.producto}</strong><br>
-                            <small class="text-muted">${v.fecha}</small>
-                        </td>
-                        <td class="fw-bold">${formatMoney(parseFloat(v.precioFinal))}</td>
-                        <td>${abonosHtml}</td>
-                        <td class="fw-bold ${parseFloat(v.saldoPendiente) > 0 ? 'text-danger' : 'text-success'}">
-                            ${parseFloat(v.saldoPendiente) > 0 ? formatMoney(parseFloat(v.saldoPendiente)) + ' pendiente' : '✅ Liquidado'}
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        new bootstrap.Modal(document.getElementById('modalHistorialAbonos')).show();
-    }
+    new bootstrap.Modal(document.getElementById('modalHistorialAbonos')).show();
+}
 
 </script>
 </body>
