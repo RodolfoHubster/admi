@@ -1,6 +1,13 @@
 /* assets/css/ui.css */
+/* =========================================================
+   3. COMPONENTES UI — Tarjetas, tablas, inputs, modales,
+      botones, badges, listas, filtros de periodo
+   ========================================================= */
 
-/* --- TARJETAS (Cards) --- */
+
+/* ---------------------------------------------------------
+   TARJETAS (Cards)
+   --------------------------------------------------------- */
 .card {
     background-color: var(--bg-secondary);
     border: var(--border-subtle);
@@ -16,19 +23,20 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+/* FIX: tarjeta amarilla (DEUDA SOCIO) — texto negro sobre fondo dorado */
+.card.bg-warning,
+.card.bg-warning small,
+.card.bg-warning h2,
+.card.bg-warning h3 { color: #000 !important; }
 
-/* FIX MINIMO: tarjeta amarilla (DEUDA SOCIO) — texto negro sobre fondo dorado */
-.card.bg-warning { color: #000 !important; }
-.card.bg-warning small { color: #000 !important; }
-.card.bg-warning h3, .card.bg-warning h2 { color: #000 !important; }
 
-.text-muted { color: var(--text-secondary) !important; }
-
-/* --- TABLAS DE LUJO --- */
+/* ---------------------------------------------------------
+   TABLAS
+   --------------------------------------------------------- */
 .table {
     --bs-table-bg: transparent;
     --bs-table-color: var(--text-primary);
-    border-color: rgba(255, 215, 0, 0.1); /* FIX: era rojo random rgba(194,79,79,0.1) */
+    border-color: rgba(255, 215, 0, 0.1);
 }
 .table thead th {
     background-color: #000;
@@ -38,34 +46,60 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-.table tbody tr { background-color: var(--bg-secondary) !important; transition: background-color 0.2s; }
-.table tbody td { border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-primary); }
-.table-hover > tbody > tr:hover { background-color: rgba(255, 215, 0, 0.08) !important; }
-.table-group-header { background-color: #2C2C2C !important; border-left: 4px solid var(--gold-flat); }
+.table tbody tr {
+    background-color: var(--bg-secondary) !important;
+    transition: background-color 0.2s;
+}
+.table tbody td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+.table-hover > tbody > tr:hover,
+.table-hover > tbody > tr:hover > td {
+    background-color: rgba(255, 215, 0, 0.08) !important;
+}
+.table-group-header {
+    background-color: #2C2C2C !important;
+    border-left: 4px solid var(--gold-flat);
+}
+/* Correcciones de texto dentro de tabla */
+.table .text-dark       { color: #fff !important; }
+.table strong, .table b { color: var(--gold-flat) !important; font-weight: 600; }
+.table .fw-bold         { color: var(--gold-flat) !important; font-weight: 600; }
+.table small,
+.table .small           { color: var(--text-secondary) !important; }
 
-/* --- INPUTS OSCUROS --- */
-.form-control, .form-select {
+
+/* ---------------------------------------------------------
+   INPUTS Y FORMULARIOS
+   --------------------------------------------------------- */
+.form-control,
+.form-select {
     background-color: var(--bg-tertiary) !important;
     border: 1px solid #555;
     color: #fff !important;
 }
 .form-control::placeholder { color: #888; }
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     background-color: #333 !important;
     border-color: var(--gold-flat);
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
-
-.form-text {
-    color: var(--text-secondary);
-}
+.form-text { color: var(--text-secondary); }
 .input-group-text {
     background-color: #222 !important;
     border: 1px solid #555;
     color: var(--gold-flat) !important;
 }
+/* FIX: text-success sin !important para no romper badges verdes */
+.text-success { color: #69F0AE; }
+.text-muted   { color: var(--text-secondary) !important; }
 
-/* --- MODALES --- */
+
+/* ---------------------------------------------------------
+   MODALES
+   --------------------------------------------------------- */
 .modal-content {
     background-color: #1a1a1a !important;
     border: 1px solid var(--gold-muted);
@@ -76,63 +110,17 @@
     background-color: #000 !important;
     border-bottom: 1px solid var(--gold-muted);
 }
-.modal-title {
-    color: var(--gold-flat) !important;
-    font-weight: bold;
-}
-.modal-body {
-    color: #eee !important;
-}
-.modal-footer {
-    border-top: 1px solid #333;
-}
-.btn-close {
-    filter: invert(1) grayscale(100%) brightness(200%);
-}
-
-/* Arreglo para bloques internos que tengan 'bg-light' */
+.modal-title  { color: var(--gold-flat) !important; font-weight: bold; }
+.modal-body   { color: #eee !important; }
+.modal-footer { border-top: 1px solid #333; }
+.btn-close    { filter: invert(1) grayscale(100%) brightness(200%); }
+/* bg-light dentro de modal */
 .modal-body .bg-light {
     background-color: #2D2D30 !important;
     color: #fff !important;
     border: 1px solid #444 !important;
 }
-.modal-body label {
-    color: var(--gold-flat);
-    font-weight: 500;
-}
-
-/* --- CORRECCIONES DE TEXTO --- */
-.table .text-dark { color: #fff !important; }
-.table strong, .table b, .fw-bold { color: var(--gold-flat) !important; font-weight: 600; }
-.table small, .table .small { color: var(--text-secondary) !important; }
-
-/* FIX: text-success sin !important para no romper badges verdes en otras páginas */
-.text-success { color: #69F0AE; }
-
-/* --- BOTONES --- */
-.btn { border-radius: 8px; font-weight: 600; border: none; }
-.btn-primary, .btn-success { background: var(--gold-gradient); color: #000; }
-.btn-outline-primary, .btn-outline-dark { color: var(--gold-flat); border-color: var(--gold-muted); }
-.btn-outline-primary:hover { background-color: var(--gold-flat); color: #000; }
-
-/* --- BADGES --- */
-.bg-light.text-dark, .badge.bg-light { background-color: #000 !important; color: #aaa !important; border: 1px solid #444 !important; }
-.table-warning > td { background-color: rgba(255, 215, 0, 0.15) !important; }
-.badge.bg-warning { background-color: var(--gold-flat) !important; color: #000 !important; border: none; }
-
-/* --- LISTA GROUP --- */
-.list-group-item {
-    background-color: var(--bg-secondary) !important;
-    border-color: var(--border-subtle) !important;
-    color: var(--text-primary) !important;
-}
-.list-group-item .badge {
-    background-color: #000 !important;
-    color: var(--gold-flat) !important;
-    border: 1px solid var(--gold-muted) !important;
-}
-
-/* --- INPUTS DENTRO DE MODAL --- */
+/* Inputs dentro de modal */
 .modal-body input,
 .modal-body select,
 .modal-body textarea {
@@ -140,16 +128,21 @@
     border: 1px solid #555 !important;
     color: #fff !important;
 }
-.modal-body input::placeholder {
-    color: #888 !important;
-    opacity: 1;
-}
-.modal-body label {
-    color: var(--gold-flat) !important;
-    font-weight: 500;
-}
+.modal-body input::placeholder { color: #888 !important; opacity: 1; }
+.modal-body label { color: var(--gold-flat) !important; font-weight: 500; }
 
-/* --- BOTÓN DE ACCIÓN UNIFICADO --- */
+
+/* ---------------------------------------------------------
+   BOTONES
+   --------------------------------------------------------- */
+.btn { border-radius: 8px; font-weight: 600; border: none; }
+.btn-primary,
+.btn-success              { background: var(--gold-gradient); color: #000; }
+.btn-outline-primary,
+.btn-outline-dark         { color: var(--gold-flat); border-color: var(--gold-muted); }
+.btn-outline-primary:hover { background-color: var(--gold-flat); color: #000; }
+
+/* Botón acción (lista lateral) */
 .btn-action {
     background-color: #252525;
     border: 1px solid #333;
@@ -164,10 +157,10 @@
     transform: translateX(5px);
 }
 
-/* --- BOTÓN GOLD PRINCIPAL --- */
+/* Botón gold principal */
 .btn-gold {
     background-color: #FFD700 !important;
-    color: #000000 !important;
+    color: #000 !important;
     border: none !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -177,24 +170,7 @@
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
-/* --- FILTROS DE FECHA --- */
-.btn-group .btn.active {
-    background-color: var(--gold-flat) !important;
-    color: #000 !important;
-    border-color: var(--gold-flat) !important;
-    font-weight: 700;
-}
-.btn-group .btn-outline-secondary {
-    border-color: #444;
-    color: #aaa;
-}
-.btn-group .btn-outline-secondary:hover {
-    background-color: #333;
-    color: #fff;
-    border-color: #666;
-}
-
-/* --- BOTÓN LUXURY GOLD --- */
+/* Botón luxury gold */
 .btn-luxury-gold {
     background-color: #FFD700 !important;
     border: 1px solid #FFD700 !important;
@@ -212,6 +188,52 @@
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4) !important;
 }
-.btn-luxury-gold i {
+.btn-luxury-gold i { color: #000 !important; }
+
+
+/* ---------------------------------------------------------
+   BADGES
+   --------------------------------------------------------- */
+.bg-light.text-dark,
+.badge.bg-light {
+    background-color: #000 !important;
+    color: #aaa !important;
+    border: 1px solid #444 !important;
+}
+.table-warning > td       { background-color: rgba(255, 215, 0, 0.15) !important; }
+.badge.bg-warning         { background-color: var(--gold-flat) !important; color: #000 !important; border: none; }
+
+
+/* ---------------------------------------------------------
+   LISTA GROUP
+   --------------------------------------------------------- */
+.list-group-item {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-primary) !important;
+}
+.list-group-item .badge {
+    background-color: #000 !important;
+    color: var(--gold-flat) !important;
+    border: 1px solid var(--gold-muted) !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTROS DE PERIODO (btn-group)
+   --------------------------------------------------------- */
+.btn-group .btn.active {
+    background-color: var(--gold-flat) !important;
     color: #000 !important;
+    border-color: var(--gold-flat) !important;
+    font-weight: 700;
+}
+.btn-group .btn-outline-secondary {
+    border-color: #444;
+    color: #aaa;
+}
+.btn-group .btn-outline-secondary:hover {
+    background-color: #333;
+    color: #fff;
+    border-color: #666;
 }

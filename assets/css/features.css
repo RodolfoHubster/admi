@@ -1,6 +1,12 @@
 /* assets/css/features.css */
+/* =========================================================
+   4. FEATURES — Ticket, imágenes de tabla, spinner de carga
+   ========================================================= */
 
-/* --- TICKET DE VENTA --- */
+
+/* ---------------------------------------------------------
+   TICKET DE VENTA
+   --------------------------------------------------------- */
 .ticket {
     max-width: 380px;
     margin: 0 auto;
@@ -12,12 +18,12 @@
     border-radius: 8px;
 }
 
-/* =========================================================
+
+/* ---------------------------------------------------------
    IMAGEN DE PERFUME EN TABLA DE INVENTARIO
    .img-thumb-mini = clase real usada en inventory.js
    .foto-preview   = alias legacy
-   Pequeña por defecto, crece suave al hacer hover
-   ========================================================= */
+   --------------------------------------------------------- */
 .img-thumb-mini,
 .foto-preview {
     width: 52px;
@@ -38,20 +44,11 @@
     position: relative;
 }
 
-/* =========================================================
-   HOVER DE FILAS DE TABLA
-   ========================================================= */
-.table tbody tr {
-    transition: background-color 0.15s ease;
-}
-.table-hover > tbody > tr:hover,
-.table-hover > tbody > tr:hover > td {
-    background-color: rgba(255, 215, 0, 0.08) !important;
-}
 
-/* =========================================================
-   SPINNER DE CARGA — overlay mientras initApp sincroniza
-   ========================================================= */
+/* ---------------------------------------------------------
+   SPINNER DE CARGA
+   overlay mientras initApp sincroniza
+   --------------------------------------------------------- */
 #__app-spinner {
     position: fixed;
     inset: 0;

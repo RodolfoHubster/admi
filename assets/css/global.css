@@ -1,7 +1,10 @@
-/* --- 2. CUERPO Y TIPOGRAFÍA --- */
+/* assets/css/global.css */
+/* =========================================================
+   2. BASE — Cuerpo, tipografía, navbar
+   ========================================================= */
+
 body {
     background-color: var(--bg-main);
-    /* Textura sutil de fondo (opcional, un degradado muy suave) */
     background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent 40%);
     font-family: 'Poppins', 'Segoe UI', sans-serif;
     color: var(--text-primary);
@@ -13,10 +16,9 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
 }
 
-/* Títulos con acento dorado */
+/* --- UTILIDAD: Texto dorado metálico --- */
+/* ÚNICA definición — dashboard.css tenía un duplicado con !important que la pisaba */
 .text-gold {
-    color: var(--text-gold) !important;
-    /* Opcional: Efecto de texto metálico */
     background: var(--gold-gradient);
     -webkit-background-clip: text;
     background-clip: text;
@@ -24,14 +26,13 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
 }
 
-/* --- 3. BARRA DE NAVEGACIÓN (Navbar) --- */
+/* --- NAVBAR --- */
 .navbar {
-    background-color: #000000 !important; /* Negro puro para contraste */
+    background-color: #000000 !important;
     border-bottom: 1px solid var(--gold-muted);
     box-shadow: 0 4px 20px rgba(0,0,0,0.8);
     padding: 1rem 0;
 }
-
 .navbar-brand {
     font-weight: 700;
     letter-spacing: 1px;
@@ -39,13 +40,11 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--gold-flat) !important;
     text-transform: uppercase;
 }
-
 .navbar-dark .navbar-nav .nav-link {
     color: var(--text-secondary);
     font-weight: 500;
     transition: color 0.3s;
 }
-
 .navbar-dark .navbar-nav .nav-link:hover,
 .navbar-dark .navbar-nav .nav-link.active {
     color: var(--gold-flat);
