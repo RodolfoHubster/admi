@@ -1,27 +1,48 @@
-/* --- 1. VARIABLES GLOBALES (DARK LUXURY - CONTRASTE ALTO) --- */
+/* assets/css/variables.css */
+/* =========================================================
+   1. TOKENS GLOBALES — Dark Premium Edition
+   ========================================================= */
 :root {
     /* --- Fondos --- */
-    --bg-main: #121212;
-    --bg-secondary: #1E1E1E;
-    --bg-tertiary: #2D2D30;
+    --bg-main:      #0D0D0F;   /* Negro profundo con tinte frío */
+    --bg-secondary: #161620;   /* Gris azulado oscuro — cards */
+    --bg-tertiary:  #1E1E2A;   /* Para inputs, list-items */
+    --bg-glass:     rgba(255, 255, 255, 0.04); /* Glassmorphism base */
 
-    /* --- Dorados (Más brillantes para leerse bien) --- */
-    --gold-gradient: linear-gradient(135deg, #FFD700, #FDB931); /* Oro más vivo */
-    --gold-flat: #FFD700;        /* Dorado brillante puro */
-    --gold-muted: #C5A059;       /* Dorado mate para bordes */
+    /* --- Dorados (identidad de marca, sin cambios) --- */
+    --gold-gradient: linear-gradient(135deg, #FFD700, #FDB931);
+    --gold-flat:     #FFD700;
+    --gold-muted:    #C5A059;
+    --gold-glow:     rgba(255, 215, 0, 0.18);
 
-    /* --- Tipografía de Alto Contraste --- */
-    --text-primary: #FFFFFF;     /* Blanco PURO para lectura principal */
-    --text-secondary: #B0B0B0;   /* Gris plata claro (antes era muy oscuro) */
-    --text-gold: #FFD700;
+    /* --- Colores de acento por sección --- */
+    --accent-red:    #FF5370;   /* Capital invertido / peligro */
+    --accent-blue:   #82AAFF;   /* Valor potencial / info */
+    --accent-green:  #C3E88D;   /* Ventas / ganancia */
+    --accent-cyan:   #89DDFF;   /* En camino / neutro */
+    --accent-purple: #C792EA;   /* Métricas especiales */
 
-    /* --- Estructura --- */
-    --border-radius: 12px;
-    --border-subtle: 1px solid rgba(197, 160, 89, 0.3); 
-    
-    --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.8);
-    --shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.9);
-    
-    --success-color: #4CAF50;
-    --danger-color: #F44336;
+    /* --- Tipografía --- */
+    --text-primary:   #EAEAEA;  /* Blanco cálido — más suave que #FFF puro */
+    --text-secondary: #8892B0;  /* Gris azulado medio */
+    --text-gold:      #FFD700;
+    --text-dim:       #55607A;  /* Para hints y placeholders */
+
+    /* --- Bordes --- */
+    --border-radius:  12px;
+    --border-subtle:  1px solid rgba(197, 160, 89, 0.2);
+    --border-glass:   1px solid rgba(255, 255, 255, 0.07);
+    --border-accent:  1px solid rgba(255, 215, 0, 0.35);
+
+    /* --- Sombras --- */
+    --shadow-soft:  0 8px 32px rgba(0, 0, 0, 0.6);
+    --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.8);
+    --shadow-gold:  0 0 20px rgba(255, 215, 0, 0.12);
+    --shadow-card:  0 4px 24px rgba(0, 0, 0, 0.5);
+
+    /* --- Estados --- */
+    --success-color: #C3E88D;
+    --danger-color:  #FF5370;
+    --warning-color: #FFD700;
+    --info-color:    #89DDFF;
 }

@@ -1,23 +1,35 @@
 /* assets/css/global.css */
 /* =========================================================
-   2. BASE — Cuerpo, tipografía, navbar
+   2. BASE — Body, tipografía, scrollbar, navbar
    ========================================================= */
 
+/* --- Body --- */
 body {
     background-color: var(--bg-main);
-    background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent 40%);
+    background-image:
+        radial-gradient(ellipse at top right,    rgba(130, 170, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom left,  rgba(255, 215,   0, 0.03) 0%, transparent 50%);
     font-family: 'Poppins', 'Segoe UI', sans-serif;
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
 }
 
+/* --- Scrollbar premium --- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-main); }
+::-webkit-scrollbar-thumb {
+    background: var(--gold-muted);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gold-flat); }
+
+/* --- Headings --- */
 h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
     font-weight: 600;
 }
 
-/* --- UTILIDAD: Texto dorado metálico --- */
-/* ÚNICA definición — dashboard.css tenía un duplicado con !important que la pisaba */
+/* --- Texto dorado metálico (definición única) --- */
 .text-gold {
     background: var(--gold-gradient);
     -webkit-background-clip: text;
@@ -26,26 +38,43 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
 }
 
+/* --- Section label (títulos de sección con raya dorada) --- */
+.section-label {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding-left: 12px;
+    border-left: 3px solid var(--gold-flat);
+    margin-bottom: 1rem;
+}
+
 /* --- NAVBAR --- */
 .navbar {
-    background-color: #000000 !important;
+    background: linear-gradient(90deg, #000000 0%, #0D0D1A 100%) !important;
     border-bottom: 1px solid var(--gold-muted);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-    padding: 1rem 0;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
+    padding: 0.85rem 0;
+    backdrop-filter: blur(10px);
 }
 .navbar-brand {
     font-weight: 700;
-    letter-spacing: 1px;
-    font-size: 1.5rem;
+    letter-spacing: 1.5px;
+    font-size: 1.4rem;
     color: var(--gold-flat) !important;
     text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
 .navbar-dark .navbar-nav .nav-link {
     color: var(--text-secondary);
     font-weight: 500;
-    transition: color 0.3s;
+    transition: color 0.25s, text-shadow 0.25s;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
 }
 .navbar-dark .navbar-nav .nav-link:hover,
 .navbar-dark .navbar-nav .nav-link.active {
     color: var(--gold-flat);
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
 }
