@@ -16,22 +16,12 @@ function generarAlertas() {
     const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
     const gastos = JSON.parse(localStorage.getItem(EXPENSES_KEY)) || [];
     
-    // 1. ALERTAS DE INVENTARIO
     generarAlertasInventario(productos, ventas);
-    
-    // 2. ALERTAS DE CLIENTES
     generarAlertasClientes(ventas);
-    
-    // 3. ALERTAS DE PAQUETERÍA
     generarAlertasPaqueteria(productos);
-    
-    // 4. ALERTAS FINANCIERAS
     generarAlertasFinancieras(ventas, gastos);
-    
-    // 5. ALERTAS DE STOCK CRÍTICO
     generarAlertasStockBajo(productos, ventas);
     
-    // Renderizar
     renderAlertas();
     actualizarContadores();
 }
@@ -74,13 +64,11 @@ function generarAlertasInventario(productos, ventas) {
     });
 }
 
-
 // =========================================================
 // 2. ALERTAS DE CLIENTES
 // =========================================================
 function generarAlertasClientes(ventas) {
     const ahora = new Date();
-    
     const deudasPorCliente = {};
     
     ventas.forEach(venta => {
@@ -131,23 +119,20 @@ function generarAlertasClientes(ventas) {
         }
     });
 }
+
 // =========================================================
 // HELPER: PARSEAR FECHA EN CUALQUIER FORMATO
 // =========================================================
 
 function parsearFecha(fechaStr) {
     if (!fechaStr) return null;
-    
-    // Si ya es un objeto Date válido
     if (fechaStr instanceof Date) return fechaStr;
     
-    // Formato ISO: "2026-02-07T06:17:27.529Z"
     if (fechaStr.includes('T') || fechaStr.includes('-')) {
         const d = new Date(fechaStr);
         if (!isNaN(d)) return d;
     }
     
-    // Formato español: "6/2/2026, 22:26:48" o "6/2/2026"
     const partes = fechaStr.split(',')[0].trim().split('/');
     if (partes.length === 3) {
         const [dia, mes, año] = partes;
@@ -203,7 +188,6 @@ function generarAlertasPaqueteria(productos) {
     });
 }
 
-
 // =========================================================
 // 4. ALERTAS FINANCIERAS
 // =========================================================
@@ -258,29 +242,24 @@ function generarAlertasFinancieras(ventas, gastos) {
     }
 }
 
-
 // =========================================================
 // 5. ALERTAS DE STOCK BAJO
 // =========================================================
 
 function generarAlertasStockBajo(productos, ventas) {
-    // Calcular perfumes más vendidos (últimos 30 días)
     const hace30dias = new Date();
     hace30dias.setDate(hace30dias.getDate() - 30);
     
     const ventasRecientes = ventas.filter(v => new Date(v.fecha) >= hace30dias);
     
-    // Contar ventas por producto
     const conteoVentas = {};
     ventasRecientes.forEach(v => {
         const nombre = v.producto;
         conteoVentas[nombre] = (conteoVentas[nombre] || 0) + 1;
     });
     
-    // Identificar productos populares (vendidos 2+ veces en 30 días)
     Object.keys(conteoVentas).forEach(nombreProducto => {
         if (conteoVentas[nombreProducto] >= 2) {
-            // Verificar cuántos quedan en stock
             const enStock = productos.filter(p => p.nombre === nombreProducto).length;
             
             if (enStock === 0) {
@@ -290,10 +269,7 @@ function generarAlertasStockBajo(productos, ventas) {
                     categoria: 'inventario',
                     titulo: '🔴 Producto Popular Agotado',
                     mensaje: `"${nombreProducto}" se vendió ${conteoVentas[nombreProducto]} veces en 30 días pero está AGOTADO. ¡Recompra urgente!`,
-                    accion: {
-                        texto: 'Recomprar',
-                        link: 'products.html'
-                    },
+                    accion: { texto: 'Recomprar', link: 'products.html' },
                     fecha: new Date().toISOString(),
                     datos: { producto: nombreProducto, ventas: conteoVentas[nombreProducto] }
                 });
@@ -304,10 +280,7 @@ function generarAlertasStockBajo(productos, ventas) {
                     categoria: 'inventario',
                     titulo: '🟡 Stock Bajo de Producto Popular',
                     mensaje: `"${nombreProducto}" se vende bien (${conteoVentas[nombreProducto]} ventas/mes) pero solo quedan ${enStock} unidad(es). Considera recomprar.`,
-                    accion: {
-                        texto: 'Ver Stock',
-                        link: 'products.html'
-                    },
+                    accion: { texto: 'Ver Stock', link: 'products.html' },
                     fecha: new Date().toISOString(),
                     datos: { producto: nombreProducto, stock: enStock }
                 });
@@ -326,17 +299,13 @@ function renderAlertas() {
     
     if (!contenedor) return;
     
-    // Filtrar alertas
-    let alertasFiltradas = filtroAlertaActual === 'todas' 
-        ? alertasActivas 
+    let alertasFiltradas = filtroAlertaActual === 'todas'
+        ? alertasActivas
         : alertasActivas.filter(a => a.tipo === filtroAlertaActual);
     
-    // Ordenar por prioridad y fecha
     const prioridad = { critica: 1, importante: 2, info: 3 };
     alertasFiltradas.sort((a, b) => {
-        if (prioridad[a.tipo] !== prioridad[b.tipo]) {
-            return prioridad[a.tipo] - prioridad[b.tipo];
-        }
+        if (prioridad[a.tipo] !== prioridad[b.tipo]) return prioridad[a.tipo] - prioridad[b.tipo];
         return new Date(b.fecha) - new Date(a.fecha);
     });
     
@@ -348,33 +317,37 @@ function renderAlertas() {
     }
     
     sinAlertas.style.display = 'none';
+
+    // Estilos inline con rgba para respetar el tema oscuro (sin texto negro de Bootstrap)
+    const estilos = {
+        critica:    { border: 'rgba(248,113,113,0.5)',  bg: 'rgba(248,113,113,0.08)',  titleColor: '#f87171' },
+        importante: { border: 'rgba(255,215,0,0.5)',    bg: 'rgba(255,215,0,0.07)',    titleColor: '#FFD700' },
+        info:       { border: 'rgba(56,189,248,0.5)',   bg: 'rgba(56,189,248,0.07)',   titleColor: '#38bdf8' }
+    };
+
+    const iconos = {
+        critica:    'bi-exclamation-triangle-fill',
+        importante: 'bi-exclamation-circle-fill',
+        info:       'bi-info-circle-fill'
+    };
     
     alertasFiltradas.forEach(alerta => {
-        const colorClasses = {
-            critica: 'border-danger bg-danger bg-opacity-10',
-            importante: 'border-warning bg-warning bg-opacity-10',
-            info: 'border-info bg-info bg-opacity-10'
-        };
-        
-        const iconos = {
-            critica: 'bi-exclamation-triangle-fill text-danger',
-            importante: 'bi-exclamation-circle-fill text-warning',
-            info: 'bi-info-circle-fill text-info'
-        };
+        const s = estilos[alerta.tipo] || estilos.info;
+        const ico = iconos[alerta.tipo] || 'bi-bell-fill';
         
         const card = `
-            <div class="card ${colorClasses[alerta.tipo]} border-2 mb-3 shadow-sm">
+            <div class="card mb-3 shadow-sm" style="border: 1px solid ${s.border}; background: ${s.bg};">
                 <div class="card-body">
                     <div class="d-flex align-items-start">
-                        <i class="bi ${iconos[alerta.tipo]} fs-2 me-3"></i>
+                        <i class="bi ${ico} fs-2 me-3" style="color:${s.titleColor}; flex-shrink:0;"></i>
                         <div class="flex-grow-1">
-                            <h5 class="card-title mb-2">${alerta.titulo}</h5>
-                            <p class="card-text mb-3">${alerta.mensaje}</p>
+                            <h5 class="card-title mb-2" style="color:${s.titleColor};">${alerta.titulo}</h5>
+                            <p class="card-text mb-3" style="color: var(--text-primary);">${alerta.mensaje}</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">
                                     <i class="bi bi-tag-fill"></i> ${capitalize(alerta.categoria)}
                                 </small>
-                                <a href="${alerta.accion.link}" class="btn btn-sm btn-dark">
+                                <a href="${alerta.accion.link}" class="btn btn-sm btn-gold">
                                     ${alerta.accion.texto} →
                                 </a>
                             </div>
@@ -389,27 +362,22 @@ function renderAlertas() {
 }
 
 function actualizarContadores() {
-    const criticas = alertasActivas.filter(a => a.tipo === 'critica').length;
+    const criticas   = alertasActivas.filter(a => a.tipo === 'critica').length;
     const importantes = alertasActivas.filter(a => a.tipo === 'importante').length;
-    const info = alertasActivas.filter(a => a.tipo === 'info').length;
-    const total = alertasActivas.length;
+    const info       = alertasActivas.filter(a => a.tipo === 'info').length;
+    const total      = alertasActivas.length;
     
-    document.getElementById('count-criticas').innerText = criticas;
+    document.getElementById('count-criticas').innerText   = criticas;
     document.getElementById('count-importantes').innerText = importantes;
-    document.getElementById('count-info').innerText = info;
-    document.getElementById('count-todas').innerText = total;
-    document.getElementById('count-resueltas').innerText = '0'; // Por ahora
+    document.getElementById('count-info').innerText        = info;
+    document.getElementById('count-todas').innerText       = total;
+    document.getElementById('count-resueltas').innerText   = '0';
     document.getElementById('total-alertas-badge').innerText = `${total} alerta${total !== 1 ? 's' : ''}`;
 }
 
 function setFiltroAlerta(tipo, btn) {
     filtroAlertaActual = tipo;
-    
-    const grupo = btn.parentElement.querySelectorAll('.btn');
-    grupo.forEach(b => {
-        b.classList.remove('active');
-    });
-    
+    btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderAlertas();
 }
