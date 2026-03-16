@@ -6,7 +6,13 @@
     <title>Gastos Operativos - Fitoscents</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/ui.css">
+    <link rel="stylesheet" href="assets/css/features.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
     <script type="module" src="assets/js/firebase.js"></script>
     <script src="components/header.js"></script>
 </head>
@@ -18,14 +24,15 @@
             <h2>💸 Gastos Operativos</h2>
             <p class="text-muted mb-0">Control de gastos del negocio</p>
         </div>
-        <button class="btn btn-primary" onclick="abrirModalNuevoGasto()">
+        <button class="btn btn-gold" onclick="abrirModalNuevoGasto()">
             ➕ Registrar Gasto
         </button>
     </div>
 
     <div class="row g-3 mb-4">
+        <!-- Total Gastos -->
         <div class="col-md-3">
-            <div class="card bg-danger bg-opacity-10 border-danger">
+            <div class="card kpi-capital">
                 <div class="card-body">
                     <small class="text-danger fw-bold">TOTAL GASTOS</small>
                     <h3 class="fw-bold text-danger mb-0" id="total-gastos">$0.00</h3>
@@ -33,18 +40,19 @@
                 </div>
             </div>
         </div>
+        <!-- Este Mes — fondo dorado, texto negro (contraste correcto) -->
         <div class="col-md-3">
-            <div class="card bg-warning bg-opacity-10 border-warning">
+            <div class="card mb-0" style="background: var(--gold-gradient); border: none;">
                 <div class="card-body">
-                    <small class="text-warning fw-bold">ESTE MES</small>
-                    <h3 class="fw-bold text-warning mb-0" id="gastos-mes">$0.00</h3>
-                    <!-- FIX: mes dinámico en lugar de hardcoded "febrero" -->
-                    <small class="text-muted">Gastos de <span id="label-mes-actual"></span></small>
+                    <small style="color:#000; font-weight:700;">ESTE MES</small>
+                    <h3 class="fw-bold mb-0" style="color:#000;" id="gastos-mes">$0.00</h3>
+                    <small style="color:#1a1a1a;">Gastos de <span id="label-mes-actual"></span></small>
                 </div>
             </div>
         </div>
+        <!-- Promedio -->
         <div class="col-md-3">
-            <div class="card bg-info bg-opacity-10 border-info">
+            <div class="card kpi-cyan">
                 <div class="card-body">
                     <small class="text-info fw-bold">PROMEDIO MENSUAL</small>
                     <h3 class="fw-bold text-info mb-0" id="gastos-promedio">$0.00</h3>
@@ -52,8 +60,9 @@
                 </div>
             </div>
         </div>
+        <!-- Ganancia Neta -->
         <div class="col-md-3">
-            <div class="card bg-success bg-opacity-10 border-success">
+            <div class="card kpi-venta">
                 <div class="card-body">
                     <small class="text-success fw-bold">GANANCIA NETA</small>
                     <h3 class="fw-bold text-success mb-0" id="ganancia-neta-real">$0.00</h3>
@@ -87,7 +96,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 text-end">
-                    <span class="badge bg-dark fs-6" id="contador-gastos">0 gastos</span>
+                    <span class="badge bg-secondary fs-6" id="contador-gastos">0 gastos</span>
                 </div>
             </div>
         </div>
@@ -97,20 +106,14 @@
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-dark">
+                    <thead>
                         <tr>
-                            <th>Fecha</th>
-                            <th>Categoría</th>
-                            <th>Concepto</th>
-                            <th>Monto</th>
-                            <th>Quién Pagó</th>
-                            <th>Acciones</th>
+                            <th>Fecha</th><th>Categoría</th><th>Concepto</th>
+                            <th>Monto</th><th>Quién Pagó</th><th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="gastos-table-body">
-                        <tr>
-                            <td colspan="6" class="text-center text-muted p-4">No hay gastos registrados</td>
-                        </tr>
+                        <tr><td colspan="6" class="text-center text-muted p-4">No hay gastos registrados</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -118,7 +121,7 @@
     </div>
 
     <div class="card shadow mt-4">
-        <div class="card-header bg-dark text-white fw-bold">
+        <div class="card-header fw-bold">
             📊 Resumen por Categoría
         </div>
         <div class="card-body">
@@ -131,9 +134,9 @@
 <div class="modal fade" id="modalNuevoGasto" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header">
                 <h5 class="modal-title">💸 Registrar Gasto</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="form-nuevo-gasto">
@@ -158,9 +161,9 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Concepto/Descripción</label>
-                        <input type="text" class="form-control" id="inputConceptoGasto" placeholder="Ej: Envío a Guadalajara, Gasolina semana 1">
+                        <input type="text" class="form-control" id="inputConceptoGasto" placeholder="Ej: Envío a Guadalajara">
                     </div>
-                    <div class="mb-3 p-3 bg-light rounded">
+                    <div class="mb-3 p-3 rounded border">
                         <label class="form-label fw-bold">¿Quién pagó este gasto?</label>
                         <select class="form-select" id="inputQuienPago" onchange="togglePorcentajeGasto()">
                             <option value="mio">Yo (100%)</option>
@@ -180,7 +183,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-danger" onclick="guardarGasto()">💾 Guardar Gasto</button>
             </div>
         </div>
@@ -193,17 +196,13 @@
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/sales.js"></script>
 <script src="assets/js/gastos.js"></script>
-
 <script>
-    // Poner el nombre del mes actual dinámicamente
     const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
     document.getElementById('label-mes-actual').innerText = meses[new Date().getMonth()];
-
     document.addEventListener('DOMContentLoaded', async () => {
         await initApp();
         cargarGastos();
     });
 </script>
-
 </body>
 </html>
