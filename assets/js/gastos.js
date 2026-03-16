@@ -150,7 +150,6 @@ function renderResumenCategorias() {
     const contenedor = document.getElementById('resumen-categorias');
     if (!contenedor) return;
 
-    // FIX O(n²): calcular total UNA sola vez fuera del loop
     const totalGeneral = listaGastos.reduce((sum, g) => sum + g.monto, 0);
 
     const grupos = {};
@@ -168,12 +167,13 @@ function renderResumenCategorias() {
 
     categoriasOrdenadas.forEach(([categoria, monto]) => {
         const porcentaje = totalGeneral > 0 ? ((monto / totalGeneral) * 100).toFixed(1) : '0.0';
+        // FIX: bg-dark text-white en lugar de bg-light (que ui.css pintaba de negro)
         contenedor.innerHTML += `
             <div class="col-md-4">
-                <div class="card bg-light">
+                <div class="card bg-dark">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span>${getCategoriaIcon(categoria)} ${getCategoriaLabel(categoria)}</span>
+                            <span class="text-white">${getCategoriaIcon(categoria)} ${getCategoriaLabel(categoria)}</span>
                             <span class="badge bg-danger">${porcentaje}%</span>
                         </div>
                         <h4 class="fw-bold text-danger mb-0">$${monto.toFixed(2)}</h4>
@@ -196,13 +196,14 @@ function eliminarGasto(id) {
 
 function setFiltroPeriodoGasto(periodo, btn) {
     filtroPeriodoActual = periodo;
+    // FIX: reset completo de todas las clases antes de marcar el activo
     const grupo = btn.parentElement.querySelectorAll('.btn');
     grupo.forEach(b => {
-        b.classList.remove('active', 'btn-primary');
+        b.classList.remove('active', 'btn-primary', 'btn-warning');
         b.classList.add('btn-outline-secondary');
     });
     btn.classList.remove('btn-outline-secondary');
-    btn.classList.add('active', 'btn-primary');
+    btn.classList.add('active');
     renderGastos();
 }
 
