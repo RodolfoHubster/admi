@@ -3,20 +3,26 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Fitoscents Admin</title>
+        <title>Fitoscents Admin — Clientes</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="assets/css/main.css">
+        <!-- Sistema CSS Fitoscents (orden obligatorio) -->
+        <link rel="stylesheet" href="assets/css/variables.css">
+        <link rel="stylesheet" href="assets/css/global.css">
+        <link rel="stylesheet" href="assets/css/ui.css">
+        <link rel="stylesheet" href="assets/css/features.css">
+        <link rel="stylesheet" href="assets/css/dashboard.css">
+        <link rel="stylesheet" href="assets/css/responsive.css">
         <script type="module" src="assets/js/firebase.js"></script>
         <script src="components/header.js"></script>
     </head>
 <body>
 
-    <div class="container">
+    <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="fw-bold text-dark">Gestión de Clientes</h2>
+                <h2 class="fw-bold">Gestión de Clientes</h2>
                 <p class="text-muted">Cobranza y seguimiento de pedidos.</p>
             </div>
             <button class="btn btn-dark" onclick="alert('Próximamente: Lista de Interesados/Leads')">
@@ -26,30 +32,32 @@
     
         <ul class="nav nav-tabs mb-4" id="clientesTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active fw-bold text-dark" id="deudas-tab" data-bs-toggle="tab" data-bs-target="#deudas-content" type="button">
+                <button class="nav-link active fw-bold" id="deudas-tab" data-bs-toggle="tab" data-bs-target="#deudas-content" type="button">
                     💰 Cuentas por Cobrar (<span id="count-deudores">0</span>)
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-dark" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos-content" type="button">
+                <button class="nav-link fw-bold" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos-content" type="button">
                     📦 Pedidos y Encargos (<span id="count-pedidos">0</span>)
                 </button>
             </li>
         </ul>
     
         <div class="tab-content" id="myTabContent">
+
+            <!-- ===== TAB: CUENTAS POR COBRAR ===== -->
             <div class="tab-pane fade show active" id="deudas-content" role="tabpanel">
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <div class="card bg-dark text-white text-center p-3">
-                            <h6 class="text-secondary">TOTAL EN LA CALLE</h6>
+                        <div class="card text-center p-3">
+                            <h6 class="text-muted">TOTAL EN LA CALLE</h6>
                             <h2 class="text-gold fw-bold mb-0" id="total-calle">$0.00</h2>
                         </div>
                     </div>
                 </div>
                 <div class="table-responsive shadow-sm rounded">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-dark">
+                        <thead>
                             <tr>
                                 <th>Cliente</th>
                                 <th>Progreso de Pago</th>
@@ -57,20 +65,21 @@
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="clientes-table-body" class="bg-white"></tbody>
+                        <tbody id="clientes-table-body"></tbody>
                     </table>
                 </div>
             </div>
     
+            <!-- ===== TAB: PEDIDOS Y ENCARGOS ===== -->
             <div class="tab-pane fade" id="pedidos-content" role="tabpanel">
-                <div class="alert alert-info border-0 shadow-sm text-dark">
+                <div class="alert alert-info border-0 shadow-sm">
                     <i class="bi bi-info-circle-fill me-2"></i> 
                     Estos son perfumes registrados en el <strong>Inventario</strong> asignados a un cliente. 
-                    Si cambias la ubicación a "En Inventario", aparecerán como listos.
+                    Si cambias la ubicación a &quot;En Inventario&quot;, aparecerán como listos.
                 </div>
                 <div class="table-responsive shadow-sm rounded">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-secondary text-white">
+                        <thead>
                             <tr>
                                 <th>Cliente</th>
                                 <th>Perfume Encargado</th>
@@ -79,27 +88,27 @@
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="encargos-table-body" class="bg-white"></tbody>
+                        <tbody id="encargos-table-body"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-<!-- Modal Abonar -->
+<!-- ===== Modal Abonar ===== -->
 <div class="modal fade" id="modalAbonoCliente" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-warning">
-            <div class="modal-header bg-success text-white border-0">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title fw-bold">💸 Registrar Abono</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="card bg-secondary bg-opacity-25 border-0 mb-3 p-3 rounded">
+                <div class="card mb-3 p-3">
                     <div class="d-flex justify-content-between">
                         <div>
                             <small class="text-muted">Cliente</small>
-                            <strong class="text-warning fs-5 d-block" id="modal-abono-nombre">---</strong>
+                            <strong class="text-gold fs-5 d-block" id="modal-abono-nombre">---</strong>
                         </div>
                         <div class="text-end">
                             <small class="text-muted">Deuda Total</small>
@@ -108,38 +117,38 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-warning fw-bold">Monto a Recibir ($)</label>
+                    <label class="form-label fw-bold">Monto a Recibir ($)</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-dark text-white border-secondary">$</span>
-                        <input type="number" class="form-control bg-dark text-white border-secondary fw-bold fs-5"
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control fw-bold fs-5"
                                id="modal-abono-monto" placeholder="0.00">
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Nota (Opcional)</label>
-                    <input type="text" class="form-control bg-dark text-white border-secondary"
+                    <label class="form-label small">Nota (Opcional)</label>
+                    <input type="text" class="form-control"
                            id="modal-abono-nota" placeholder="Ej: Transferencia, Efectivo...">
                 </div>
             </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success fw-bold px-4" onclick="confirmarAbonoCliente()">✅ Confirmar Pago</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-gold fw-bold px-4" onclick="confirmarAbonoCliente()">✅ Confirmar Pago</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Historial Abonos -->
+<!-- ===== Modal Historial Abonos ===== -->
 <div class="modal fade" id="modalHistorialAbonos" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content bg-dark text-white border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title fw-bold">📋 Historial de Abonos — <span id="hist-cliente-nombre" class="text-warning"></span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">📋 Historial de Abonos — <span id="hist-cliente-nombre" class="text-gold"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
-                    <table class="table table-dark table-hover mb-0">
+                    <table class="table table-hover mb-0">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -153,8 +162,8 @@
                     </table>
                 </div>
             </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cerrar</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -209,21 +218,21 @@
                     <div class="d-flex justify-content-between small mb-1">
                         <span>Progreso</span><span class="fw-bold">${Math.round(porcentajePagado)}%</span>
                     </div>
-                    <div class="progress" style="height: 10px; background-color: #333;">
+                    <div class="progress" style="height: 10px;">
                         <div class="progress-bar ${colorBarra}" role="progressbar" style="width: ${porcentajePagado}%"></div>
                     </div>
                     <small class="text-muted">${c.items.length} perfumes</small>
                 </td>
-                <td class="text-danger fw-bold fs-5">$${c.deudaActual.toFixed(2)}</td>
+                <td class="text-danger fw-bold fs-5">${formatMoney(c.deudaActual)}</td>
                 <td>
                     <div class="d-flex gap-2 flex-wrap">
                         <button class="btn btn-success btn-sm fw-bold" onclick="abrirAbonoCliente('${c.nombre}')">
                             💵 Abonar
                         </button>
-                        <button class="btn btn-warning btn-sm fw-bold text-dark" onclick="abrirAbonoCliente('${c.nombre}', true)">
+                        <button class="btn btn-warning btn-sm fw-bold" onclick="abrirAbonoCliente('${c.nombre}', true)">
                             💯 Pagar Todo
                         </button>
-                        <button class="btn btn-info btn-sm text-white" onclick="verHistorialAbonos('${c.nombre}')">
+                        <button class="btn btn-outline-info btn-sm" onclick="verHistorialAbonos('${c.nombre}')">
                             📋 Historial
                         </button>
                     </div>
@@ -251,23 +260,23 @@
             let estadoBadge = '';
             let accionBtn = '';
             if (prod.ubicacion === 'en_inventario' || prod.ubicacion === 'stock') {
-                estadoBadge = `<span class="badge bg-success shadow-sm p-2"><i class="bi bi-check-circle-fill"></i> LISTO PARA ENTREGA</span>`;
+                estadoBadge = `<span class="badge bg-success p-2"><i class="bi bi-check-circle-fill"></i> LISTO PARA ENTREGA</span>`;
                 accionBtn = `<button class="btn btn-sm btn-success" onclick="venderEncargo(${prod.id})">Entregar y Cobrar</button>`;
             } else {
-                estadoBadge = `<span class="badge bg-warning text-dark p-2"><i class="bi bi-truck"></i> EN TRANSITO</span>`;
+                estadoBadge = `<span class="badge bg-warning p-2"><i class="bi bi-truck"></i> EN TRANSITO</span>`;
                 accionBtn = `<small class="text-muted">Esperando llegada...</small>`;
             }
             tbody.innerHTML += `
                 <tr>
-                    <td class="fw-bold text-primary">${prod.cliente}</td>
+                    <td class="fw-bold text-gold">${prod.cliente}</td>
                     <td>
-                        <div class="d-flex align-items-center">
-                            <img src="${prod.imagen}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; margin-right: 10px;">
-                            <div><strong>${prod.nombre}</strong><br><small>${prod.marca}</small></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="${prod.imagen}" class="img-thumb-mini" alt="${prod.nombre}">
+                            <div><strong>${prod.nombre}</strong><br><small class="text-muted">${prod.marca}</small></div>
                         </div>
                     </td>
                     <td>${estadoBadge}</td>
-                    <td><small>${prod.inversion.toUpperCase()}</small></td>
+                    <td><small class="text-muted">${prod.inversion ? prod.inversion.toUpperCase() : '---'}</small></td>
                     <td>${accionBtn}</td>
                 </tr>
             `;
@@ -280,7 +289,7 @@
     }
 
     function venderEncargo(id) {
-        alert("Para entregar, ve a Inventario y dale a 'Vender' en este producto.");
+        alert('Para entregar, ve a Inventario y dale a \'Vender\' en este producto.');
         window.location.href = 'products.html';
     }
 
@@ -333,7 +342,6 @@
         renderDeudas();
     }
 
-    // NUEVA FUNCIÓN: Ver historial de abonos por cliente
     function verHistorialAbonos(nombreCliente) {
         const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
         const ventasCliente = ventas.filter(v => v.cliente === nombreCliente);
@@ -347,22 +355,21 @@
         } else {
             ventasCliente.forEach((v, idx) => {
                 const abonos = v.historialAbonos || [];
-                const totalAbonado = abonos.reduce((s, a) => s + a.monto, 0);
                 const abonosHtml = abonos.length > 0
-                    ? abonos.map(a => `<div class="small text-success">+$${a.monto.toFixed(2)} <span class="text-muted">${a.fecha} — ${a.nota}</span></div>`).join('')
+                    ? abonos.map(a => `<div class="small text-success">+${formatMoney(a.monto)} <span class="text-muted">${a.fecha} — ${a.nota}</span></div>`).join('')
                     : '<small class="text-muted">Sin abonos</small>';
 
                 tbody.innerHTML += `
                     <tr>
                         <td class="text-muted">${idx + 1}</td>
                         <td>
-                            <strong class="text-white">${v.producto}</strong><br>
+                            <strong>${v.producto}</strong><br>
                             <small class="text-muted">${v.fecha}</small>
                         </td>
-                        <td class="text-white fw-bold">$${parseFloat(v.precioFinal).toFixed(2)}</td>
+                        <td class="fw-bold">${formatMoney(parseFloat(v.precioFinal))}</td>
                         <td>${abonosHtml}</td>
                         <td class="fw-bold ${parseFloat(v.saldoPendiente) > 0 ? 'text-danger' : 'text-success'}">
-                            ${parseFloat(v.saldoPendiente) > 0 ? '$' + parseFloat(v.saldoPendiente).toFixed(2) + ' pendiente' : '✅ Liquidado'}
+                            ${parseFloat(v.saldoPendiente) > 0 ? formatMoney(parseFloat(v.saldoPendiente)) + ' pendiente' : '✅ Liquidado'}
                         </td>
                     </tr>
                 `;
