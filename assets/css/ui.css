@@ -1,6 +1,6 @@
 /* assets/css/ui.css */
 /* =========================================================
-   3. COMPONENTES UI — Tarjetas, tablas, inputs, modales,
+   3. COMPONENTES UI — Cards, tablas, inputs, modales,
       botones, badges, listas, filtros de periodo
    ========================================================= */
 
@@ -9,21 +9,29 @@
    TARJETAS (Cards)
    --------------------------------------------------------- */
 .card {
-    background-color: var(--bg-secondary);
-    border: var(--border-subtle);
+    background: linear-gradient(145deg, var(--bg-secondary) 0%, rgba(22, 22, 35, 0.95) 100%);
+    border: var(--border-glass);
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow-card);
     color: var(--text-primary);
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(197, 160, 89, 0.3);
 }
 .card-header {
-    background-color: rgba(255, 215, 0, 0.05);
+    background: linear-gradient(90deg, rgba(255,215,0,0.08) 0%, transparent 100%);
     border-bottom: 1px solid var(--gold-muted);
     color: var(--gold-flat);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    font-size: 0.8rem;
 }
-/* FIX: tarjeta amarilla (DEUDA SOCIO) — texto negro sobre fondo dorado */
+/* FIX: tarjeta amarilla (DEUDA SOCIO) */
 .card.bg-warning,
 .card.bg-warning small,
 .card.bg-warning h2,
@@ -36,33 +44,40 @@
 .table {
     --bs-table-bg: transparent;
     --bs-table-color: var(--text-primary);
-    border-color: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.08);
 }
 .table thead th {
-    background-color: #000;
+    background: linear-gradient(90deg, #0a0a12 0%, #111118 100%);
     color: var(--gold-flat);
-    border-bottom: 2px solid var(--gold-muted);
-    font-size: 0.85rem;
+    border-bottom: 1px solid var(--gold-muted);
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    padding: 12px 16px;
 }
 .table tbody tr {
     background-color: var(--bg-secondary) !important;
-    transition: background-color 0.2s;
+    transition: background-color 0.15s ease;
+}
+/* Fila alterna sutil */
+.table tbody tr:nth-child(even) {
+    background-color: rgba(255,255,255,0.02) !important;
 }
 .table tbody td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
+    padding: 10px 16px;
+    vertical-align: middle;
 }
 .table-hover > tbody > tr:hover,
 .table-hover > tbody > tr:hover > td {
-    background-color: rgba(255, 215, 0, 0.08) !important;
+    background-color: rgba(255, 215, 0, 0.06) !important;
 }
 .table-group-header {
-    background-color: #2C2C2C !important;
-    border-left: 4px solid var(--gold-flat);
+    background-color: rgba(255,215,0,0.05) !important;
+    border-left: 3px solid var(--gold-flat);
 }
-/* Correcciones de texto dentro de tabla */
+/* Texto dentro de tabla */
 .table .text-dark       { color: #fff !important; }
 .table strong, .table b { color: var(--gold-flat) !important; font-weight: 600; }
 .table .fw-bold         { color: var(--gold-flat) !important; font-weight: 600; }
@@ -76,24 +91,27 @@
 .form-control,
 .form-select {
     background-color: var(--bg-tertiary) !important;
-    border: 1px solid #555;
-    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-primary) !important;
+    border-radius: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.form-control::placeholder { color: #888; }
+.form-control::placeholder { color: var(--text-dim); }
 .form-control:focus,
 .form-select:focus {
-    background-color: #333 !important;
+    background-color: #252535 !important;
     border-color: var(--gold-flat);
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.12);
+    color: #fff !important;
 }
-.form-text { color: var(--text-secondary); }
+.form-text  { color: var(--text-secondary); font-size: 0.8rem; }
+.form-label { color: var(--gold-flat) !important; font-weight: 500; font-size: 0.85rem; }
 .input-group-text {
-    background-color: #222 !important;
-    border: 1px solid #555;
+    background-color: #111118 !important;
+    border: 1px solid rgba(255,255,255,0.1);
     color: var(--gold-flat) !important;
 }
-/* FIX: text-success sin !important para no romper badges verdes */
-.text-success { color: #69F0AE; }
+.text-success { color: #C3E88D; }
 .text-muted   { color: var(--text-secondary) !important; }
 
 
@@ -101,92 +119,128 @@
    MODALES
    --------------------------------------------------------- */
 .modal-content {
-    background-color: #1a1a1a !important;
-    border: 1px solid var(--gold-muted);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-    color: #fff !important;
+    background: linear-gradient(145deg, #0f0f1a 0%, #141420 100%) !important;
+    border: 1px solid rgba(197, 160, 89, 0.3);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,215,0,0.05);
+    color: var(--text-primary) !important;
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
 }
 .modal-header {
-    background-color: #000 !important;
+    background: linear-gradient(90deg, rgba(255,215,0,0.08) 0%, transparent 100%) !important;
     border-bottom: 1px solid var(--gold-muted);
+    border-radius: 16px 16px 0 0;
 }
-.modal-title  { color: var(--gold-flat) !important; font-weight: bold; }
-.modal-body   { color: #eee !important; }
-.modal-footer { border-top: 1px solid #333; }
+.modal-title  { color: var(--gold-flat) !important; font-weight: 700; letter-spacing: 0.5px; }
+.modal-body   { color: var(--text-primary) !important; }
+.modal-footer { border-top: 1px solid rgba(255,255,255,0.06); }
 .btn-close    { filter: invert(1) grayscale(100%) brightness(200%); }
-/* bg-light dentro de modal */
 .modal-body .bg-light {
-    background-color: #2D2D30 !important;
-    color: #fff !important;
-    border: 1px solid #444 !important;
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 8px;
 }
-/* Inputs dentro de modal */
 .modal-body input,
 .modal-body select,
 .modal-body textarea {
-    background-color: #2D2D30 !important;
-    border: 1px solid #555 !important;
-    color: #fff !important;
+    background-color: var(--bg-tertiary) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: var(--text-primary) !important;
+    border-radius: 8px !important;
 }
-.modal-body input::placeholder { color: #888 !important; opacity: 1; }
-.modal-body label { color: var(--gold-flat) !important; font-weight: 500; }
+.modal-body input::placeholder { color: var(--text-dim) !important; opacity: 1; }
+.modal-body label { color: var(--gold-flat) !important; font-weight: 500; font-size: 0.85rem; }
 
 
 /* ---------------------------------------------------------
    BOTONES
    --------------------------------------------------------- */
-.btn { border-radius: 8px; font-weight: 600; border: none; }
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+}
 .btn-primary,
-.btn-success              { background: var(--gold-gradient); color: #000; }
+.btn-success {
+    background: var(--gold-gradient);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+.btn-primary:hover,
+.btn-success:hover {
+    background: linear-gradient(135deg, #ffe033, #ffc107);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    transform: translateY(-1px);
+    color: #000;
+}
 .btn-outline-primary,
-.btn-outline-dark         { color: var(--gold-flat); border-color: var(--gold-muted); }
-.btn-outline-primary:hover { background-color: var(--gold-flat); color: #000; }
+.btn-outline-dark {
+    color: var(--gold-flat);
+    border: 1px solid var(--gold-muted) !important;
+    background: transparent;
+}
+.btn-outline-primary:hover,
+.btn-outline-dark:hover {
+    background-color: rgba(255,215,0,0.1);
+    border-color: var(--gold-flat) !important;
+    color: var(--gold-flat);
+    box-shadow: 0 0 12px rgba(255,215,0,0.15);
+}
+.btn-outline-danger:hover {
+    box-shadow: 0 0 12px rgba(255, 83, 112, 0.3);
+}
+.btn-outline-success:hover {
+    box-shadow: 0 0 12px rgba(195, 232, 141, 0.3);
+}
 
 /* Botón acción (lista lateral) */
 .btn-action {
-    background-color: #252525;
-    border: 1px solid #333;
-    color: #e0e0e0;
-    transition: all 0.3s ease;
+    background-color: var(--bg-tertiary);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--text-primary);
+    transition: all 0.25s ease;
     padding: 12px 20px;
+    border-radius: 10px;
 }
 .btn-action:hover {
-    background-color: #333;
+    background-color: rgba(255,215,0,0.06);
     border-color: var(--gold-muted);
-    color: #fff;
-    transform: translateX(5px);
+    color: var(--gold-flat);
+    transform: translateX(4px);
 }
 
-/* Botón gold principal */
+/* Botón gold */
 .btn-gold {
-    background-color: #FFD700 !important;
+    background: var(--gold-gradient) !important;
     color: #000 !important;
     border: none !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.25);
+    transition: all 0.2s ease;
 }
 .btn-gold:hover {
-    background-color: #e6c200 !important;
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 6px 24px rgba(255, 215, 0, 0.45);
+    transform: translateY(-1px) scale(1.02);
 }
 
 /* Botón luxury gold */
 .btn-luxury-gold {
-    background-color: #FFD700 !important;
-    border: 1px solid #FFD700 !important;
+    background: var(--gold-gradient) !important;
+    border: none !important;
     color: #000 !important;
     font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 10px 20px;
-    transition: all 0.3s ease-in-out !important;
+    padding: 10px 24px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.25);
+    transition: all 0.25s ease !important;
 }
 .btn-luxury-gold:hover {
-    background-color: #e6c200 !important;
-    border-color: #e6c200 !important;
-    color: #000 !important;
+    box-shadow: 0 8px 28px rgba(255, 215, 0, 0.5) !important;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4) !important;
+    color: #000 !important;
 }
 .btn-luxury-gold i { color: #000 !important; }
 
@@ -194,14 +248,25 @@
 /* ---------------------------------------------------------
    BADGES
    --------------------------------------------------------- */
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
 .bg-light.text-dark,
 .badge.bg-light {
-    background-color: #000 !important;
-    color: #aaa !important;
-    border: 1px solid #444 !important;
+    background-color: rgba(255,255,255,0.08) !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
 }
-.table-warning > td       { background-color: rgba(255, 215, 0, 0.15) !important; }
-.badge.bg-warning         { background-color: var(--gold-flat) !important; color: #000 !important; border: none; }
+.table-warning > td       { background-color: rgba(255, 215, 0, 0.08) !important; }
+.badge.bg-warning         { background-color: var(--gold-flat) !important; color: #000 !important; }
+.badge.bg-success         { background-color: rgba(195,232,141,0.15) !important; color: #C3E88D !important; border: 1px solid rgba(195,232,141,0.3) !important; }
+.badge.bg-danger          { background-color: rgba(255,83,112,0.15) !important; color: #FF5370 !important; border: 1px solid rgba(255,83,112,0.3) !important; }
+.badge.bg-info            { background-color: rgba(137,221,255,0.15) !important; color: #89DDFF !important; border: 1px solid rgba(137,221,255,0.3) !important; }
+.badge.bg-primary         { background-color: rgba(130,170,255,0.15) !important; color: #82AAFF !important; border: 1px solid rgba(130,170,255,0.3) !important; }
+.badge.bg-secondary       { background-color: rgba(136,146,176,0.15) !important; color: var(--text-secondary) !important; }
 
 
 /* ---------------------------------------------------------
@@ -209,13 +274,17 @@
    --------------------------------------------------------- */
 .list-group-item {
     background-color: var(--bg-secondary) !important;
-    border-color: var(--border-subtle) !important;
+    border-color: rgba(255,255,255,0.05) !important;
     color: var(--text-primary) !important;
+    transition: background-color 0.15s ease;
+}
+.list-group-item:hover {
+    background-color: rgba(255,215,0,0.04) !important;
 }
 .list-group-item .badge {
-    background-color: #000 !important;
+    background-color: rgba(255,215,0,0.1) !important;
     color: var(--gold-flat) !important;
-    border: 1px solid var(--gold-muted) !important;
+    border: 1px solid rgba(255,215,0,0.2) !important;
 }
 
 
@@ -223,17 +292,37 @@
    FILTROS DE PERIODO (btn-group)
    --------------------------------------------------------- */
 .btn-group .btn.active {
-    background-color: var(--gold-flat) !important;
+    background: var(--gold-gradient) !important;
     color: #000 !important;
     border-color: var(--gold-flat) !important;
     font-weight: 700;
+    box-shadow: 0 0 12px rgba(255,215,0,0.3);
 }
 .btn-group .btn-outline-secondary {
-    border-color: #444;
-    color: #aaa;
+    border-color: rgba(255,255,255,0.1);
+    color: var(--text-secondary);
+    background: transparent;
 }
 .btn-group .btn-outline-secondary:hover {
-    background-color: #333;
-    color: #fff;
-    border-color: #666;
+    background-color: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+    border-color: rgba(255,255,255,0.2);
 }
+
+
+/* ---------------------------------------------------------
+   PROGRESS BARS
+   --------------------------------------------------------- */
+.progress {
+    background-color: rgba(255,255,255,0.05);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.progress-bar {
+    border-radius: 99px;
+    transition: width 0.6s ease;
+}
+.progress-bar.bg-danger  { background: linear-gradient(90deg, #FF5370, #FF8A80) !important; }
+.progress-bar.bg-primary { background: linear-gradient(90deg, #82AAFF, #89DDFF) !important; }
+.progress-bar.bg-warning { background: linear-gradient(90deg, #FFD700, #FDB931) !important; }
+.progress-bar.bg-success { background: linear-gradient(90deg, #C3E88D, #69F0AE) !important; }
