@@ -17,13 +17,22 @@
     letter-spacing: 1px;
 }
 
+/* FIX: tarjetas amarillas (bg-warning) deben tener texto oscuro siempre */
+.card.bg-warning,
+.card.bg-warning .card-body,
+.card.bg-warning small,
+.card.bg-warning h3,
+.card.bg-warning h2 {
+    color: #000 !important;
+}
+
 .text-muted { color: var(--text-secondary) !important; }
 
 /* --- TABLAS DE LUJO --- */
 .table {
     --bs-table-bg: transparent;
     --bs-table-color: var(--text-primary);
-    border-color: rgba(255, 215, 0, 0.1); /* FIX: era rojo random rgba(194,79,79,0.1) */
+    border-color: rgba(255, 215, 0, 0.1);
 }
 .table thead th {
     background-color: #000;
@@ -98,7 +107,9 @@
 
 /* --- CORRECCIONES DE TEXTO --- */
 .table .text-dark { color: #fff !important; }
-.table strong, .table b, .fw-bold { color: var(--gold-flat) !important; font-weight: 600; }
+/* FIX: .fw-bold solo dentro de tabla, no global — evita pintar de dorado textos en tarjetas */
+.table strong, .table b { color: var(--gold-flat) !important; font-weight: 600; }
+.table .fw-bold { color: var(--gold-flat) !important; font-weight: 600; }
 .table small, .table .small { color: var(--text-secondary) !important; }
 
 /* FIX: text-success sin !important para no romper badges verdes en otras páginas */
@@ -106,7 +117,8 @@
 
 /* --- BOTONES --- */
 .btn { border-radius: 8px; font-weight: 600; border: none; }
-.btn-primary, .btn-success { background: var(--gold-gradient); color: #000; }
+/* FIX: solo btn-primary se pinta de dorado — btn-success conserva su color verde */
+.btn-primary { background: var(--gold-gradient); color: #000; }
 .btn-outline-primary, .btn-outline-dark { color: var(--gold-flat); border-color: var(--gold-muted); }
 .btn-outline-primary:hover { background-color: var(--gold-flat); color: #000; }
 
