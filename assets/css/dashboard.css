@@ -84,8 +84,16 @@
     font-size: 2rem;
     font-weight: 700;
     letter-spacing: -0.5px;
-    color: var(--text-primary);
+    color: var(--text-primary);  /* base: blanco cálido */
 }
+/* FIX: valor KPI toma el acento de su tipo si se desea énfasis */
+.kpi-capital  .kpi-value { color: var(--accent-red);    }
+.kpi-venta    .kpi-value { color: var(--accent-green);  }
+.kpi-ganancia .kpi-value { color: var(--gold-flat);     }
+.kpi-stock    .kpi-value { color: var(--accent-blue);   }
+.kpi-cyan     .kpi-value { color: var(--accent-cyan);   }
+.kpi-purple   .kpi-value { color: var(--accent-purple); }
+
 .kpi-label {
     font-size: 0.7rem;
     font-weight: 700;
@@ -104,13 +112,12 @@
    ACCIONES RÁPIDAS (index.html)
    --------------------------------------------------------- */
 .btn-quick-action {
-    background: var(--bg-glass);
-    border: var(--border-glass);
-    color: var(--text-primary);
+    background: var(--bg-secondary);           /* FIX: fondo sólido, no glass invisible */
+    border: 1px solid rgba(255,215,0,0.15);
+    color: var(--text-primary);                 /* FIX: texto siempre legible */
     border-radius: 12px;
     padding: 20px 16px;
     transition: all 0.25s ease;
-    backdrop-filter: blur(8px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -119,7 +126,8 @@
     font-weight: 600;
     font-size: 0.85rem;
 }
-.btn-quick-action i { font-size: 1.6rem; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; }
+.btn-quick-action i    { font-size: 1.6rem; opacity: 0.85; transition: opacity 0.2s, transform 0.2s; color: var(--gold-flat); }
+.btn-quick-action span { color: var(--text-primary); }
 .btn-quick-action:hover {
     background: rgba(255,215,0,0.07);
     border-color: rgba(255,215,0,0.35);
@@ -127,7 +135,8 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(255,215,0,0.12);
 }
-.btn-quick-action:hover i { opacity: 1; transform: scale(1.15); color: var(--gold-flat); }
+.btn-quick-action:hover i    { opacity: 1; transform: scale(1.15); color: var(--gold-flat); }
+.btn-quick-action:hover span { color: var(--gold-flat); }
 
 
 /* ---------------------------------------------------------
@@ -138,6 +147,22 @@
     border-bottom: 1px solid rgba(255,255,255,0.06);
     color: var(--text-primary) !important;
 }
+/* FIX: card-header.bg-warning — texto negro */
+.card-header.bg-warning {
+    background: linear-gradient(90deg, rgba(255,215,0,0.2) 0%, rgba(255,215,0,0.08) 100%) !important;
+    border-bottom: 1px solid rgba(255,215,0,0.3);
+    color: #000 !important;
+}
+.card-header.bg-warning * { color: #000 !important; }
+
+/* FIX: card-header.bg-danger — texto blanco */
+.card-header.bg-danger {
+    background: linear-gradient(90deg, rgba(255,83,112,0.2) 0%, rgba(255,83,112,0.08) 100%) !important;
+    border-bottom: 1px solid rgba(255,83,112,0.3);
+    color: #fff !important;
+}
+.card-header.bg-danger * { color: #fff !important; }
+
 .card-header.bg-success {
     background: linear-gradient(90deg, rgba(195,232,141,0.15) 0%, rgba(195,232,141,0.05) 100%) !important;
     border-bottom: 1px solid rgba(195,232,141,0.25);

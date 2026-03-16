@@ -23,11 +23,20 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold-flat); }
 
-/* --- Headings --- */
+/* --- Headings (color explícito para no depender de herencia) --- */
 h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
     font-weight: 600;
 }
+
+/* --- Párrafos y spans base --- */
+p, span, li, td, th, label, small, .small { color: inherit; }
+
+/* --- strong/b siempre dorado para énfasis --- */
+strong, b { color: var(--gold-flat); font-weight: 700; }
+
+/* --- hr visible --- */
+hr { border-color: rgba(255, 255, 255, 0.08); opacity: 1; }
 
 /* --- Texto dorado metálico (definición única) --- */
 .text-gold {
@@ -48,6 +57,15 @@ h1, h2, h3, h4, h5, h6 {
     padding-left: 12px;
     border-left: 3px solid var(--gold-flat);
     margin-bottom: 1rem;
+}
+
+/* --- Código / pre --- */
+code, pre {
+    background-color: rgba(255,255,255,0.05);
+    color: #C3E88D;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.85em;
 }
 
 /* --- NAVBAR --- */
@@ -77,4 +95,20 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-dark .navbar-nav .nav-link.active {
     color: var(--gold-flat);
     text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+    background-color: rgba(255,215,0,0.05);
+}
+/* FIX: toggler icono visible */
+.navbar-toggler {
+    border-color: rgba(255,215,0,0.4) !important;
+}
+.navbar-toggler-icon {
+    filter: invert(80%) sepia(50%) saturate(500%) hue-rotate(5deg);
+}
+/* Menú colapsado en móvil — fondo sólido */
+.navbar-collapse.show,
+.navbar-collapse.collapsing {
+    background: #0a0a12;
+    border-top: 1px solid rgba(255,215,0,0.15);
+    padding: 8px 0;
+    border-radius: 0 0 12px 12px;
 }

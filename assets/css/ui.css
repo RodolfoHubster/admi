@@ -31,11 +31,27 @@
     letter-spacing: 1.5px;
     font-size: 0.8rem;
 }
-/* FIX: tarjeta amarilla (DEUDA SOCIO) */
+
+/* FIX LEGIBILIDAD: tarjeta amarilla (DEUDA SOCIO) */
 .card.bg-warning,
-.card.bg-warning small,
-.card.bg-warning h2,
-.card.bg-warning h3 { color: #000 !important; }
+.card.bg-warning *          { color: #000 !important; }
+
+/* FIX LEGIBILIDAD: tarjeta roja (alerta de peligro) */
+.card.bg-danger,
+.card.bg-danger *           { color: #fff !important; }
+
+/* FIX LEGIBILIDAD: tarjeta verde */
+.card.bg-success,
+.card.bg-success *          { color: #fff !important; }
+
+
+/* ---------------------------------------------------------
+   ALERTAS
+   --------------------------------------------------------- */
+.alert-warning              { color: #5a4000 !important; background-color: rgba(255,215,0,0.15) !important; border-color: rgba(255,215,0,0.4) !important; }
+.alert-danger               { color: #ff8a9a !important; background-color: rgba(255,83,112,0.1) !important; border-color: rgba(255,83,112,0.35) !important; }
+.alert-success              { color: #b5dfa0 !important; background-color: rgba(195,232,141,0.1) !important; border-color: rgba(195,232,141,0.35) !important; }
+.alert-info                 { color: #80d4f5 !important; background-color: rgba(137,221,255,0.1) !important; border-color: rgba(137,221,255,0.35) !important; }
 
 
 /* ---------------------------------------------------------
@@ -77,12 +93,18 @@
     background-color: rgba(255,215,0,0.05) !important;
     border-left: 3px solid var(--gold-flat);
 }
-/* Texto dentro de tabla */
-.table .text-dark       { color: #fff !important; }
-.table strong, .table b { color: var(--gold-flat) !important; font-weight: 600; }
-.table .fw-bold         { color: var(--gold-flat) !important; font-weight: 600; }
+/* FIX: textos dentro de tabla que Bootstrap pone oscuros */
+.table .text-dark            { color: var(--text-primary) !important; }
+.table strong,
+.table b                     { color: var(--gold-flat) !important; font-weight: 600; }
+.table .fw-bold              { color: var(--gold-flat) !important; font-weight: 600; }
 .table small,
-.table .small           { color: var(--text-secondary) !important; }
+.table .small                { color: var(--text-secondary) !important; }
+
+/* FIX: fila table-warning no pise texto */
+.table-warning > td          { background-color: rgba(255,215,0,0.08) !important; color: var(--text-primary) !important; }
+.table-danger  > td          { background-color: rgba(255,83,112,0.08) !important; color: var(--text-primary) !important; }
+.table-success > td          { background-color: rgba(195,232,141,0.08) !important; color: var(--text-primary) !important; }
 
 
 /* ---------------------------------------------------------
@@ -96,7 +118,7 @@
     border-radius: 8px;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
-.form-control::placeholder { color: var(--text-dim); }
+.form-control::placeholder   { color: var(--text-dim); }
 .form-control:focus,
 .form-select:focus {
     background-color: #252535 !important;
@@ -111,8 +133,16 @@
     border: 1px solid rgba(255,255,255,0.1);
     color: var(--gold-flat) !important;
 }
-.text-success { color: #C3E88D; }
-.text-muted   { color: var(--text-secondary) !important; }
+
+/* FIX: utilidades de texto con contraste correcto */
+.text-success  { color: #C3E88D !important; }
+.text-danger   { color: #FF8A9A !important; }
+.text-warning  { color: var(--gold-flat) !important; }
+.text-info     { color: #89DDFF !important; }
+.text-muted    { color: var(--text-secondary) !important; }
+.text-white    { color: #EAEAEA !important; }
+.text-dark     { color: var(--text-primary) !important; }
+.text-body     { color: var(--text-primary) !important; }
 
 
 /* ---------------------------------------------------------
@@ -150,7 +180,12 @@
     border-radius: 8px !important;
 }
 .modal-body input::placeholder { color: var(--text-dim) !important; opacity: 1; }
-.modal-body label { color: var(--gold-flat) !important; font-weight: 500; font-size: 0.85rem; }
+.modal-body label              { color: var(--gold-flat) !important; font-weight: 500; font-size: 0.85rem; }
+/* FIX: textos oscuros dentro de modales */
+.modal-body .text-dark,
+.modal-body .text-body         { color: var(--text-primary) !important; }
+.modal-body .text-muted        { color: var(--text-secondary) !important; }
+.modal-body h5, .modal-body h6 { color: var(--text-primary) !important; }
 
 
 /* ---------------------------------------------------------
@@ -163,10 +198,11 @@
     transition: all 0.2s ease;
     letter-spacing: 0.3px;
 }
+/* FIX: btn-primary/success — texto NEGRO sobre dorado (contraste WCAG AA) */
 .btn-primary,
 .btn-success {
     background: var(--gold-gradient);
-    color: #000;
+    color: #000 !important;
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
 }
 .btn-primary:hover,
@@ -174,7 +210,52 @@
     background: linear-gradient(135deg, #ffe033, #ffc107);
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
     transform: translateY(-1px);
-    color: #000;
+    color: #000 !important;
+}
+/* FIX: btn-warning — texto negro explícito */
+.btn-warning {
+    background-color: var(--gold-flat) !important;
+    color: #000 !important;
+    border: none;
+}
+.btn-warning:hover {
+    background-color: #ffe033 !important;
+    color: #000 !important;
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.35);
+    transform: translateY(-1px);
+}
+/* FIX: btn-danger — texto blanco explícito */
+.btn-danger {
+    background-color: #c0392b !important;
+    color: #fff !important;
+    border: none;
+}
+.btn-danger:hover {
+    background-color: #e74c3c !important;
+    color: #fff !important;
+    box-shadow: 0 6px 20px rgba(255,83,112,0.35);
+    transform: translateY(-1px);
+}
+/* btn-secondary — siempre legible */
+.btn-secondary {
+    background-color: rgba(136,146,176,0.2) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(136,146,176,0.3) !important;
+}
+.btn-secondary:hover {
+    background-color: rgba(136,146,176,0.35) !important;
+    color: #fff !important;
+}
+/* btn-dark — texto dorado */
+.btn-dark {
+    background-color: #0a0a12 !important;
+    color: var(--gold-flat) !important;
+    border: 1px solid rgba(255,215,0,0.2) !important;
+}
+.btn-dark:hover {
+    background-color: #111118 !important;
+    color: var(--gold-flat) !important;
+    border-color: var(--gold-flat) !important;
 }
 .btn-outline-primary,
 .btn-outline-dark {
@@ -189,12 +270,16 @@
     color: var(--gold-flat);
     box-shadow: 0 0 12px rgba(255,215,0,0.15);
 }
-.btn-outline-danger:hover {
-    box-shadow: 0 0 12px rgba(255, 83, 112, 0.3);
-}
-.btn-outline-success:hover {
-    box-shadow: 0 0 12px rgba(195, 232, 141, 0.3);
-}
+.btn-outline-danger  { color: #FF8A9A !important; border-color: rgba(255,83,112,0.5) !important; }
+.btn-outline-danger:hover  { background-color: rgba(255,83,112,0.1); box-shadow: 0 0 12px rgba(255,83,112,0.3); color: #FF8A9A !important; }
+.btn-outline-success { color: #C3E88D !important; border-color: rgba(195,232,141,0.5) !important; }
+.btn-outline-success:hover { background-color: rgba(195,232,141,0.1); box-shadow: 0 0 12px rgba(195,232,141,0.3); color: #C3E88D !important; }
+.btn-outline-warning { color: var(--gold-flat) !important; border-color: rgba(255,215,0,0.5) !important; }
+.btn-outline-warning:hover { background-color: rgba(255,215,0,0.1); color: var(--gold-flat) !important; }
+.btn-outline-info    { color: #89DDFF !important; border-color: rgba(137,221,255,0.5) !important; }
+.btn-outline-info:hover    { background-color: rgba(137,221,255,0.1); color: #89DDFF !important; }
+.btn-outline-secondary { border-color: rgba(255,255,255,0.15) !important; color: var(--text-secondary) !important; }
+.btn-outline-secondary:hover { background-color: rgba(255,255,255,0.07); color: var(--text-primary) !important; }
 
 /* Botón acción (lista lateral) */
 .btn-action {
@@ -223,6 +308,7 @@
 .btn-gold:hover {
     box-shadow: 0 6px 24px rgba(255, 215, 0, 0.45);
     transform: translateY(-1px) scale(1.02);
+    color: #000 !important;
 }
 
 /* Botón luxury gold */
@@ -260,13 +346,18 @@
     color: var(--text-secondary) !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
 }
-.table-warning > td       { background-color: rgba(255, 215, 0, 0.08) !important; }
-.badge.bg-warning         { background-color: var(--gold-flat) !important; color: #000 !important; }
-.badge.bg-success         { background-color: rgba(195,232,141,0.15) !important; color: #C3E88D !important; border: 1px solid rgba(195,232,141,0.3) !important; }
-.badge.bg-danger          { background-color: rgba(255,83,112,0.15) !important; color: #FF5370 !important; border: 1px solid rgba(255,83,112,0.3) !important; }
-.badge.bg-info            { background-color: rgba(137,221,255,0.15) !important; color: #89DDFF !important; border: 1px solid rgba(137,221,255,0.3) !important; }
-.badge.bg-primary         { background-color: rgba(130,170,255,0.15) !important; color: #82AAFF !important; border: 1px solid rgba(130,170,255,0.3) !important; }
-.badge.bg-secondary       { background-color: rgba(136,146,176,0.15) !important; color: var(--text-secondary) !important; }
+/* FIX: badge-dark ilegible en fondo oscuro */
+.badge.bg-dark {
+    background-color: rgba(255,255,255,0.1) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+}
+.badge.bg-warning     { background-color: var(--gold-flat) !important; color: #000 !important; }
+.badge.bg-success     { background-color: rgba(195,232,141,0.15) !important; color: #C3E88D !important; border: 1px solid rgba(195,232,141,0.3) !important; }
+.badge.bg-danger      { background-color: rgba(255,83,112,0.15) !important; color: #FF8A9A !important; border: 1px solid rgba(255,83,112,0.3) !important; }
+.badge.bg-info        { background-color: rgba(137,221,255,0.15) !important; color: #89DDFF !important; border: 1px solid rgba(137,221,255,0.3) !important; }
+.badge.bg-primary     { background-color: rgba(130,170,255,0.15) !important; color: #82AAFF !important; border: 1px solid rgba(130,170,255,0.3) !important; }
+.badge.bg-secondary   { background-color: rgba(136,146,176,0.15) !important; color: var(--text-secondary) !important; }
 
 
 /* ---------------------------------------------------------
@@ -286,6 +377,35 @@
     color: var(--gold-flat) !important;
     border: 1px solid rgba(255,215,0,0.2) !important;
 }
+/* FIX: item activo legible */
+.list-group-item.active {
+    background-color: rgba(255,215,0,0.12) !important;
+    border-color: rgba(255,215,0,0.35) !important;
+    color: var(--gold-flat) !important;
+}
+
+
+/* ---------------------------------------------------------
+   NAV TABS
+   --------------------------------------------------------- */
+.nav-tabs .nav-link {
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    transition: color 0.2s, border-color 0.2s;
+}
+.nav-tabs .nav-link:hover {
+    color: var(--text-primary);
+    border-bottom-color: rgba(255,215,0,0.3);
+    background: rgba(255,255,255,0.03);
+}
+.nav-tabs .nav-link.active {
+    color: var(--gold-flat) !important;
+    border-bottom: 2px solid var(--gold-flat) !important;
+    background: rgba(255,215,0,0.06) !important;
+    font-weight: 700;
+}
+.nav-tabs { border-bottom-color: rgba(255,255,255,0.08); }
 
 
 /* ---------------------------------------------------------
@@ -326,3 +446,21 @@
 .progress-bar.bg-primary { background: linear-gradient(90deg, #82AAFF, #89DDFF) !important; }
 .progress-bar.bg-warning { background: linear-gradient(90deg, #FFD700, #FDB931) !important; }
 .progress-bar.bg-success { background: linear-gradient(90deg, #C3E88D, #69F0AE) !important; }
+
+
+/* ---------------------------------------------------------
+   DIVISORES / HR
+   --------------------------------------------------------- */
+hr { border-color: rgba(255,255,255,0.08) !important; opacity: 1; }
+
+
+/* ---------------------------------------------------------
+   TOOLTIPS Y POPOVERS
+   --------------------------------------------------------- */
+.tooltip-inner {
+    background-color: #1E1E2A;
+    color: var(--text-primary);
+    border: 1px solid var(--gold-muted);
+    font-size: 0.78rem;
+}
+.bs-tooltip-auto .tooltip-arrow::before { border-top-color: #1E1E2A !important; }
