@@ -64,7 +64,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- DEUDA SOCIO: fondo dorado, texto negro (WCAG correcto) -->
                     <div class="col-md-3">
                         <div class="card shadow-lg" style="background: var(--gold-gradient); border: none;">
                             <div class="card-body text-center">
@@ -140,7 +139,7 @@
                                 <th style="width: 7%; cursor: pointer;" onclick="cambiarOrden('precio')">Precio <i class="bi bi-arrow-down-up small opacity-50"></i></th>
                                 <th style="width: 8%; cursor: pointer;" onclick="cambiarOrden('ganancia')">Ganancia <i class="bi bi-arrow-down-up small opacity-50"></i></th>
                                 <th style="width: 5%" class="text-center">Cant.</th>
-                                <th style="width: 9%" class="text-center" style="background: rgba(255,215,0,0.1);">
+                                <th style="width: 9%" class="text-center">
                                     <div class="d-flex flex-column align-items-center">
                                         <span style="color: var(--gold-flat); font-weight:700; font-size:0.75rem;">💰 DEUDA</span>
                                         <span style="color: var(--gold-flat); font-weight:700; font-size:0.75rem;">SOCIO</span>
@@ -164,7 +163,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Registrar Perfume</h5>
+                <h5 class="modal-title" id="titulo-modal-perfume">Registrar Perfume</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -186,7 +185,7 @@
                         <input type="text" class="form-control" id="inputNombre" required placeholder="Ej: Jean Paul Gaultier Le Male">
                         <label class="form-label mt-2">Foto (URL de Internet)</label>
                         <input type="url" class="form-control" id="inputImagen" placeholder="Pega el link de la imagen aquí...">
-                        <div class="form-text">Busca la imagen en Google, clic derecho -&gt; &ldquo;Copiar dirección de imagen&rdquo;.</div>
+                        <div class="form-text">Busca la imagen en Google, clic derecho &rarr; &ldquo;Copiar dirección de imagen&rdquo;.</div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -264,7 +263,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-gold" onclick="guardarProducto()">Guardar Perfume</button>
+                <!-- id="btn-guardar-perfume" permite que inventory.js lo encuentre de forma robusta -->
+                <button type="button" class="btn btn-gold" id="btn-guardar-perfume" onclick="guardarProducto()">Guardar Perfume</button>
             </div>
         </div>
     </div>

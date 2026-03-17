@@ -25,7 +25,6 @@ function cargarInventario() {
 
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     
-    // Calcular totales para badges
     let totalUnidades = 0;
     let totalEnCamino = 0;
     
@@ -42,7 +41,6 @@ function cargarInventario() {
     
     tableBody.innerHTML = '';
 
-    // 1. FILTRAR
     const filtroProp = document.getElementById('filtroPropiedad') ? document.getElementById('filtroPropiedad').value : 'todos';
     const filtroDest = document.getElementById('filtroDestino') ? document.getElementById('filtroDestino').value : 'todos';
     const busqueda = document.getElementById('buscador') ? document.getElementById('buscador').value.toLowerCase() : '';
@@ -65,7 +63,6 @@ function cargarInventario() {
     if (contadorLabel) contadorLabel.innerText = filtrados.length;
     if (emptyMsg) emptyMsg.style.display = (filtrados.length === 0) ? 'block' : 'none';
 
-    // 2. AGRUPAR
     const grupos = {};
     filtrados.forEach((prod) => {
         const realIndex = productos.findIndex(p => p.id === prod.id); 
@@ -75,7 +72,6 @@ function cargarInventario() {
         grupos[nombreLimpio].push(prod);
     });
 
-    // 3. ORDENAR
     let listaGrupos = Object.keys(grupos).map(nombre => {
         return {
             nombre: nombre, items: grupos[nombre], principal: grupos[nombre][0],
@@ -96,7 +92,6 @@ function cargarInventario() {
         return 0;
     });
 
-    // 4. RENDERIZAR
     listaGrupos.forEach(grupo => {
         const items = grupo.items; 
         const principal = grupo.principal;   
@@ -109,16 +104,15 @@ function cargarInventario() {
             const ganancia = principal.precioVenta - principal.costo;
 
             let deudaSocioTotal = 0;
-items.forEach(item => {
-    const datosSocio = calcularDeudaSocioPorPieza(
-        item.costo,
-        item.precioVenta,
-        item.inversion,
-        item.porcentajeSocio || 0
-    );
-    deudaSocioTotal += datosSocio.totalPagarSocio;
-});
-
+            items.forEach(item => {
+                const datosSocio = calcularDeudaSocioPorPieza(
+                    item.costo,
+                    item.precioVenta,
+                    item.inversion,
+                    item.porcentajeSocio || 0
+                );
+                deudaSocioTotal += datosSocio.totalPagarSocio;
+            });
 
             const filaPadre = `
                 <tr class="align-middle fw-bold table-group-header">
@@ -172,9 +166,7 @@ function renderFila(prod, index) {
         prod.porcentajeSocio || 0
     );
     
-    // Esto es lo que le tienes que dar si se vende
     const dineroSocio = datosSocio.totalPagarSocio;
-    
     
     let claseFila = ''; 
     let badgeUbicacion = '';
@@ -228,7 +220,6 @@ function renderFilaHija(prod, index) {
     );
     
     const dineroSocio = datosSocio.totalPagarSocio;
-    
 
     let claseFila = ''; 
     let badgeUbicacion = '';
@@ -333,7 +324,6 @@ function guardarProducto() {
         productos.push(nuevoPerfume);
     }
 
-    // Guardar plantilla si está marcado
     const checkPlantilla = document.getElementById('checkGuardarPlantilla');
     if(checkPlantilla && checkPlantilla.checked) {
         guardarComoPlantilla();
@@ -366,22 +356,27 @@ function editarProducto(index) {
     const prod = productos[index];
     indiceEdicion = index;
 
-    document.getElementById('inputNombre').value = prod.nombre;
-    document.getElementById('inputMarca').value = prod.marca;
-    document.getElementById('inputSku').value = prod.sku;
-    document.getElementById('inputCosto').value = prod.costo;
-    document.getElementById('inputPrecio').value = prod.precioVenta;
+    document.getElementById('inputNombre').value    = prod.nombre;
+    document.getElementById('inputMarca').value     = prod.marca;
+    document.getElementById('inputSku').value       = prod.sku;
+    document.getElementById('inputCosto').value     = prod.costo;
+    document.getElementById('inputPrecio').value    = prod.precioVenta;
     document.getElementById('inputInversion').value = prod.inversion; 
-    document.getElementById('inputDestino').value = prod.destino || 'stock'; 
-    document.getElementById('inputCliente').value = prod.cliente || '';
+    document.getElementById('inputDestino').value   = prod.destino || 'stock'; 
+    document.getElementById('inputCliente').value   = prod.cliente || '';
     document.getElementById('inputUbicacion').value = prod.ubicacion || 'en_inventario';
-    document.getElementById('inputImagen').value = prod.imagen || ''; 
-    document.getElementById('inputCantidad').value = prod.cantidad || 1;
+    document.getElementById('inputImagen').value    = prod.imagen || ''; 
+    document.getElementById('inputCantidad').value  = prod.cantidad || 1;
 
-    document.querySelector('#modalNuevoPerfume .modal-title').innerText = "Editar Perfume";
-    const btnGuardar = document.querySelector('#modalNuevoPerfume .modal-footer .btn-primary');
-    btnGuardar.innerText = "Guardar Cambios";
-    btnGuardar.onclick = guardarCambiosEdicion; 
+    // USA id directo — robusto sin importar la clase CSS del botón
+    const tituloModal = document.getElementById('titulo-modal-perfume');
+    const btnGuardar  = document.getElementById('btn-guardar-perfume');
+
+    if (tituloModal) tituloModal.innerText = 'Editar Perfume';
+    if (btnGuardar) {
+        btnGuardar.innerText = 'Guardar Cambios';
+        btnGuardar.onclick   = guardarCambiosEdicion;
+    }
 
     const modal = new bootstrap.Modal(document.getElementById('modalNuevoPerfume'));
     modal.show();
@@ -392,17 +387,17 @@ function guardarCambiosEdicion() {
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     const p = productos[indiceEdicion];
     
-    p.nombre = document.getElementById('inputNombre').value;
-    p.marca = document.getElementById('inputMarca').value;
-    p.sku = document.getElementById('inputSku').value;
-    p.costo = parseFloat(document.getElementById('inputCosto').value);
+    p.nombre     = document.getElementById('inputNombre').value;
+    p.marca      = document.getElementById('inputMarca').value;
+    p.sku        = document.getElementById('inputSku').value;
+    p.costo      = parseFloat(document.getElementById('inputCosto').value);
     p.precioVenta = parseFloat(document.getElementById('inputPrecio').value);
-    p.inversion = document.getElementById('inputInversion').value;
-    p.destino = document.getElementById('inputDestino').value;
-    p.cliente = document.getElementById('inputCliente').value;
-    p.ubicacion = document.getElementById('inputUbicacion').value;
-    p.imagen = document.getElementById('inputImagen').value || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
-    p.cantidad = parseInt(document.getElementById('inputCantidad').value) || 1;
+    p.inversion  = document.getElementById('inputInversion').value;
+    p.destino    = document.getElementById('inputDestino').value;
+    p.cliente    = document.getElementById('inputCliente').value;
+    p.ubicacion  = document.getElementById('inputUbicacion').value;
+    p.imagen     = document.getElementById('inputImagen').value || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+    p.cantidad   = parseInt(document.getElementById('inputCantidad').value) || 1;
 
     setData('perfumes', productos);
 
@@ -417,10 +412,17 @@ function guardarCambiosEdicion() {
 function restaurarModalNuevo() {
     document.getElementById('form-nuevo-perfume').reset();
     indiceEdicion = null;
-    document.querySelector('#modalNuevoPerfume .modal-title').innerText = "Registrar Perfume";
-    const btnGuardar = document.querySelector('#modalNuevoPerfume .modal-footer .btn-primary');
-    btnGuardar.innerText = "Guardar Perfume";
-    btnGuardar.onclick = guardarProducto;
+
+    // USA id directo — robusto
+    const tituloModal = document.getElementById('titulo-modal-perfume');
+    const btnGuardar  = document.getElementById('btn-guardar-perfume');
+
+    if (tituloModal) tituloModal.innerText = 'Registrar Perfume';
+    if (btnGuardar) {
+        btnGuardar.innerText = 'Guardar Perfume';
+        btnGuardar.onclick   = guardarProducto;
+    }
+
     cargarListaPlantillas();
 }
 
@@ -452,8 +454,8 @@ function calcularKPIsInventario() {
         const costo = parseFloat(prod.costo) || 0;
         const venta = parseFloat(prod.precioVenta) || 0;
         
-        totalCosto += costo;
-        totalVenta += venta;
+        totalCosto    += costo;
+        totalVenta    += venta;
         totalGanancia += (venta - costo);
         
         if (prod.inversion === 'mitad') {
@@ -466,18 +468,14 @@ function calcularKPIsInventario() {
         }
     });
     
-    if(document.getElementById('total-costo-inventario')) {
+    if(document.getElementById('total-costo-inventario'))
         document.getElementById('total-costo-inventario').innerText = '$' + totalCosto.toFixed(0);
-    }
-    if(document.getElementById('total-precio-inventario')) {
+    if(document.getElementById('total-precio-inventario'))
         document.getElementById('total-precio-inventario').innerText = '$' + totalVenta.toFixed(0);
-    }
-    if(document.getElementById('total-ganancia-potencial')) {
+    if(document.getElementById('total-ganancia-potencial'))
         document.getElementById('total-ganancia-potencial').innerText = '+$' + totalGanancia.toFixed(0);
-    }
-    if(document.getElementById('total-deuda-socio-inventario')) {
+    if(document.getElementById('total-deuda-socio-inventario'))
         document.getElementById('total-deuda-socio-inventario').innerText = '$' + deudaSocio.toFixed(0);
-    }
 }
 
 function filtrarEnCaminoRapido() {
@@ -520,19 +518,19 @@ function cargarPlantilla() {
     
     if(!template) return;
     
-    document.getElementById('inputNombre').value = template.nombre;
-    document.getElementById('inputMarca').value = template.marca;
-    document.getElementById('inputSku').value = template.sku || '';
-    document.getElementById('inputImagen').value = template.imagen || '';
+    document.getElementById('inputNombre').value    = template.nombre;
+    document.getElementById('inputMarca').value     = template.marca;
+    document.getElementById('inputSku').value       = template.sku || '';
+    document.getElementById('inputImagen').value    = template.imagen || '';
     document.getElementById('inputInversion').value = template.inversion || 'mio';
-    document.getElementById('inputDestino').value = template.destino || 'stock';
+    document.getElementById('inputDestino').value   = template.destino || 'stock';
     
     if(template.inversion === 'personalizado' && template.porcentajeSocio) {
         document.getElementById('inputPorcentajeSocio').value = template.porcentajeSocio;
         togglePersonalizado();
     }
     
-    document.getElementById('inputCosto').value = '';
+    document.getElementById('inputCosto').value  = '';
     document.getElementById('inputPrecio').value = '';
     document.getElementById('inputCosto').focus();
     
@@ -540,12 +538,12 @@ function cargarPlantilla() {
 }
 
 function guardarComoPlantilla() {
-    const nombre = document.getElementById('inputNombre').value.trim();
-    const marca = document.getElementById('inputMarca').value.trim();
-    const sku = document.getElementById('inputSku').value.trim();
-    const imagen = document.getElementById('inputImagen').value.trim();
+    const nombre    = document.getElementById('inputNombre').value.trim();
+    const marca     = document.getElementById('inputMarca').value.trim();
+    const sku       = document.getElementById('inputSku').value.trim();
+    const imagen    = document.getElementById('inputImagen').value.trim();
     const inversion = document.getElementById('inputInversion').value;
-    const destino = document.getElementById('inputDestino').value;
+    const destino   = document.getElementById('inputDestino').value;
     
     const inputPct = document.getElementById('inputPorcentajeSocio');
     const porcentajeSocio = (inversion === 'personalizado' && inputPct) ? parseFloat(inputPct.value) : 0;
@@ -617,7 +615,7 @@ function gestionarPlantillas() {
 
 // Inicializar al cargar
 document.addEventListener('DOMContentLoaded', async () => {
-    await initApp(); // ← espera Firebase primero
+    await initApp();
     cargarInventario();
     cargarListaPlantillas();
     calcularKPIsInventario();
