@@ -249,21 +249,35 @@
                             <small class="text-muted">El resto será tuyo automáticamente.</small>
                         </div>
                     </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="checkDecants">
-                        <label class="form-check-label" for="checkDecants">¿Habilitar para Decants? (Futuro)</label>
+
+                    <!-- Switch Decants — layout limpio con d-flex -->
+                    <div class="d-flex align-items-center gap-3 p-3 rounded border mb-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="checkDecants" role="switch">
+                            <label class="form-check-label" for="checkDecants"></label>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">¿Habilitar para Decants? <span class="badge bg-secondary ms-1" style="font-size:0.65rem;">Futuro</span></div>
+                            <small class="text-muted">Si no se marca, se tratará como botella sellada única.</small>
+                        </div>
                     </div>
-                    <small class="text-muted d-block mb-3">Si no se marca, se tratará como botella sellada única.</small>
-                    <div class="form-check form-switch p-3 rounded border mt-3" style="background: rgba(255,215,0,0.06);">
-                        <input class="form-check-input" type="checkbox" id="checkGuardarPlantilla">
-                        <label class="form-check-label fw-bold" for="checkGuardarPlantilla">💾 Guardar como plantilla predefinida</label>
-                        <small class="text-muted d-block mt-1">Podrás reutilizar estos datos la próxima vez</small>
+
+                    <!-- Switch Guardar Plantilla — layout limpio con d-flex -->
+                    <div class="d-flex align-items-center gap-3 p-3 rounded border mt-2" style="background: rgba(255,215,0,0.06);">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="checkGuardarPlantilla" role="switch">
+                            <label class="form-check-label" for="checkGuardarPlantilla"></label>
+                        </div>
+                        <div>
+                            <div class="fw-bold">💾 Guardar como plantilla predefinida</div>
+                            <small class="text-muted">Podrás reutilizar estos datos la próxima vez</small>
+                        </div>
                     </div>
+
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <!-- id="btn-guardar-perfume" permite que inventory.js lo encuentre de forma robusta -->
                 <button type="button" class="btn btn-gold" id="btn-guardar-perfume" onclick="guardarProducto()">Guardar Perfume</button>
             </div>
         </div>
@@ -302,9 +316,12 @@
                     </div>
                 </div>
                 <hr>
-                <div class="form-check form-switch mb-3 rounded p-2" style="background: rgba(255,255,255,0.04);">
-                    <input class="form-check-input" type="checkbox" id="checkCredito" onchange="toggleCredito()">
-                    <label class="form-check-label fw-bold ms-2" for="checkCredito">⚠️ ¿Es Venta a Crédito (Fiado)?</label>
+                <div class="d-flex align-items-center gap-3 p-2 rounded mb-3" style="background: rgba(255,255,255,0.04);">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="checkCredito" role="switch" onchange="toggleCredito()">
+                        <label class="form-check-label" for="checkCredito"></label>
+                    </div>
+                    <div class="fw-bold">⚠️ ¿Es Venta a Crédito (Fiado)?</div>
                 </div>
                 <div id="bloque-credito" style="display: none;" class="p-3 rounded border border-warning">
                     <div class="mb-3">
@@ -360,9 +377,12 @@
             <div class="modal-body">
                 <ul class="list-group list-group-flush mb-3 rounded" id="lista-carrito"></ul>
                 <div class="card p-3 mb-3">
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="checkCreditoCarrito" onchange="toggleCreditoCarrito()">
-                        <label class="form-check-label fw-bold" for="checkCreditoCarrito">¿Es Venta a Crédito / Fiado?</label>
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="checkCreditoCarrito" role="switch" onchange="toggleCreditoCarrito()">
+                            <label class="form-check-label" for="checkCreditoCarrito"></label>
+                        </div>
+                        <div class="fw-bold">¿Es Venta a Crédito / Fiado?</div>
                     </div>
                     <div class="mb-2">
                         <label class="form-label small text-muted">Cliente Asignado</label>
