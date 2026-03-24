@@ -154,7 +154,12 @@
     <script src="assets/js/config.js"></script>
     <script>
         let pin = '';
-        const PIN_CORRECTO = typeof ADMIN_PIN !== 'undefined' ? ADMIN_PIN : '0525';
+        // Pega aquí el Hash SHA-256 que generaste en la consola
+        const PIN_HASH_CORRECTO = 'ee260f08526f9930ff7d9450916b76a7ce3d2f4b924dfdb84dd0fa77dfa1d8aa';
+
+        // Configuración de seguridad
+        const MAX_INTENTOS = 3;
+        const TIEMPO_BLOQUEO_MS = 3 * 60 * 1000; // 3 minutos en milisegundos
 
         // Si ya está autenticado, redirigir directo
         if (sessionStorage.getItem('fito_auth') === 'ok') {
@@ -162,8 +167,59 @@
             location.replace(dest);
         }
 
+        // Convierte el texto plano a un Hash indescifrable
+        async function hashearPIN(texto) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(texto);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Verifica si el usuario está en periodo de castigo
+        function comprobarBloqueo() {
+            const bloqueoHasta = localStorage.getItem('fito_bloqueo_hasta');
+            if (bloqueoHasta && Date.now() < parseInt(bloqueoHasta)) {
+                const faltan = Math.ceil((parseInt(bloqueoHasta) - Date.now()) / 1000 / 60);
+                mostrarMensajeError(`🔒 Bloqueado. Intenta en ${faltan} min.`);
+                return true;
+            }
+            if (bloqueoHasta) {
+                // El castigo expiró, limpiamos el historial
+                localStorage.removeItem('fito_bloqueo_hasta');
+                localStorage.setItem('fito_intentos', '0');
+                ocultarError();
+            }
+            return false;
+        }
+
+        // Registra los errores y aplica el bloqueo si se supera el límite
+        function registrarFallo() {
+            let intentos = parseInt(localStorage.getItem('fito_intentos') || '0');
+            intentos++;
+            localStorage.setItem('fito_intentos', intentos.toString());
+
+            if (intentos >= MAX_INTENTOS) {
+                const bloqueoHasta = Date.now() + TIEMPO_BLOQUEO_MS;
+                localStorage.setItem('fito_bloqueo_hasta', bloqueoHasta.toString());
+                mostrarMensajeError(`🔒 Demasiados intentos. Bloqueado por 3 min.`);
+            } else {
+                mostrarMensajeError(`❌ PIN incorrecto. Intentos: ${intentos}/${MAX_INTENTOS}`);
+            }
+        }
+
+        function mostrarMensajeError(mensaje) {
+            const errorEl = document.getElementById('error-msg');
+            errorEl.textContent = mensaje;
+            errorEl.classList.add('visible');
+            document.getElementById('pin-display').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('pin-display').classList.remove('shake');
+            }, 600);
+        }
+
         function presionar(num) {
-            if (pin.length >= 4) return;
+            if (comprobarBloqueo() || pin.length >= 4) return;
             pin += num;
             actualizarDots();
             if (pin.length === 4) {
@@ -172,6 +228,7 @@
         }
 
         function borrar() {
+            if (comprobarBloqueo()) return;
             pin = pin.slice(0, -1);
             actualizarDots();
             ocultarError();
@@ -185,35 +242,46 @@
             }
         }
 
-        function verificar() {
-            if (pin === PIN_CORRECTO) {
+        async function verificar() {
+            if (comprobarBloqueo()) {
+                pin = '';
+                actualizarDots();
+                return;
+            }
+
+            const pinIngresadoHash = await hashearPIN(pin);
+
+            if (pinIngresadoHash === PIN_HASH_CORRECTO) {
+                localStorage.setItem('fito_intentos', '0'); // Reiniciamos contador tras éxito
                 sessionStorage.setItem('fito_auth', 'ok');
                 const dest = new URLSearchParams(location.search).get('redirect') || 'index.html';
                 location.replace(dest);
             } else {
-                // Mostrar error
                 for (let i = 0; i < 4; i++) {
                     document.getElementById('dot-' + i).classList.add('error');
                 }
-                document.getElementById('pin-display').classList.add('shake');
-                document.getElementById('error-msg').classList.add('visible');
+                registrarFallo();
                 setTimeout(() => {
                     pin = '';
                     actualizarDots();
-                    document.getElementById('pin-display').classList.remove('shake');
                 }, 600);
             }
         }
 
         function ocultarError() {
-            document.getElementById('error-msg').classList.remove('visible');
+            const errorEl = document.getElementById('error-msg');
+            if (!errorEl.textContent.includes('Bloqueado')) {
+                errorEl.classList.remove('visible');
+            }
         }
 
-        // Soporte teclado físico
         document.addEventListener('keydown', (e) => {
             if (e.key >= '0' && e.key <= '9') presionar(e.key);
             if (e.key === 'Backspace') borrar();
         });
+
+        // Revisar estado al cargar la página
+        comprobarBloqueo();
     </script>
 </body>
 </html>
