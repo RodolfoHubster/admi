@@ -47,16 +47,16 @@ function cargarHeader() {
             </div>
         </nav>
         
-        <!-- Botones flotantes de importar/exportar -->
-        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; gap: 10px;">
-            <button onclick="handleExportClick()" class="btn btn-warning" style="border-radius: 50%; width: 50px; height: 50px;" title="Exportar datos">
-                ⬇️
-            </button>
-            <label for="import-file" class="btn btn-info" style="border-radius: 50%; width: 50px; height: 50px; cursor: pointer; margin: 0; display: flex; align-items: center; justify-content: center;" title="Importar datos">
-                ⬆️
-            </label>
-            <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleImportHeader(this)">
-        </div>
+        // <!-- Botones flotantes de importar/exportar -->
+        // <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; gap: 10px;">
+        //     <button onclick="handleExportClick()" class="btn btn-warning" style="border-radius: 50%; width: 50px; height: 50px;" title="Exportar datos">
+        //         ⬇️
+        //     </button>
+        //     <label for="import-file" class="btn btn-info" style="border-radius: 50%; width: 50px; height: 50px; cursor: pointer; margin: 0; display: flex; align-items: center; justify-content: center;" title="Importar datos">
+        //         ⬆️
+        //     </label>
+        //     <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleImportHeader(this)">
+        // </div>
     `;
     
     // Insertar el header al inicio del body
