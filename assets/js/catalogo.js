@@ -15,10 +15,23 @@ document.addEventListener('DOMContentLoaded', () => {
 // CARGAR PRODUCTOS
 // =========================================================
 
-function cargarCatalogo() {
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-    productosDisponibles = productos;
-    filtrarCatalogo();
+async function cargarCatalogo() {
+    // 1. Espera a que Firebase termine de conectarse
+    if (typeof window.getDataCloud !== 'function') {
+        setTimeout(cargarCatalogo, 50);
+        return;
+    }
+    
+    try {
+        // 2. Descarga el inventario de la nube
+        const productos = await window.getDataCloud('perfumes') || [];
+        productosDisponibles = productos;
+        
+        // 3. Renderiza las tarjetas
+        filtrarCatalogo();
+    } catch (error) {
+        console.error("Error al cargar el catálogo desde la nube:", error);
+    }
 }
 
 function filtrarCatalogo() {
