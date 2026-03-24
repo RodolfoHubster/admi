@@ -37,6 +37,21 @@
 
 
 /* ---------------------------------------------------------
+   FIX: La tabla y sus celdas NO deben cortar el zoom de la imagen
+   Sin esto, el scale(2.8) queda recortado por overflow:hidden implícito
+   --------------------------------------------------------- */
+.table-responsive {
+    overflow: visible !important;
+}
+.table,
+.table tbody,
+.table tbody tr,
+.table tbody td {
+    overflow: visible !important;
+}
+
+
+/* ---------------------------------------------------------
    IMAGEN DE PERFUME EN TABLA
    .img-thumb-mini = clase real en inventory.js
    .foto-preview   = alias legacy
@@ -51,13 +66,15 @@
     cursor: zoom-in;
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     display: block;
+    /* Necesario para que el z-index funcione sobre filas vecinas */
+    position: relative;
 }
 .img-thumb-mini:hover,
 .foto-preview:hover {
     transform: scale(2.8);
     box-shadow: 0 8px 32px rgba(0,0,0,0.8), 0 0 0 2px var(--gold-flat);
     border-color: var(--gold-flat);
-    z-index: 999;
+    z-index: 9999;
     position: relative;
 }
 
