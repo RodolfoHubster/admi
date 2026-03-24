@@ -10,6 +10,8 @@ function cargarGastos() {
     renderGastos();
     calcularKPIsGastos();
     renderResumenCategorias();
+    renderGananciasPorMes();
+    buscarGananciasPerfume();
 }
 
 function abrirModalNuevoGasto() {
@@ -132,13 +134,7 @@ function calcularKPIsGastos() {
         }
     });
 
-    const misGastos = listaGastos.reduce((sum, g) => {
-        let miParte = 0;
-        if (g.quienPago === 'mio') miParte = g.monto;
-        else if (g.quienPago === 'mitad') miParte = g.monto * 0.5;
-        else if (g.quienPago === 'personalizado') miParte = g.monto * ((100 - (g.porcentajeSocio || 0)) / 100);
-        return sum + miParte;
-    }, 0);
+    const misGastos = _calcMisGastos(listaGastos);
 
     document.getElementById('total-gastos').innerText = formatMoney(totalGastos);
     document.getElementById('gastos-mes').innerText = formatMoney(gastosMes);
@@ -151,7 +147,6 @@ function renderResumenCategorias() {
     if (!contenedor) return;
 
     const totalGeneral = listaGastos.reduce((sum, g) => sum + g.monto, 0);
-
     const grupos = {};
     listaGastos.forEach(g => {
         grupos[g.categoria] = (grupos[g.categoria] || 0) + g.monto;
@@ -167,7 +162,6 @@ function renderResumenCategorias() {
 
     categoriasOrdenadas.forEach(([categoria, monto]) => {
         const porcentaje = totalGeneral > 0 ? ((monto / totalGeneral) * 100).toFixed(1) : '0.0';
-        // FIX: bg-dark text-white en lugar de bg-light (que ui.css pintaba de negro)
         contenedor.innerHTML += `
             <div class="col-md-4">
                 <div class="card bg-dark">
@@ -183,6 +177,157 @@ function renderResumenCategorias() {
     });
 }
 
+// =========================================================
+// GANANCIAS POR MES
+// =========================================================
+function renderGananciasPorMes() {
+    const tbody = document.getElementById('tabla-ganancias-mes');
+    if (!tbody) return;
+
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const ahora = new Date();
+
+    // Agrupar ventas por año-mes
+    const mapaVentas = {};
+    ventas.forEach(v => {
+        const fecha = new Date(v.id);
+        const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+        if (!mapaVentas[key]) mapaVentas[key] = { bruto: 0, ganancia: 0 };
+        mapaVentas[key].bruto += parseFloat(v.precioFinal || 0);
+        let miGanancia = parseFloat(v.reparto?.yo || 0);
+        if (v.esCredito && v.precioFinal > 0) {
+            const cobrado = v.precioFinal - (v.saldoPendiente || 0);
+            miGanancia = miGanancia * (cobrado / v.precioFinal);
+        }
+        mapaVentas[key].ganancia += miGanancia;
+    });
+
+    // Agrupar MIS gastos por año-mes
+    const mapaGastos = {};
+    listaGastos.forEach(g => {
+        const fecha = new Date(g.fecha);
+        const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+        if (!mapaGastos[key]) mapaGastos[key] = 0;
+        mapaGastos[key] += _calcMiParteGasto(g);
+    });
+
+    const todasKeys = [...new Set([...Object.keys(mapaVentas), ...Object.keys(mapaGastos)])];
+    todasKeys.sort((a, b) => b.localeCompare(a));
+
+    if (todasKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted p-4">No hay datos aún</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    todasKeys.forEach(key => {
+        const [anio, mes] = key.split('-');
+        const mesLabel = `${MESES[parseInt(mes) - 1]} ${anio}`;
+        const esMesActual = parseInt(anio) === ahora.getFullYear() && parseInt(mes) - 1 === ahora.getMonth();
+
+        const bruto    = mapaVentas[key]?.bruto    || 0;
+        const ganancia = mapaVentas[key]?.ganancia || 0;
+        const gastos   = mapaGastos[key]           || 0;
+        const neta     = ganancia - gastos;
+        const colorNeta = neta >= 0 ? 'text-success' : 'text-danger';
+
+        tbody.innerHTML += `
+            <tr ${esMesActual ? 'class="table-active"' : ''}>
+                <td>
+                    <strong>${mesLabel}</strong>
+                    ${esMesActual ? '<span class="badge bg-warning text-dark ms-2">Actual</span>' : ''}
+                </td>
+                <td class="text-end">$${bruto.toFixed(2)}</td>
+                <td class="text-end text-success fw-bold">+$${ganancia.toFixed(2)}</td>
+                <td class="text-end text-danger">-$${gastos.toFixed(2)}</td>
+                <td class="text-end fw-bold ${colorNeta}">$${neta.toFixed(2)}</td>
+            </tr>`;
+    });
+}
+
+// =========================================================
+// GANANCIAS POR PERFUME
+// =========================================================
+function buscarGananciasPerfume() {
+    const contenedor = document.getElementById('resultado-perfume');
+    if (!contenedor) return;
+
+    const query = (document.getElementById('inputBuscarPerfume')?.value || '').trim().toLowerCase();
+    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+
+    const mapaProductos = {};
+    ventas.forEach(v => {
+        const nombre = v.producto || 'Sin nombre';
+        if (!mapaProductos[nombre]) mapaProductos[nombre] = { unidades: 0, bruto: 0, ganancia: 0 };
+        mapaProductos[nombre].unidades += 1;
+        mapaProductos[nombre].bruto    += parseFloat(v.precioFinal || 0);
+        let miGanancia = parseFloat(v.reparto?.yo || 0);
+        if (v.esCredito && v.precioFinal > 0) {
+            const cobrado = v.precioFinal - (v.saldoPendiente || 0);
+            miGanancia = miGanancia * (cobrado / v.precioFinal);
+        }
+        mapaProductos[nombre].ganancia += miGanancia;
+    });
+
+    let resultados = Object.entries(mapaProductos);
+    if (query) {
+        resultados = resultados.filter(([nombre]) => nombre.toLowerCase().includes(query));
+    }
+    resultados.sort((a, b) => b[1].ganancia - a[1].ganancia);
+
+    if (resultados.length === 0) {
+        contenedor.innerHTML = `<div class="col-12 text-center text-muted py-3">
+            ${query ? '🔍 No se encontró ningún perfume con ese nombre' : 'No hay ventas registradas'}
+        </div>`;
+        return;
+    }
+
+    contenedor.innerHTML = '';
+    resultados.forEach(([nombre, datos]) => {
+        contenedor.innerHTML += `
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">🧴 ${nombre}</h6>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Unidades vendidas</small>
+                            <span class="badge bg-secondary">${datos.unidades}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Ventas brutas</small>
+                            <span class="text-primary fw-bold">$${datos.bruto.toFixed(2)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Mi ganancia</small>
+                            <span class="text-success fw-bold">+$${datos.ganancia.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+
+// =========================================================
+// HELPERS PRIVADOS
+// =========================================================
+function _calcMiParteGasto(g) {
+    if (g.quienPago === 'mio')   return g.monto;
+    if (g.quienPago === 'socio') return 0;
+    if (g.quienPago === 'mitad') return g.monto * 0.5;
+    if (g.quienPago === 'personalizado')
+        return g.monto * ((100 - (g.porcentajeSocio || 0)) / 100);
+    return g.monto;
+}
+
+function _calcMisGastos(gastos) {
+    return gastos.reduce((sum, g) => sum + _calcMiParteGasto(g), 0);
+}
+
+// =========================================================
+// ELIMINAR GASTO
+// =========================================================
 function eliminarGasto(id) {
     if (!solicitarPin()) return;
     showConfirm('¿Eliminar este gasto? Esta acción no se puede deshacer.', () => {
@@ -194,9 +339,11 @@ function eliminarGasto(id) {
     });
 }
 
+// =========================================================
+// FILTRO DE PERIODO
+// =========================================================
 function setFiltroPeriodoGasto(periodo, btn) {
     filtroPeriodoActual = periodo;
-    // FIX: reset completo de todas las clases antes de marcar el activo
     const grupo = btn.parentElement.querySelectorAll('.btn');
     grupo.forEach(b => {
         b.classList.remove('active', 'btn-primary', 'btn-warning');
@@ -207,8 +354,12 @@ function setFiltroPeriodoGasto(periodo, btn) {
     renderGastos();
 }
 
+// =========================================================
+// HELPERS DE CATEGORÍA
+// =========================================================
 function getCategoriaLabel(cat) {
-    const labels = { envio:'Envío/Paquetería', gasolina:'Gasolina', publicidad:'Publicidad', comisiones:'Comisiones', operacion:'Operación', otro:'Otro' };
+    const labels = { envio:'Envío/Paquetería', gasolina:'Gasolina', publicidad:'Publicidad',
+                     comisiones:'Comisiones', operacion:'Operación', otro:'Otro' };
     return labels[cat] || cat;
 }
 function getCategoriaIcon(cat) {
@@ -216,7 +367,7 @@ function getCategoriaIcon(cat) {
     return icons[cat] || '💸';
 }
 function getBadgeQuienPago(gasto) {
-    if (gasto.quienPago === 'mio') return '<span class="badge bg-primary">Yo</span>';
+    if (gasto.quienPago === 'mio')   return '<span class="badge bg-primary">Yo</span>';
     if (gasto.quienPago === 'socio') return '<span class="badge bg-info text-dark">Socio</span>';
     if (gasto.quienPago === 'mitad') return '<span class="badge bg-warning text-dark">50/50</span>';
     if (gasto.quienPago === 'personalizado') {

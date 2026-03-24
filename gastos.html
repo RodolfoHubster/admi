@@ -29,8 +29,8 @@
         </button>
     </div>
 
+    <!-- KPIs -->
     <div class="row g-3 mb-4">
-        <!-- Total Gastos -->
         <div class="col-md-3">
             <div class="card kpi-capital">
                 <div class="card-body">
@@ -40,7 +40,6 @@
                 </div>
             </div>
         </div>
-        <!-- Este Mes — fondo dorado, texto negro (contraste correcto) -->
         <div class="col-md-3">
             <div class="card mb-0" style="background: var(--gold-gradient); border: none;">
                 <div class="card-body">
@@ -50,7 +49,6 @@
                 </div>
             </div>
         </div>
-        <!-- Promedio -->
         <div class="col-md-3">
             <div class="card kpi-cyan">
                 <div class="card-body">
@@ -60,7 +58,6 @@
                 </div>
             </div>
         </div>
-        <!-- Ganancia Neta -->
         <div class="col-md-3">
             <div class="card kpi-venta">
                 <div class="card-body">
@@ -72,6 +69,7 @@
         </div>
     </div>
 
+    <!-- Filtros -->
     <div class="card shadow-sm mb-3">
         <div class="card-body">
             <div class="row align-items-end">
@@ -102,6 +100,7 @@
         </div>
     </div>
 
+    <!-- Tabla de gastos -->
     <div class="card shadow">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -120,6 +119,7 @@
         </div>
     </div>
 
+    <!-- Resumen por Categoría -->
     <div class="card shadow mt-4">
         <div class="card-header fw-bold">
             📊 Resumen por Categoría
@@ -128,6 +128,49 @@
             <div id="resumen-categorias" class="row g-3"></div>
         </div>
     </div>
+
+    <!-- Ganancias por Mes -->
+    <div class="card shadow mt-4">
+        <div class="card-header fw-bold">
+            📅 Ganancias por Mes
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th class="text-end">Ventas Brutas</th>
+                            <th class="text-end">Mi Ganancia</th>
+                            <th class="text-end">Mis Gastos</th>
+                            <th class="text-end">Neta Real</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-ganancias-mes">
+                        <tr><td colspan="5" class="text-center text-muted p-4">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ganancias por Perfume -->
+    <div class="card shadow mt-4">
+        <div class="card-header fw-bold">
+            🔍 Ganancias por Perfume
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="inputBuscarPerfume"
+                        placeholder="Escribe el nombre del perfume..."
+                        oninput="buscarGananciasPerfume()">
+                </div>
+            </div>
+            <div id="resultado-perfume" class="row g-3"></div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Modal Nuevo Gasto -->
