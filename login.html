@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitoscents Admin — Acceso</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <style>
+        body {
+            background: #08080c;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(197,160,89,0.25);
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(197,160,89,0.1);
+        }
+        .login-logo {
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .login-title {
+            text-align: center;
+            color: #c5a059;
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+        .login-sub {
+            text-align: center;
+            color: rgba(255,255,255,0.35);
+            font-size: 0.8rem;
+            margin-bottom: 32px;
+        }
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .pin-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(197,160,89,0.5);
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+        .pin-dot.filled {
+            background: #c5a059;
+            border-color: #c5a059;
+            box-shadow: 0 0 8px rgba(197,160,89,0.6);
+        }
+        .pin-dot.error {
+            background: #dc3545;
+            border-color: #dc3545;
+            box-shadow: 0 0 8px rgba(220,53,69,0.6);
+        }
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .num-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 600;
+            padding: 16px 0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .num-btn:hover {
+            background: rgba(197,160,89,0.15);
+            border-color: rgba(197,160,89,0.4);
+            color: #c5a059;
+        }
+        .num-btn:active {
+            transform: scale(0.94);
+        }
+        .num-btn.del {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .num-btn.empty {
+            visibility: hidden;
+        }
+        .error-msg {
+            text-align: center;
+            color: #dc3545;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-top: 16px;
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .error-msg.visible {
+            opacity: 1;
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60% { transform: translateX(-8px); }
+            40%,80% { transform: translateX(8px); }
+        }
+        .shake { animation: shake 0.35s ease; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-logo">👑</div>
+        <div class="login-title">Fitoscents Admin</div>
+        <div class="login-sub">Ingresa tu PIN para continuar</div>
+
+        <div class="pin-display" id="pin-display">
+            <div class="pin-dot" id="dot-0"></div>
+            <div class="pin-dot" id="dot-1"></div>
+            <div class="pin-dot" id="dot-2"></div>
+            <div class="pin-dot" id="dot-3"></div>
+        </div>
+
+        <div class="numpad">
+            <button class="num-btn" onclick="presionar('1')">1</button>
+            <button class="num-btn" onclick="presionar('2')">2</button>
+            <button class="num-btn" onclick="presionar('3')">3</button>
+            <button class="num-btn" onclick="presionar('4')">4</button>
+            <button class="num-btn" onclick="presionar('5')">5</button>
+            <button class="num-btn" onclick="presionar('6')">6</button>
+            <button class="num-btn" onclick="presionar('7')">7</button>
+            <button class="num-btn" onclick="presionar('8')">8</button>
+            <button class="num-btn" onclick="presionar('9')">9</button>
+            <button class="num-btn empty"></button>
+            <button class="num-btn" onclick="presionar('0')">0</button>
+            <button class="num-btn del" onclick="borrar()">⌫</button>
+        </div>
+
+        <div class="error-msg" id="error-msg">❌ PIN incorrecto</div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script>
+        let pin = '';
+        const PIN_CORRECTO = typeof ADMIN_PIN !== 'undefined' ? ADMIN_PIN : '0525';
+
+        // Si ya está autenticado, redirigir directo
+        if (sessionStorage.getItem('fito_auth') === 'ok') {
+            const dest = new URLSearchParams(location.search).get('redirect') || 'index.html';
+            location.replace(dest);
+        }
+
+        function presionar(num) {
+            if (pin.length >= 4) return;
+            pin += num;
+            actualizarDots();
+            if (pin.length === 4) {
+                setTimeout(verificar, 120);
+            }
+        }
+
+        function borrar() {
+            pin = pin.slice(0, -1);
+            actualizarDots();
+            ocultarError();
+        }
+
+        function actualizarDots() {
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById('dot-' + i);
+                dot.classList.toggle('filled', i < pin.length);
+                dot.classList.remove('error');
+            }
+        }
+
+        function verificar() {
+            if (pin === PIN_CORRECTO) {
+                sessionStorage.setItem('fito_auth', 'ok');
+                const dest = new URLSearchParams(location.search).get('redirect') || 'index.html';
+                location.replace(dest);
+            } else {
+                // Mostrar error
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById('dot-' + i).classList.add('error');
+                }
+                document.getElementById('pin-display').classList.add('shake');
+                document.getElementById('error-msg').classList.add('visible');
+                setTimeout(() => {
+                    pin = '';
+                    actualizarDots();
+                    document.getElementById('pin-display').classList.remove('shake');
+                }, 600);
+            }
+        }
+
+        function ocultarError() {
+            document.getElementById('error-msg').classList.remove('visible');
+        }
+
+        // Soporte teclado físico
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') presionar(e.key);
+            if (e.key === 'Backspace') borrar();
+        });
+    </script>
+</body>
+</html>
