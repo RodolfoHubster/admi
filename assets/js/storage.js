@@ -197,3 +197,146 @@ async function initApp() {
     ocultarSpinner();
     console.log('🔄 Sincronizado desde Firebase');
 }
+
+
+// =========================================================
+// 💱 CALCULADORA DE IMPORTACIÓN
+// =========================================================
+let currentExchangeRate = null;
+
+// Inicializar calculadora cuando el DOM esté listo
+function initCalculator() {
+    const badge = document.getElementById('exchange-rate-badge');
+    if (!badge) {
+        console.warn('⚠️ Calculadora no encontrada en esta página');
+        return;
+    }
+    
+    loadExchangeRateOnPage();
+    
+    // Configurar event listeners
+    const usdInput = document.getElementById('calc-usd-price');
+    if (usdInput) {
+        usdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') calcularImportacion();
+        });
+    }
+}
+
+// Cargar tipo de cambio al iniciar
+async function loadExchangeRateOnPage() {
+    try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await response.json();
+        currentExchangeRate = data.rates.MXN;
+        
+        const timestamp = new Date().toLocaleTimeString('es-MX');
+        const badge = document.getElementById('exchange-rate-badge');
+        if (badge) {
+            badge.innerHTML = 
+                `<strong>1 USD = ${currentExchangeRate.toFixed(2)} MXN</strong><br><small>${timestamp}</small>`;
+        }
+    } catch (error) {
+        console.error('❌ Error en tipo de cambio:', error);
+        const badge = document.getElementById('exchange-rate-badge');
+        if (badge) {
+            badge.textContent = 'Error cargando cambio';
+        }
+    }
+}
+
+function calcularImportacion() {
+    if (!currentExchangeRate) {
+        alert('Espera a que cargue el tipo de cambio');
+        return;
+    }
+
+    const usdInput = document.getElementById('calc-usd-price');
+    const qtyInput = document.getElementById('calc-quantity');
+    const packagingCheckbox = document.getElementById('calc-packaging');
+
+    if (!usdInput || !qtyInput) {
+        console.error('❌ Inputs no encontrados');
+        return;
+    }
+
+    const usdPrice = parseFloat(usdInput.value) || 0;
+    const quantity = parseInt(qtyInput.value) || 1;
+    const hasPackaging = packagingCheckbox ? packagingCheckbox.checked : false;
+
+    if (usdPrice <= 0) {
+        alert('Ingresa un precio válido en USD');
+        return;
+    }
+
+    let totalUSD = usdPrice * quantity;
+    if (hasPackaging) {
+        totalUSD += 2.50;
+    }
+
+    const totalMXN = totalUSD * currentExchangeRate;
+    const perUnitMXN = (usdPrice * currentExchangeRate).toFixed(2);
+
+    // Mostrar resultados
+    const resultTotalUsd = document.getElementById('result-total-usd');
+    const resultTotalMxn = document.getElementById('result-total-mxn');
+    const resultPerUnit = document.getElementById('result-per-unit');
+    const resultRate = document.getElementById('result-rate');
+    const calcResults = document.getElementById('calc-results');
+    const copyBtn = document.getElementById('copy-result-btn');
+
+    if (resultTotalUsd) resultTotalUsd.textContent = `$${totalUSD.toFixed(2)}`;
+    if (resultTotalMxn) resultTotalMxn.textContent = `$${totalMXN.toFixed(2)}`;
+    if (resultPerUnit) resultPerUnit.textContent = `$${perUnitMXN}`;
+    if (resultRate) resultRate.textContent = `1 USD = ${currentExchangeRate.toFixed(2)} MXN`;
+
+    if (calcResults) calcResults.style.display = 'block';
+    if (copyBtn) copyBtn.style.display = 'block';
+
+    // Guardar para copiar
+    window.lastCalculationMXN = totalMXN.toFixed(2);
+}
+
+function copiarResultado() {
+    const mxnValue = window.lastCalculationMXN || '0.00';
+    
+    navigator.clipboard.writeText(mxnValue).then(() => {
+        const btn = document.getElementById('copy-result-btn');
+        if (!btn) return;
+        
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ ¡Copiado!';
+        btn.classList.remove('btn-outline-gold');
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.add('btn-outline-gold');
+            btn.classList.remove('btn-success');
+        }, 2000);
+    });
+}
+
+function limpiarCalculadora() {
+    const usdInput = document.getElementById('calc-usd-price');
+    const qtyInput = document.getElementById('calc-quantity');
+    const packagingCheckbox = document.getElementById('calc-packaging');
+    const calcResults = document.getElementById('calc-results');
+    const copyBtn = document.getElementById('copy-result-btn');
+
+    if (usdInput) usdInput.value = '';
+    if (qtyInput) qtyInput.value = '1';
+    if (packagingCheckbox) packagingCheckbox.checked = false;
+    if (calcResults) calcResults.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = 'none';
+}
+
+// Inicializar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCalculator);
+} else {
+    initCalculator();
+}
+
+// Actualizar tipo de cambio cada 30 minutos
+setInterval(loadExchangeRateOnPage, 1800000);

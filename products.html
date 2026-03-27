@@ -126,6 +126,81 @@
                 </div>
             </div>
 
+            <div class="card shadow mb-4" style="background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, rgba(102,126,234,0.08) 100%); border-left: 4px solid var(--gold-flat);">
+                <div class="card-body p-3">
+                    <div class="row align-items-end g-2">
+                        <!-- Encabezado -->
+                        <div class="col-md-2">
+                            <div>
+                                <h6 class="mb-1 fw-bold">💱 Convertidor</h6>
+                                <small class="text-muted d-block" id="exchange-rate-badge">Cargando...</small>
+                            </div>
+                        </div>
+            
+                        <!-- Precio USD -->
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold mb-1">Precio USD</label>
+                            <input type="number" class="form-control form-control-sm" id="calc-usd-price" placeholder="0.00" min="0" step="0.01">
+                        </div>
+            
+                        <!-- Cantidad -->
+                        <div class="col-md-1">
+                            <label class="form-label small fw-bold mb-1">Cant.</label>
+                            <input type="number" class="form-control form-control-sm" id="calc-quantity" value="1" min="1">
+                        </div>
+            
+                        <!-- Checkbox Empaque -->
+                        <div class="col-md-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="calc-packaging" value="">
+                                <label class="form-check-label small" for="calc-packaging">
+                                    + $2.50 USD empaque
+                                </label>
+                            </div>
+                        </div>
+            
+                        <!-- Botón Calcular -->
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-gold btn-sm w-100 fw-bold" onclick="calcularImportacion()">
+                                <i class="bi bi-calculator"></i> Calcular
+                            </button>
+                        </div>
+            
+                        <!-- Botón Copiar -->
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-outline-gold btn-sm w-100 fw-bold" id="copy-result-btn" onclick="copiarResultado()" style="display: none;">
+                                📋 Copiar MXN
+                            </button>
+                        </div>
+                    </div>
+            
+                    <!-- Resultado -->
+                    <div class="row mt-2 g-2" id="calc-results" style="display: none;">
+                        <div class="col-md-2">
+                            <small class="text-muted">Total USD</small>
+                            <div class="fw-bold text-primary" id="result-total-usd">$0.00</div>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Total MXN</small>
+                            <div class="fw-bold text-success fs-6" id="result-total-mxn">$0.00</div>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Por unidad MXN</small>
+                            <div class="fw-bold" style="color: var(--gold-flat);" id="result-per-unit">$0.00</div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Tipo de cambio</small>
+                            <div class="fw-bold text-secondary" id="result-rate">1 USD = 0.00 MXN</div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button class="btn btn-sm btn-light" onclick="limpiarCalculadora()">
+                                🔄 Nueva conversión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- TABLA INVENTARIO -->
             <div class="card shadow">
                 <div class="card-body p-0">
