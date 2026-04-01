@@ -163,6 +163,9 @@ function cargarFuentes() {
                     <button class="btn btn-sm btn-outline-success" onclick="abrirVentaRapida('${f.id}')" title="Vender decant">
                         <i class="bi bi-cash-coin"></i>
                     </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="abrirVentaBotella('${f.id}')" title="Vender botella con remanente">
+                        🍾
+                    </button>
                     <button class="btn btn-sm btn-outline-warning" onclick="editarFuente('${f.id}')" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </button>
@@ -530,6 +533,77 @@ function registrarVentaDecant() {
         cargarHistorialVentas();
         actualizarKPIs();
         mostrarToast(`✅ ${cantidad} decant(s) de ${ml}ml vendido(s) y guardados en Firebase 🔥`, 'success');
+    });
+}
+
+// =========================================================
+// VENDER BOTELLA RESTANTE
+// =========================================================
+function abrirVentaBotella(id) {
+    const f = _fuentes.find(x => x.id === id);
+    if (!f) return;
+
+    const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
+    if (mlDisp <= 0) {
+        alert("❌ Esta botella ya no tiene líquido disponible.");
+        return;
+    }
+
+    // Calculamos qué fracción del costo original corresponde a los ml que sobraron
+    const costoPorMl = (f.costo && f.mlTotal) ? (f.costo / f.mlTotal) : 0;
+    const costoRestante = costoPorMl * mlDisp;
+
+    document.getElementById('vb-id').value = id;
+    document.getElementById('vb-nombre').textContent = f.nombre;
+    document.getElementById('vb-ml').textContent = mlDisp + ' ml';
+    document.getElementById('vb-costo').textContent = '$' + costoRestante.toFixed(2);
+    
+    document.getElementById('vb-precio').value = '';
+    document.getElementById('vb-cliente').value = '';
+
+    new bootstrap.Modal(document.getElementById('modalVenderBotella')).show();
+}
+
+function registrarVentaBotella() {
+    const id = document.getElementById('vb-id').value;
+    const precio = parseFloat(document.getElementById('vb-precio').value) || 0;
+    const cliente = document.getElementById('vb-cliente').value.trim();
+
+    if (!precio) return alert("⚠️ Ingresa el precio de venta final.");
+
+    const fIdx = _fuentes.findIndex(x => x.id === id);
+    if (fIdx === -1) return;
+
+    const f = _fuentes[fIdx];
+    const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
+    const costoPorMl = (f.costo && f.mlTotal) ? (f.costo / f.mlTotal) : 0;
+    const costoRestante = costoPorMl * mlDisp;
+
+    // Registramos la venta en el historial de decants, etiquetada como botella física
+    _ventasD.push({
+        id: 'dv_bot_' + Date.now(),
+        fuenteId: f.id,
+        nombrePerfume: f.nombre + ' 🍾 (Botella Restante)',
+        marca: f.marca || '',
+        ml: mlDisp,
+        precio: precio,
+        costoAprox: costoRestante,
+        cliente: cliente,
+        fecha: new Date().toISOString()
+    });
+
+    // Agotamos la botella en el inventario de fuentes
+    _fuentes[fIdx].mlUsados = f.mlTotal;
+
+    Promise.all([
+        saveData(DECANTS_FUENTES_KEY, _fuentes),
+        saveData(DECANTS_VENTAS_KEY, _ventasD)
+    ]).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalVenderBotella'))?.hide();
+        cargarFuentes();
+        cargarHistorialVentas();
+        actualizarKPIs();
+        mostrarToast(`🍾 Botella restante liquidada exitosamente`, 'info');
     });
 }
 

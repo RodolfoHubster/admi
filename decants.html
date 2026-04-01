@@ -258,6 +258,44 @@
     </div>
 </div>
 
+<!-- ===== MODAL VENDER BOTELLA ===== -->
+<div class="modal fade" id="modalVenderBotella" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold text-info">🍾 Liquidar Frasco</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2 small mb-3 border-info">
+                    Venderás la botella física con el remanente. Esto restará todo el líquido disponible.
+                </div>
+                <p class="small text-muted mb-1">Perfume: <strong id="vb-nombre" class="text-white">-</strong></p>
+                <div class="d-flex justify-content-between mb-3 small">
+                    <span>Remanente: <strong id="vb-ml" class="text-warning">0 ml</strong></span>
+                    <span>Costo restante: <strong id="vb-costo" class="text-danger">$0.00</strong></span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Precio de Venta Final ($MXN) *</label>
+                    <input type="number" class="form-control" id="vb-precio" placeholder="0.00" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Cliente (opcional)</label>
+                    <input type="text" class="form-control" id="vb-cliente" placeholder="Nombre del cliente">
+                </div>
+                <input type="hidden" id="vb-id">
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info fw-bold" onclick="registrarVentaBotella()">
+                    ✅ Confirmar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL AJUSTE ML -->
 <div class="modal fade" id="modalAjusteML" tabindex="-1">
     <div class="modal-dialog modal-sm">
