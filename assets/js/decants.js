@@ -59,17 +59,28 @@ async function saveData(key, data) {
 function verificarPrecarga() {
     const raw = localStorage.getItem('decant_precarga_tmp');
     if (!raw) return;
+    
     localStorage.removeItem('decant_precarga_tmp');
     const p = JSON.parse(raw);
 
+    // 1. Limpiamos cualquier dato previo en el formulario
+    resetFormFuente();
+
+    // 2. Inyectamos los datos recibidos del inventario
     document.getElementById('fuente-nombre').value  = p.nombre  || '';
     document.getElementById('fuente-marca').value   = p.marca   || '';
     document.getElementById('fuente-imagen').value  = p.imagen  || '';
     document.getElementById('fuente-costo').value   = p.costo   || '';
 
-    const modal = new bootstrap.Modal(document.getElementById('modalNuevaFuente'));
-    modal.show();
-    mostrarToast(`📥 Datos de "${p.nombre}" precargados`, 'success');
+    // 3. Ejecutamos el modal con un retraso para asegurar que Bootstrap esté listo
+    setTimeout(() => {
+        const modalEl = document.getElementById('modalNuevaFuente');
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+            mostrarToast(`📥 Datos de "${p.nombre}" precargados`, 'success');
+        }
+    }, 300);
 }
 
 // =========================================================

@@ -23,6 +23,9 @@ function cargarHeader() {
                         <a href="catalogo.html" class="nav-link" data-page="catalogo">
                             📸 Catálogo
                         </a>
+                        <a href="decants.html" class="nav-link" data-page="decants">
+                            🧪 Decants
+                        </a>
                         <a href="ventas.html" class="nav-link" data-page="ventas">
                             💰 Ventas
                         </a>
