@@ -54,7 +54,7 @@ async function saveData(key, data) {
 }
 
 // =========================================================
-// PRECARGA DESDE products.html (botón 🧪)
+// PRECARGA DIRECTA A FIREBASE (botón 🧪)
 // =========================================================
 function verificarPrecarga() {
     const raw = localStorage.getItem('decant_precarga_tmp');
@@ -63,24 +63,47 @@ function verificarPrecarga() {
     localStorage.removeItem('decant_precarga_tmp');
     const p = JSON.parse(raw);
 
-    // 1. Limpiamos cualquier dato previo en el formulario
-    resetFormFuente();
+    // 1. Preguntamos los ml totales antes de subir a la base de datos
+    const mlInput = prompt(`🧪 Pasando a Decants: "${p.nombre}"\n\n¿De cuántos mililitros (ml) es la botella original?`, "100");
+    
+    // 2. Si le das a "Cancelar", abrimos el modal manual como respaldo
+    if (mlInput === null) {
+        resetFormFuente();
+        document.getElementById('fuente-nombre').value  = p.nombre  || '';
+        document.getElementById('fuente-marca').value   = p.marca   || '';
+        document.getElementById('fuente-imagen').value  = p.imagen  || '';
+        document.getElementById('fuente-costo').value   = p.costo   || '';
+        setTimeout(() => new bootstrap.Modal(document.getElementById('modalNuevaFuente')).show(), 300);
+        return;
+    }
 
-    // 2. Inyectamos los datos recibidos del inventario
-    document.getElementById('fuente-nombre').value  = p.nombre  || '';
-    document.getElementById('fuente-marca').value   = p.marca   || '';
-    document.getElementById('fuente-imagen').value  = p.imagen  || '';
-    document.getElementById('fuente-costo').value   = p.costo   || '';
+    // 3. Construimos el objeto con la estructura exacta que requiere Firebase
+    const mlTotal = parseFloat(mlInput) || 100;
+    const nuevaFuente = {
+        id:       'fuente_' + Date.now(),
+        nombre:   p.nombre || '',
+        marca:    p.marca || '',
+        mlTotal:  mlTotal,
+        mlUsados: 0,
+        costo:    parseFloat(p.costo) || 0,
+        imagen:   p.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
+        tallas:   [ {ml: 5, precio: ''}, {ml: 10, precio: ''} ], // Tallas base listas para editar después
+        notas:    'Agregado directo desde el inventario',
+        createdAt: new Date().toISOString()
+    };
 
-    // 3. Ejecutamos el modal con un retraso para asegurar que Bootstrap esté listo
-    setTimeout(() => {
-        const modalEl = document.getElementById('modalNuevaFuente');
-        if (modalEl) {
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
-            mostrarToast(`📥 Datos de "${p.nombre}" precargados`, 'success');
-        }
-    }, 300);
+    // 4. Lo inyectamos en la memoria local y disparamos la subida a Firebase
+    _fuentes.push(nuevaFuente);
+    
+    saveData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
+        cargarFuentes();
+        actualizarKPIs();
+        llenarSelectFuentes();
+        mostrarToast(`🔥 "${p.nombre}" guardado exitosamente en Firebase`, 'success');
+    }).catch(error => {
+        console.error("Error al guardar en Firebase:", error);
+        alert("❌ Error al conectar con Firebase. Revisa tu conexión.");
+    });
 }
 
 // =========================================================
