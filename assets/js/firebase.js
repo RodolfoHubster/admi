@@ -28,7 +28,8 @@ const COLECCIONES = {
     plantillas:  'plantillas',
     sugerencias: 'sugerencias',
     clientes:    'clientes',
-    config:      'config'
+    config:      'config',
+    decants:     'decants'      // ← NUEVO
 };
 
 // ── LEER ────────────────────────────────────────────────
@@ -53,7 +54,8 @@ async function getDataCloud(key) {
             perfumes: 'perfume_inventory_v1',
             ventas:   'perfume_sales_v1',
             pagos:    'perfume_payouts_v1',
-            gastos:   'perfume_expenses_v1'
+            gastos:   'perfume_expenses_v1',
+            decants:  'fitoscents_decants_v1'
         };
         const raw = localStorage.getItem(LOCAL[key]);
         return raw ? JSON.parse(raw) : (key === 'config' ? {} : []);
@@ -89,7 +91,8 @@ async function setDataCloud(key, data) {
             perfumes: 'perfume_inventory_v1',
             ventas:   'perfume_sales_v1',
             pagos:    'perfume_payouts_v1',
-            gastos:   'perfume_expenses_v1'
+            gastos:   'perfume_expenses_v1',
+            decants:  'fitoscents_decants_v1'
         };
         if (LOCAL[key]) localStorage.setItem(LOCAL[key], JSON.stringify(data));
 
@@ -107,7 +110,8 @@ async function migrarLocalStorageAFirebase() {
         perfumes:  'perfume_inventory_v1',
         ventas:    'perfume_sales_v1',
         pagos:     'perfume_payouts_v1',
-        gastos:    'perfume_expenses_v1'
+        gastos:    'perfume_expenses_v1',
+        decants:   'fitoscents_decants_v1'
     };
 
     let total = 0;

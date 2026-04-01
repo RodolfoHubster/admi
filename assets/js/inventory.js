@@ -256,6 +256,56 @@ function renderFilaHija(prod, index) {
     `;
 }
 
+// ========== BOTONES ACCIÓN (actualizado con "Pasar a Decants") ==========
+function getBotonesAccion(index) {
+    // El botón 🧪 abre un mini-modal para pasar a Decants
+    return `
+        <div class="d-flex gap-1 flex-wrap justify-content-center">
+            <button class="btn btn-sm btn-gold" onclick="abrirModalVenta(${index})" title="Vender">
+                <i class="bi bi-cash-coin"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="agregarAlCarrito(${index})" title="Carrito">
+                <i class="bi bi-cart-plus"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-warning" onclick="editarProducto(${index})" title="Editar">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" style="font-size:0.75rem;">
+                🧪
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index})" title="Eliminar">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>`;
+}
+
+// ========== PASAR A DECANTS ==========
+function pasarADecants(index) {
+    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const prod = productos[index];
+    if (!prod) return;
+
+    const confirmado = confirm(
+        `🧪 Pasar "${prod.nombre}" a Decants\n\n` +
+        `Se abrirá la página de Decants con los datos precargados.\n` +
+        `¿Continuar?`
+    );
+    if (!confirmado) return;
+
+    // Guardar datos temporales para precargar en decants.html
+    const payload = {
+        nombre:   prod.nombre,
+        marca:    prod.marca  || '',
+        imagen:   prod.imagen || '',
+        costo:    prod.costo  || 0,
+        sku:      prod.sku    || '',
+        id:       prod.id,
+        origen:   'inventario'
+    };
+    localStorage.setItem('decant_precarga_tmp', JSON.stringify(payload));
+    window.location.href = 'decants.html';
+}
+
 function cambiarOrden(campo) {
     if (ordenActual.campo === campo) ordenActual.dir = (ordenActual.dir === 'asc') ? 'desc' : 'asc';
     else {
@@ -368,7 +418,6 @@ function editarProducto(index) {
     document.getElementById('inputImagen').value    = prod.imagen || ''; 
     document.getElementById('inputCantidad').value  = prod.cantidad || 1;
 
-    // USA id directo — robusto sin importar la clase CSS del botón
     const tituloModal = document.getElementById('titulo-modal-perfume');
     const btnGuardar  = document.getElementById('btn-guardar-perfume');
 
@@ -413,7 +462,6 @@ function restaurarModalNuevo() {
     document.getElementById('form-nuevo-perfume').reset();
     indiceEdicion = null;
 
-    // USA id directo — robusto
     const tituloModal = document.getElementById('titulo-modal-perfume');
     const btnGuardar  = document.getElementById('btn-guardar-perfume');
 
