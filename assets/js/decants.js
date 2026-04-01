@@ -47,26 +47,30 @@ async function getData(key) {
 }
 
 async function saveData(key, data) {
-    if (typeof setDataCloud === 'function') {
+    // 🔥 FIX: Forzamos el uso de la función maestra setData de tu storage.js
+    if (typeof setData === 'function') {
+        setData(key, data);
+    } else if (typeof setDataCloud === 'function') {
         await setDataCloud(key, data);
     }
+    // Respaldo local por seguridad
     localStorage.setItem('fitoscents_' + key, JSON.stringify(data));
 }
 
 // =========================================================
 // PRECARGA DIRECTA A FIREBASE (botón 🧪)
 // =========================================================
-function verificarPrecarga() {
+async function verificarPrecarga() {
     const raw = localStorage.getItem('decant_precarga_tmp');
     if (!raw) return;
     
     localStorage.removeItem('decant_precarga_tmp');
     const p = JSON.parse(raw);
 
-    // 1. Preguntamos los ml totales antes de subir a la base de datos
+    // 1. Preguntamos los ml totales
     const mlInput = prompt(`🧪 Pasando a Decants: "${p.nombre}"\n\n¿De cuántos mililitros (ml) es la botella original?`, "100");
     
-    // 2. Si le das a "Cancelar", abrimos el modal manual como respaldo
+    // 2. Si cancelas, abrimos el modal manual como respaldo
     if (mlInput === null) {
         resetFormFuente();
         document.getElementById('fuente-nombre').value  = p.nombre  || '';
@@ -77,7 +81,7 @@ function verificarPrecarga() {
         return;
     }
 
-    // 3. Construimos el objeto con la estructura exacta que requiere Firebase
+    // 3. Construimos el objeto para Firebase
     const mlTotal = parseFloat(mlInput) || 100;
     const nuevaFuente = {
         id:       'fuente_' + Date.now(),
@@ -87,23 +91,24 @@ function verificarPrecarga() {
         mlUsados: 0,
         costo:    parseFloat(p.costo) || 0,
         imagen:   p.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
-        tallas:   [ {ml: 5, precio: ''}, {ml: 10, precio: ''} ], // Tallas base listas para editar después
+        tallas:   [ {ml: 5, precio: ''}, {ml: 10, precio: ''} ],
         notas:    'Agregado directo desde el inventario',
         createdAt: new Date().toISOString()
     };
 
-    // 4. Lo inyectamos en la memoria local y disparamos la subida a Firebase
     _fuentes.push(nuevaFuente);
     
-    saveData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
+    // 4. Subimos a Firebase y actualizamos la interfaz
+    try {
+        await saveData(DECANTS_FUENTES_KEY, _fuentes);
         cargarFuentes();
         actualizarKPIs();
         llenarSelectFuentes();
         mostrarToast(`🔥 "${p.nombre}" guardado exitosamente en Firebase`, 'success');
-    }).catch(error => {
+    } catch (error) {
         console.error("Error al guardar en Firebase:", error);
-        alert("❌ Error al conectar con Firebase. Revisa tu conexión.");
-    });
+        alert("❌ Error al conectar con la base de datos.");
+    }
 }
 
 // =========================================================
