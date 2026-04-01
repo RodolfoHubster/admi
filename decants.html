@@ -4,7 +4,8 @@
     <script src="assets/js/auth.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitoscents Admin — Decants</title>
+    <title>Fitoscents - Decants</title>
+    <script src="assets/js/config.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -12,353 +13,246 @@
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="assets/css/ui.css">
     <link rel="stylesheet" href="assets/css/features.css">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
     <script type="module" src="assets/js/firebase.js"></script>
-    <script src="assets/js/storage.js"></script>
-    <script src="components/header.js"></script>
     <style>
-        .decant-card {
-            border: 1px solid rgba(255,215,0,0.15);
-            border-radius: 12px;
-            background: rgba(255,255,255,0.03);
-            transition: all 0.2s ease;
-        }
-        .decant-card:hover {
-            border-color: var(--gold-flat);
-            box-shadow: 0 4px 20px rgba(255,215,0,0.12);
-        }
-        .ml-progress {
-            height: 10px;
-            border-radius: 99px;
-            background: rgba(255,255,255,0.1);
-            overflow: hidden;
-        }
-        .ml-progress-bar {
-            height: 100%;
-            border-radius: 99px;
-            background: linear-gradient(90deg, #28a745, var(--gold-flat));
-            transition: width 0.5s ease;
-        }
-        .ml-progress-bar.warning {
-            background: linear-gradient(90deg, #ffc107, #dc3545);
-        }
-        .size-badge {
-            font-size: 0.78rem;
-            padding: 4px 10px;
-            border-radius: 99px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .size-badge:hover {
-            transform: scale(1.07);
-        }
-        .precio-calc-box {
-            background: rgba(255,215,0,0.07);
-            border: 1px solid rgba(255,215,0,0.2);
-            border-radius: 10px;
-            padding: 12px 16px;
-        }
-        .source-tag {
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 99px;
-            font-weight: 600;
-            background: rgba(99,102,241,0.15);
-            color: #a78bfa;
-            border: 1px solid rgba(99,102,241,0.25);
-        }
-        .kpi-decant { border-radius: 14px; border: none; }
-        .badge-ml {
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 99px;
-        }
+        .decant-card { transition: transform .15s, box-shadow .15s; cursor:default; }
+        .decant-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.35)!important; }
+        .ml-badge { font-size:.7rem; padding:2px 8px; border-radius:20px; }
+        .progress-ml { height:8px; border-radius:4px; }
+        .talla-btn { min-width:64px; transition: all .15s; }
+        .talla-btn.active { transform:scale(1.07); }
+        .fuente-row { border-left: 3px solid var(--gold-flat,#c9a84c); }
+        .badge-ml-avail { background: rgba(40,167,69,.15); color:#28a745; border:1px solid #28a745; }
+        .badge-ml-low   { background: rgba(220,53,69,.15); color:#dc3545; border:1px solid #dc3545; }
+        .badge-ml-mid   { background: rgba(255,193,7,.15);  color:#ffc107; border:1px solid #ffc107; }
+        #toast-decant { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; min-width:260px; }
+        .img-decant-thumb { width:44px; height:44px; object-fit:cover; border-radius:8px; border:1px solid #444; }
     </style>
 </head>
 <body>
-<div class="container mb-5">
+
+<div class="container my-4">
 
     <!-- HEADER -->
-    <div class="row align-items-center mb-4 g-3">
-        <div class="col-md-6">
-            <h2 class="fw-bold m-0 text-gold">🧪 Decants</h2>
-            <p class="text-muted small m-0">Administra tus frascos de 2ml, 5ml y más</p>
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold mb-0">🧪 Gestión de Decants</h2>
+            <p class="text-muted mb-0 small">Administra frascos, ml disponibles y ventas de decants</p>
         </div>
-        <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end">
-            <button class="btn btn-outline-secondary btn-sm" onclick="sincronizarDecants()" title="Sincronizar Firebase">
-                <i class="bi bi-cloud-arrow-up"></i> Sync
+        <div class="col-auto d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.location.href='products.html'">
+                <i class="bi bi-arrow-left"></i> Inventario
             </button>
-            <button class="btn btn-luxury-gold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoDecant">
-                <i class="bi bi-plus-circle-fill me-2"></i> Nuevo Decant
+            <button class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaFuente">
+                <i class="bi bi-plus-circle"></i> Nueva Fuente
+            </button>
+            <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalVenderDecant">
+                <i class="bi bi-cash-coin"></i> Vender Decant
             </button>
         </div>
     </div>
 
     <!-- KPIs -->
-    <div class="row mb-4 g-3" id="kpi-decants">
-        <div class="col-md-3">
-            <div class="card kpi-decant shadow-lg" style="background: linear-gradient(135deg,#1a1a2e,#16213e);">
-                <div class="card-body text-center">
-                    <small class="text-muted d-block">🧪 TOTAL DECANTS</small>
-                    <h3 class="fw-bold mb-0" style="color:var(--gold-flat)" id="kpi-total-decants">0</h3>
-                    <small class="text-muted">Fuentes registradas</small>
-                </div>
+    <div class="row g-3 mb-4" id="kpi-row">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow text-center p-3 h-100">
+                <div class="small text-muted fw-bold mb-1">🧴 FUENTES ACTIVAS</div>
+                <h3 class="fw-bold mb-0 text-info" id="kpi-fuentes">0</h3>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card kpi-decant shadow-lg" style="background: linear-gradient(135deg,#0d1b2a,#1b4332);">
-                <div class="card-body text-center">
-                    <small class="text-muted d-block">💧 ML TOTALES</small>
-                    <h3 class="fw-bold text-success mb-0" id="kpi-ml-totales">0 ml</h3>
-                    <small class="text-muted">En todas tus botellas</small>
-                </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow text-center p-3 h-100">
+                <div class="small text-muted fw-bold mb-1">💧 ML DISPONIBLES</div>
+                <h3 class="fw-bold mb-0 text-success" id="kpi-ml-total">0 ml</h3>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card kpi-decant shadow-lg" style="background: linear-gradient(135deg,#1a0a00,#3d1a00);">
-                <div class="card-body text-center">
-                    <small class="text-muted d-block">💰 GANANCIA EST.</small>
-                    <h3 class="fw-bold text-warning mb-0" id="kpi-ganancia-decants">$0</h3>
-                    <small class="text-muted">Si vendes todo</small>
-                </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow text-center p-3 h-100">
+                <div class="small text-muted fw-bold mb-1">📦 DECANTS VENDIDOS</div>
+                <h3 class="fw-bold mb-0 text-warning" id="kpi-vendidos">0</h3>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card kpi-decant shadow-lg" style="background: linear-gradient(135deg,#1a001a,#2d0050);">
-                <div class="card-body text-center">
-                    <small class="text-muted d-block">📦 FRASCOS POSIBLES</small>
-                    <h3 class="fw-bold mb-0" style="color:#a78bfa" id="kpi-frascos-posibles">0</h3>
-                    <small class="text-muted">Promedio 5ml</small>
-                </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow text-center p-3 h-100">
+                <div class="small text-muted fw-bold mb-1">💰 GANANCIA DECANTS</div>
+                <h3 class="fw-bold mb-0 text-success" id="kpi-ganancia">$0</h3>
             </div>
         </div>
     </div>
 
-    <!-- BUSCADOR -->
-    <div class="card shadow mb-3 border-0">
-        <div class="card-body py-2">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-5">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="buscador-decant" class="form-control ps-0" placeholder="Buscar perfume, marca..." oninput="renderDecants()">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-select-sm" id="filtro-estado-decant" onchange="renderDecants()">
-                        <option value="todos">🔍 Todos</option>
-                        <option value="activo">✅ Con ml disponibles</option>
-                        <option value="agotado">🔴 Agotados</option>
-                    </select>
-                </div>
-                <div class="col text-end">
-                    <span class="text-muted small"><span id="contador-decants">0</span> decants</span>
-                </div>
+    <!-- TABLA FUENTES -->
+    <div class="card shadow border-0 mb-4">
+        <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold">🧴 Botellas Fuente (Inventario de Decants)</h6>
+            <input type="text" id="buscador-fuentes" class="form-control form-control-sm w-auto" placeholder="🔍 Buscar..." oninput="cargarFuentes()">
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th></th>
+                            <th>Perfume</th>
+                            <th>Tallas disponibles</th>
+                            <th>ml Usados / Total</th>
+                            <th>Disponible</th>
+                            <th>Decants vendidos</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-fuentes">
+                        <tr><td colspan="7" class="text-center text-muted py-4">Cargando fuentes...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- GRID DECANTS -->
-    <div class="row g-3" id="grid-decants">
-        <div class="col-12 text-center text-muted py-5" id="empty-decants">
-            <div style="font-size:3rem;">🧪</div>
-            <p class="mt-2">No hay decants registrados aún.<br>Agrega uno con el botón de arriba.</p>
+    <!-- HISTORIAL VENTAS DECANTS -->
+    <div class="card shadow border-0">
+        <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold">📋 Historial de Ventas de Decants</h6>
+            <span class="badge bg-secondary" id="badge-total-ventas">0 ventas</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-sm">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Perfume</th>
+                            <th>Talla</th>
+                            <th>Precio</th>
+                            <th>Costo aprox.</th>
+                            <th>Ganancia</th>
+                            <th>Cliente</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-ventas-decants">
+                        <tr><td colspan="7" class="text-center text-muted py-3">Sin ventas registradas</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 </div>
 
-<!-- ==================== MODAL NUEVO DECANT ==================== -->
-<div class="modal fade" id="modalNuevoDecant" tabindex="-1">
+<!-- ===== MODAL NUEVA FUENTE ===== -->
+<div class="modal fade" id="modalNuevaFuente" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="titulo-modal-decant">🧪 Registrar Decant</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" id="titulo-modal-fuente">🧴 Nueva Botella Fuente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="form-decant">
-                    <div class="row g-3">
-                        <!-- Info básica -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Nombre del Perfume <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="dec-nombre" placeholder="Ej: Jean Paul Gaultier Le Male" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Marca / Casa</label>
-                            <input type="text" class="form-control" id="dec-marca" placeholder="Ej: JPG">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Foto (URL)</label>
-                            <input type="url" class="form-control" id="dec-imagen" placeholder="Link de imagen...">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Tamaño Botella (ml) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="dec-ml-total" placeholder="Ej: 100" min="1" required oninput="calcularPreciosDecant()">
-                                <span class="input-group-text">ml</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">ML Actuales disponibles <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="dec-ml-actuales" placeholder="Ej: 100" min="0" required oninput="calcularPreciosDecant()">
-                                <span class="input-group-text">ml</span>
-                            </div>
-                            <small class="text-muted">Si es nuevo pon igual que el tamaño total. Si ya está abierto pon los ml restantes.</small>
-                        </div>
+                <input type="hidden" id="fuente-edit-id">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Nombre del Perfume *</label>
+                        <input type="text" class="form-control" id="fuente-nombre" placeholder="Ej: Jean Paul Gaultier Le Male">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Marca</label>
+                        <input type="text" class="form-control" id="fuente-marca" placeholder="Ej: JPG">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">ml Totales de la botella *</label>
+                        <input type="number" class="form-control" id="fuente-ml-total" placeholder="Ej: 100" min="1">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">ml ya usados (inicio)</label>
+                        <input type="number" class="form-control" id="fuente-ml-usados" placeholder="0" min="0" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Costo total de la botella ($MXN)</label>
+                        <input type="number" class="form-control" id="fuente-costo" placeholder="0.00" min="0">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">URL Imagen (opcional)</label>
+                        <input type="url" class="form-control" id="fuente-imagen" placeholder="https://...">
+                    </div>
 
-                        <!-- ORIGEN -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">¿De dónde viene esta botella?</label>
-                            <select class="form-select" id="dec-origen" onchange="toggleOrigenInventario()">
-                                <option value="manual">✍️ La agrego manualmente</option>
-                                <option value="inventario">📦 Viene de mi Inventario</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6" id="bloque-inventario-src" style="display:none;">
-                            <label class="form-label fw-bold">Selecciona el Perfume del Inventario</label>
-                            <select class="form-select" id="dec-inventario-id" onchange="precargarDeInventario()">
-                                <option value="">-- Selecciona --</option>
-                            </select>
-                        </div>
-
-                        <hr class="my-1">
-
-                        <!-- PRECIO COSTO -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">💲 Precio pagado (USD) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="dec-costo-usd" placeholder="0.00" step="0.01" min="0" required oninput="calcularPreciosDecant()">
-                                <span class="input-group-text">USD</span>
+                    <!-- TALLAS Y PRECIOS -->
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Tallas disponibles y precio de venta</label>
+                        <div class="card bg-secondary bg-opacity-25 p-3">
+                            <div class="row g-2 align-items-center mb-2 small fw-bold text-muted">
+                                <div class="col-3">Talla (ml)</div>
+                                <div class="col-3">Precio Venta ($)</div>
+                                <div class="col-3">Activa</div>
+                                <div class="col-3"></div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Precio de mercado/tienda (MXN)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="dec-precio-mercado" placeholder="Ej: 3000" min="0" oninput="calcularPreciosDecant()">
-                                <span class="input-group-text">MXN</span>
-                            </div>
-                            <small class="text-muted">Lo que cuesta en tienda/línea. Se usa para calcular precio por ml.</small>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Tipo de cambio (USD→MXN)</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="dec-tipo-cambio" placeholder="Cargando..." step="0.01" min="1" oninput="calcularPreciosDecant()">
-                                <span class="input-group-text">MXN</span>
-                            </div>
-                            <small id="tc-source" class="text-muted">Se carga automático del día</small>
-                        </div>
-
-                        <!-- RESULTADO CALCULADORA -->
-                        <div class="col-12" id="bloque-calculo-decant" style="display:none;">
-                            <div class="precio-calc-box">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-12 mb-1">
-                                        <span class="fw-bold text-gold">📊 Cálculo automático de precios por ml</span>
-                                    </div>
-                                    <div class="col-md-3 text-center">
-                                        <small class="text-muted d-block">Costo real (MXN)</small>
-                                        <div class="fw-bold text-danger" id="calc-costo-mxn">$0</div>
-                                    </div>
-                                    <div class="col-md-3 text-center">
-                                        <small class="text-muted d-block">Precio/ml (mercado)</small>
-                                        <div class="fw-bold text-info" id="calc-precio-por-ml">$0/ml</div>
-                                    </div>
-                                    <div class="col-md-3 text-center">
-                                        <small class="text-muted d-block">Precio 2ml sugerido</small>
-                                        <div class="fw-bold text-warning" id="calc-precio-2ml">$0</div>
-                                    </div>
-                                    <div class="col-md-3 text-center">
-                                        <small class="text-muted d-block">Precio 5ml sugerido</small>
-                                        <div class="fw-bold text-success" id="calc-precio-5ml">$0</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-1">
-
-                        <!-- TAMAÑOS Y PRECIOS -->
-                        <div class="col-12">
-                            <label class="form-label fw-bold">🧴 Tamaños disponibles para venta</label>
-                            <div class="row g-2" id="contenedor-tamanos">
-                                <!-- Se generan dinámicamente -->
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-gold mt-2" onclick="agregarTamano()">
-                                <i class="bi bi-plus-circle"></i> Agregar tamaño
+                            <div id="tallas-container"></div>
+                            <button type="button" class="btn btn-outline-light btn-sm mt-2" onclick="agregarFilaTalla()">
+                                <i class="bi bi-plus"></i> Agregar talla
                             </button>
                         </div>
-
-                        <!-- NOTAS / PORCENTAJE -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">📝 Notas (Opcional)</label>
-                            <textarea class="form-control" id="dec-notas" rows="2" placeholder="Ej: Tiene 85% de contenido, huele a madera..."></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">% Contenido (Opcional)</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="dec-porcentaje" placeholder="Ej: 95" min="0" max="100">
-                                <span class="input-group-text">%</span>
-                            </div>
-                            <small class="text-muted">Cuánto queda del perfume en la botella original</small>
-                        </div>
-
                     </div>
-                </form>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Notas</label>
+                        <textarea class="form-control" id="fuente-notas" rows="2" placeholder="Observaciones opcionales..."></textarea>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-gold fw-bold" id="btn-guardar-decant" onclick="guardarDecant()">💾 Guardar Decant</button>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-gold fw-bold" onclick="guardarFuente()">
+                    <i class="bi bi-save"></i> Guardar Fuente
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL VENDER DECANT -->
+<!-- ===== MODAL VENDER DECANT ===== -->
 <div class="modal fade" id="modalVenderDecant" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">💰 Vender Decant</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">💧 Registrar Venta de Decant</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info text-center mb-3">
-                    <strong id="venta-dec-nombre">---</strong>
-                </div>
                 <div class="row g-3">
-                    <div class="col-6">
-                        <label class="form-label">Tamaño vendido (ml)</label>
-                        <select class="form-select" id="venta-dec-tamanio" onchange="actualizarPrecioVentaDec()">
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Botella Fuente *</label>
+                        <select class="form-select" id="venta-fuente-id" onchange="onSeleccionarFuente()">
+                            <option value="">-- Selecciona perfume --</option>
                         </select>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label fw-bold text-success">Precio Final</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control form-control-lg fw-bold" id="venta-dec-precio" placeholder="0.00">
+                    <div class="col-12" id="bloque-tallas-venta" style="display:none">
+                        <label class="form-label small fw-bold">Talla (ml) *</label>
+                        <div class="d-flex flex-wrap gap-2" id="tallas-venta-btns"></div>
+                        <input type="hidden" id="venta-ml">
+                        <input type="hidden" id="venta-precio-sugerido">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Precio de Venta ($MXN) *</label>
+                        <input type="number" class="form-control" id="venta-precio" placeholder="0.00" min="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Cantidad de frascos</label>
+                        <input type="number" class="form-control" id="venta-cantidad" value="1" min="1">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">Cliente (opcional)</label>
+                        <input type="text" class="form-control" id="venta-cliente" placeholder="Nombre del cliente">
+                    </div>
+                    <div class="col-12 d-none" id="alerta-ml-insuficiente">
+                        <div class="alert alert-danger py-2 mb-0">
+                            ⚠️ No hay suficientes ml disponibles para esta venta.
                         </div>
                     </div>
-                    <div class="col-12">
-                        <label class="form-label">Cliente (Opcional)</label>
-                        <input type="text" class="form-control" id="venta-dec-cliente" placeholder="Nombre del cliente">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Nota / Descripción</label>
-                        <input type="text" class="form-control" id="venta-dec-nota" placeholder="Ej: Decant 5ml + envío">
-                    </div>
                 </div>
-                <input type="hidden" id="venta-dec-id">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-gold fw-bold" onclick="confirmarVentaDecant()">✅ Confirmar Venta</button>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success fw-bold" onclick="registrarVentaDecant()">
+                    <i class="bi bi-cash-coin"></i> Registrar Venta
+                </button>
             </div>
         </div>
     </div>
@@ -367,30 +261,36 @@
 <!-- MODAL AJUSTE ML -->
 <div class="modal fade" id="modalAjusteML" tabindex="-1">
     <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">💧 Ajustar ML</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">🔧 Ajustar ml</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted small" id="ajuste-dec-info">---</p>
-                <label class="form-label fw-bold">Nuevos ML disponibles</label>
-                <div class="input-group">
-                    <input type="number" class="form-control form-control-lg" id="ajuste-dec-ml" min="0">
-                    <span class="input-group-text">ml</span>
-                </div>
-                <input type="hidden" id="ajuste-dec-id">
+                <p class="small text-muted mb-2">Botella: <strong id="ajuste-fuente-nombre">-</strong></p>
+                <label class="form-label small fw-bold">ml Usados (nuevo valor)</label>
+                <input type="number" class="form-control" id="ajuste-ml-usados" min="0">
+                <input type="hidden" id="ajuste-fuente-id">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-gold" onclick="confirmarAjusteML()">Guardar</button>
+            <div class="modal-footer border-secondary">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-warning fw-bold" onclick="guardarAjusteML()">Guardar</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- TOAST -->
+<div id="toast-decant" class="toast align-items-center text-white border-0" role="alert">
+    <div class="d-flex">
+        <div class="toast-body fw-bold" id="toast-body-decant">✅ Listo</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/config.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="components/header.js"></script>
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/decants.js"></script>
 </body>

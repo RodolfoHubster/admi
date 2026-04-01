@@ -1,578 +1,507 @@
 // =========================================================
-// DECANTS.JS — Fitoscents Admin
-// Gestión completa de frascos / decants con Firebase sync
+// DECANTS.JS — Gestión de frascos Fitoscents
+// Colección Firebase: 'decants_fuentes' y 'decants_ventas'
 // =========================================================
 
-// ── Constantes ────────────────────────────────────────────
-const DECANTS_LOCAL_KEY = 'fitoscents_decants_v1';
-const TAMANOS_DEFAULT   = [2, 5, 10];
+const DECANTS_FUENTES_KEY  = 'decants_fuentes';
+const DECANTS_VENTAS_KEY   = 'decants_ventas';
+const TALLAS_DEFAULT       = [2, 3, 5, 8, 10, 15, 20, 30];
 
-let decantEditIndex = null;       // null = nuevo, número = edición
-let tamanoCounter   = 0;          // contador de IDs para los rows de tamaños
-let tipoCambioActual = 17.5;      // fallback
+// ── Estado local de la pantalla ──────────────────────────
+let _fuentes  = [];
+let _ventasD  = [];
+let _tallasFila = [];  // filas del form de tallas
 
-// ── Init ──────────────────────────────────────────────────
+// =========================================================
+// INIT
+// =========================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    await initApp?.();            // esperar Firebase (si existe)
-    await cargarTipoCambio();
-    await cargarDecants();
-    inicializarTamanos();
-    cargarListaInventarioEnModal();
+    await initApp();
+    await cargarDatosDecants();
+    verificarPrecarga();
+    renderTallasDefault();
 });
 
-// ── Firebase helpers ──────────────────────────────────────
-function getDecants() {
-    const raw = localStorage.getItem(DECANTS_LOCAL_KEY);
+async function initApp() {
+    if (typeof waitForFirebase === 'function') await waitForFirebase();
+}
+
+async function cargarDatosDecants() {
+    _fuentes = await getData(DECANTS_FUENTES_KEY) || [];
+    _ventasD = await getData(DECANTS_VENTAS_KEY)  || [];
+    cargarFuentes();
+    cargarHistorialVentas();
+    actualizarKPIs();
+    llenarSelectFuentes();
+}
+
+// =========================================================
+// FUNCIONES DE LECTURA/ESCRITURA FIREBASE + FALLBACK LOCAL
+// =========================================================
+async function getData(key) {
+    if (typeof getDataCloud === 'function') {
+        return await getDataCloud(key);
+    }
+    const raw = localStorage.getItem('fitoscents_' + key);
     return raw ? JSON.parse(raw) : [];
 }
 
-function saveDecants(arr) {
-    localStorage.setItem(DECANTS_LOCAL_KEY, JSON.stringify(arr));
-    // Sync Firebase en segundo plano
-    if (typeof window.setDataCloud === 'function') {
-        window.setDataCloud('decants', arr)
-            .catch(err => console.warn('Firebase sync decants:', err));
+async function saveData(key, data) {
+    if (typeof setDataCloud === 'function') {
+        await setDataCloud(key, data);
     }
+    localStorage.setItem('fitoscents_' + key, JSON.stringify(data));
 }
 
-async function cargarDecants() {
-    let decants = [];
+// =========================================================
+// PRECARGA DESDE products.html (botón 🧪)
+// =========================================================
+function verificarPrecarga() {
+    const raw = localStorage.getItem('decant_precarga_tmp');
+    if (!raw) return;
+    localStorage.removeItem('decant_precarga_tmp');
+    const p = JSON.parse(raw);
 
-    // Intentar traer de Firebase primero
-    if (typeof window.getDataCloud === 'function') {
-        try {
-            const nube = await window.getDataCloud('decants');
-            if (Array.isArray(nube) && nube.length > 0) {
-                decants = nube;
-                localStorage.setItem(DECANTS_LOCAL_KEY, JSON.stringify(decants));
-            } else {
-                decants = getDecants();
-            }
-        } catch {
-            decants = getDecants();
-        }
-    } else {
-        decants = getDecants();
-    }
+    document.getElementById('fuente-nombre').value  = p.nombre  || '';
+    document.getElementById('fuente-marca').value   = p.marca   || '';
+    document.getElementById('fuente-imagen').value  = p.imagen  || '';
+    document.getElementById('fuente-costo').value   = p.costo   || '';
 
-    renderDecants();
-    calcularKPIsDecants();
+    const modal = new bootstrap.Modal(document.getElementById('modalNuevaFuente'));
+    modal.show();
+    mostrarToast(`📥 Datos de "${p.nombre}" precargados`, 'success');
 }
 
-async function sincronizarDecants() {
-    const decants = getDecants();
-    if (typeof window.setDataCloud === 'function') {
-        await window.setDataCloud('decants', decants);
-        alert(`☁️ ${decants.length} decants sincronizados con Firebase.`);
-    } else {
-        alert('⚠️ Firebase no disponible aún, intenta en un momento.');
-    }
-}
+// =========================================================
+// TABLA FUENTES
+// =========================================================
+function cargarFuentes() {
+    const tbody    = document.getElementById('tabla-fuentes');
+    const busqueda = (document.getElementById('buscador-fuentes')?.value || '').toLowerCase();
+    const lista    = _fuentes.filter(f =>
+        (f.nombre + ' ' + f.marca).toLowerCase().includes(busqueda)
+    );
 
-// ── Tipo de Cambio ────────────────────────────────────────
-async function cargarTipoCambio() {
-    const input = document.getElementById('dec-tipo-cambio');
-    const src   = document.getElementById('tc-source');
-    try {
-        const r = await fetch('https://open.er-api.com/v6/latest/USD');
-        const d = await r.json();
-        if (d && d.rates && d.rates.MXN) {
-            tipoCambioActual = d.rates.MXN;
-            if (input) input.value = tipoCambioActual.toFixed(2);
-            if (src) src.textContent = `Tipo de cambio del día (${new Date().toLocaleDateString('es-MX')})`;
-        }
-    } catch {
-        if (input) input.value = tipoCambioActual.toFixed(2);
-        if (src) src.textContent = 'Tipo de cambio aproximado (sin conexión)';
-    }
-}
-
-// ── Render Grid ───────────────────────────────────────────
-function renderDecants() {
-    const grid     = document.getElementById('grid-decants');
-    const empty    = document.getElementById('empty-decants');
-    const contador = document.getElementById('contador-decants');
-    if (!grid) return;
-
-    const busq   = (document.getElementById('buscador-decant')?.value || '').toLowerCase();
-    const estado = document.getElementById('filtro-estado-decant')?.value || 'todos';
-
-    let decants = getDecants();
-
-    decants = decants.filter(d => {
-        const textoOk = d.nombre.toLowerCase().includes(busq) || (d.marca || '').toLowerCase().includes(busq);
-        const mlOk    = estado === 'todos'
-            ? true
-            : estado === 'activo' ? d.mlActuales > 0
-            : d.mlActuales <= 0;
-        return textoOk && mlOk;
-    });
-
-    if (contador) contador.textContent = decants.length;
-
-    if (decants.length === 0) {
-        grid.innerHTML = '';
-        if (empty) empty.style.display = 'block';
+    if (!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
+            Sin fuentes. Usa "Nueva Fuente" para agregar una botella.
+        </td></tr>`;
         return;
     }
-    if (empty) empty.style.display = 'none';
 
-    grid.innerHTML = decants.map((d, i) => renderTarjetaDecant(d, i)).join('');
-    calcularKPIsDecants();
+    tbody.innerHTML = lista.map(f => {
+        const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
+        const pct    = f.mlTotal ? Math.round(((f.mlUsados||0) / f.mlTotal) * 100) : 0;
+        const badgeCls = mlDisp <= 0 ? 'badge-ml-low' : mlDisp < (f.mlTotal * 0.2) ? 'badge-ml-mid' : 'badge-ml-avail';
+        const img    = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+
+        const tallasHTML = (f.tallas || []).map(t =>
+            `<span class="badge bg-secondary ml-badge me-1">${t.ml}ml $${t.precio}</span>`
+        ).join('');
+
+        const contVentas = _ventasD.filter(v => v.fuenteId === f.id).length;
+
+        return `
+        <tr class="fuente-row">
+            <td><img src="${img}" class="img-decant-thumb"></td>
+            <td>
+                <strong>${f.nombre}</strong><br>
+                <small class="text-muted">${f.marca || ''}</small>
+            </td>
+            <td>${tallasHTML || '<span class="text-muted small">Sin tallas</span>'}</td>
+            <td>
+                <div class="progress progress-ml mb-1">
+                    <div class="progress-bar bg-warning" style="width:${pct}%"></div>
+                </div>
+                <small class="text-muted">${f.mlUsados || 0} / ${f.mlTotal || 0} ml usados</small>
+            </td>
+            <td>
+                <span class="badge ml-badge ${badgeCls}">${mlDisp} ml</span>
+            </td>
+            <td><span class="badge bg-info bg-opacity-25 text-info border border-info">${contVentas} 💧</span></td>
+            <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center flex-wrap">
+                    <button class="btn btn-sm btn-outline-success" onclick="abrirVentaRapida('${f.id}')" title="Vender decant">
+                        <i class="bi bi-cash-coin"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="editarFuente('${f.id}')" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="abrirAjusteML('${f.id}')" title="Ajustar ml">
+                        🔧
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarFuente('${f.id}')" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
 }
 
-function renderTarjetaDecant(d, idx) {
-    const pct      = d.mlTotal > 0 ? Math.round((d.mlActuales / d.mlTotal) * 100) : 0;
-    const barClass = pct < 25 ? 'warning' : '';
-    const imgUrl   = d.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
-    const origen   = d.origen === 'inventario' ? `<span class="source-tag">📦 Del Inventario</span>` : `<span class="source-tag" style="background:rgba(34,197,94,0.1);color:#4ade80;border-color:rgba(34,197,94,0.2);">✍️ Manual</span>`;
+// =========================================================
+// HISTORIAL VENTAS
+// =========================================================
+function cargarHistorialVentas() {
+    const tbody = document.getElementById('tabla-ventas-decants');
+    const badge = document.getElementById('badge-total-ventas');
+    if (badge) badge.textContent = _ventasD.length + ' ventas';
 
-    const tamanosBadges = (d.tamanos || []).map(t =>
-        `<span class="badge size-badge me-1 mb-1" style="background:rgba(255,215,0,0.13);color:var(--gold-flat);border:1px solid rgba(255,215,0,0.25);" 
-             onclick="abrirVentaDecant(${idx})" title="Vender ${t.ml}ml">
-            ${t.ml}ml — $${t.precio}
-         </span>`
-    ).join('');
+    if (!_ventasD.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Sin ventas registradas</td></tr>`;
+        return;
+    }
 
-    const alertaBajoMl = d.mlActuales <= 5 && d.mlActuales > 0
-        ? `<div class="alert alert-warning py-1 px-2 mt-2 mb-0 small">⚠️ Quedan pocos ml</div>` : '';
-    const alertaAgotado = d.mlActuales <= 0
-        ? `<div class="alert alert-danger py-1 px-2 mt-2 mb-0 small fw-bold">🔴 Agotado</div>` : '';
+    const ordenadas = [..._ventasD].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-    const pctBadge = d.porcentaje
-        ? `<span class="badge bg-info text-dark ms-1" style="font-size:.7rem;">${d.porcentaje}%</span>` : '';
+    tbody.innerHTML = ordenadas.map(v => {
+        const fuente  = _fuentes.find(f => f.id === v.fuenteId);
+        const nombre  = fuente ? fuente.nombre : (v.nombrePerfume || '-');
+        const ganancia = (v.precio || 0) - (v.costoAprox || 0);
+        const fecha   = new Date(v.fecha).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit' });
+        return `
+        <tr>
+            <td><small class="text-muted">${fecha}</small></td>
+            <td><strong>${nombre}</strong></td>
+            <td><span class="badge bg-secondary ml-badge">${v.ml}ml</span></td>
+            <td class="fw-bold">$${v.precio}</td>
+            <td class="text-muted small">$${(v.costoAprox||0).toFixed(0)}</td>
+            <td class="text-success fw-bold">+$${ganancia.toFixed(0)}</td>
+            <td><small>${v.cliente || '-'}</small></td>
+        </tr>`;
+    }).join('');
+}
 
-    return `
-    <div class="col-md-6 col-lg-4">
-        <div class="card decant-card h-100 p-3">
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <img src="${imgUrl}" alt="${d.nombre}" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,215,0,0.2);">
-                <div class="flex-fill overflow-hidden">
-                    <div class="fw-bold text-truncate" title="${d.nombre}">${d.nombre} ${pctBadge}</div>
-                    <div class="text-muted small">${d.marca || ''}</div>
-                    ${origen}
+// =========================================================
+// KPIs
+// =========================================================
+function actualizarKPIs() {
+    const mlTotal = _fuentes.reduce((s, f) => s + ((f.mlTotal||0) - (f.mlUsados||0)), 0);
+    const ganancia = _ventasD.reduce((s, v) => s + ((v.precio||0) - (v.costoAprox||0)), 0);
+
+    document.getElementById('kpi-fuentes').textContent  = _fuentes.length;
+    document.getElementById('kpi-ml-total').textContent = mlTotal + ' ml';
+    document.getElementById('kpi-vendidos').textContent = _ventasD.length;
+    document.getElementById('kpi-ganancia').textContent = '$' + ganancia.toFixed(0);
+}
+
+// =========================================================
+// FORMULARIO TALLAS (en modal nueva fuente)
+// =========================================================
+function renderTallasDefault() {
+    _tallasFila = TALLAS_DEFAULT.map((ml, i) => ({
+        id: i, ml: ml, precio: '', activa: [2,5,10].includes(ml)
+    }));
+    renderFilasTallas();
+}
+
+function renderFilasTallas() {
+    const cont = document.getElementById('tallas-container');
+    if (!cont) return;
+    cont.innerHTML = _tallasFila.map((t, i) => `
+        <div class="row g-2 align-items-center mb-1" id="talla-row-${i}">
+            <div class="col-3">
+                <input type="number" class="form-control form-control-sm" value="${t.ml}" placeholder="ml"
+                    onchange="_tallasFila[${i}].ml = +this.value">
+            </div>
+            <div class="col-3">
+                <input type="number" class="form-control form-control-sm" value="${t.precio}" placeholder="$"
+                    onchange="_tallasFila[${i}].precio = +this.value">
+            </div>
+            <div class="col-3 text-center">
+                <div class="form-check form-switch d-inline-block">
+                    <input class="form-check-input" type="checkbox" ${t.activa ? 'checked' : ''}
+                        onchange="_tallasFila[${i}].activa = this.checked">
                 </div>
             </div>
-
-            <!-- ML BAR -->
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <small class="text-muted">ML disponibles</small>
-                <small class="fw-bold" style="color:${pct < 25 ? '#dc3545' : '#28a745'}">${d.mlActuales} / ${d.mlTotal} ml</small>
-            </div>
-            <div class="ml-progress mb-2">
-                <div class="ml-progress-bar ${barClass}" style="width:${pct}%"></div>
-            </div>
-            ${alertaBajoMl}${alertaAgotado}
-
-            <!-- TAMAÑOS -->
-            <div class="mt-2 mb-1">
-                <small class="text-muted d-block mb-1">Tamaños / Precios (toca para vender):</small>
-                ${tamanosBadges || '<small class="text-muted fst-italic">Sin tamaños configurados</small>'}
-            </div>
-
-            ${d.notas ? `<div class="text-muted small mt-1 fst-italic">📝 ${d.notas}</div>` : ''}
-
-            <!-- ACCIONES -->
-            <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-sm btn-gold flex-fill" onclick="abrirVentaDecant(${idx})">
-                    <i class="bi bi-cash-coin"></i> Vender
-                </button>
-                <button class="btn btn-sm btn-outline-info" onclick="abrirAjusteML(${idx})" title="Ajustar ML">
-                    <i class="bi bi-droplet-half"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-warning" onclick="editarDecant(${idx})" title="Editar">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="eliminarDecant(${idx})" title="Eliminar">
-                    <i class="bi bi-trash"></i>
+            <div class="col-3">
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="quitarFilaTalla(${i})">
+                    <i class="bi bi-x"></i>
                 </button>
             </div>
-        </div>
-    </div>`;
+        </div>`).join('');
 }
 
-// ── KPIs ──────────────────────────────────────────────────
-function calcularKPIsDecants() {
-    const decants = getDecants();
-    let mlTotales = 0, gananciaEst = 0, frascosPosibles = 0;
+function agregarFilaTalla() {
+    _tallasFila.push({ id: Date.now(), ml: '', precio: '', activa: true });
+    renderFilasTallas();
+}
 
-    decants.forEach(d => {
-        mlTotales += d.mlActuales || 0;
-        frascosPosibles += d.mlActuales > 0 ? Math.floor((d.mlActuales || 0) / 5) : 0;
-        const p5 = (d.tamanos || []).find(t => t.ml == 5);
-        if (p5 && d.mlActuales) {
-            const frascos5 = Math.floor(d.mlActuales / 5);
-            gananciaEst += frascos5 * p5.precio;
+function quitarFilaTalla(i) {
+    _tallasFila.splice(i, 1);
+    renderFilasTallas();
+}
+
+// =========================================================
+// GUARDAR / EDITAR FUENTE
+// =========================================================
+function guardarFuente() {
+    const nombre   = document.getElementById('fuente-nombre').value.trim();
+    const mlTotal  = parseFloat(document.getElementById('fuente-ml-total').value) || 0;
+    if (!nombre || !mlTotal) {
+        alert('⚠️ Nombre y ml totales son obligatorios.');
+        return;
+    }
+
+    const tallas = _tallasFila
+        .filter(t => t.activa && t.ml > 0)
+        .map(t => ({ ml: +t.ml, precio: +t.precio }));
+
+    const editId = document.getElementById('fuente-edit-id').value;
+    const ahora  = new Date().toISOString();
+
+    if (editId) {
+        const idx = _fuentes.findIndex(f => f.id === editId);
+        if (idx !== -1) {
+            _fuentes[idx] = {
+                ..._fuentes[idx],
+                nombre,
+                marca:    document.getElementById('fuente-marca').value.trim(),
+                mlTotal,
+                mlUsados: parseFloat(document.getElementById('fuente-ml-usados').value) || _fuentes[idx].mlUsados || 0,
+                costo:    parseFloat(document.getElementById('fuente-costo').value) || 0,
+                imagen:   document.getElementById('fuente-imagen').value.trim(),
+                tallas,
+                notas:    document.getElementById('fuente-notas').value.trim(),
+                updatedAt: ahora
+            };
         }
+    } else {
+        _fuentes.push({
+            id:       'fuente_' + Date.now(),
+            nombre,
+            marca:    document.getElementById('fuente-marca').value.trim(),
+            mlTotal,
+            mlUsados: parseFloat(document.getElementById('fuente-ml-usados').value) || 0,
+            costo:    parseFloat(document.getElementById('fuente-costo').value) || 0,
+            imagen:   document.getElementById('fuente-imagen').value.trim(),
+            tallas,
+            notas:    document.getElementById('fuente-notas').value.trim(),
+            createdAt: ahora
+        });
+    }
+
+    saveData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalNuevaFuente'))?.hide();
+        resetFormFuente();
+        cargarFuentes();
+        actualizarKPIs();
+        llenarSelectFuentes();
+        mostrarToast('✅ Fuente guardada en Firebase', 'success');
     });
-
-    setText('kpi-total-decants', decants.length);
-    setText('kpi-ml-totales', `${mlTotales} ml`);
-    setText('kpi-ganancia-decants', `$${gananciaEst.toFixed(0)}`);
-    setText('kpi-frascos-posibles', frascosPosibles);
 }
 
-function setText(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
+function resetFormFuente() {
+    document.getElementById('fuente-edit-id').value  = '';
+    document.getElementById('fuente-nombre').value   = '';
+    document.getElementById('fuente-marca').value    = '';
+    document.getElementById('fuente-ml-total').value = '';
+    document.getElementById('fuente-ml-usados').value= '0';
+    document.getElementById('fuente-costo').value    = '';
+    document.getElementById('fuente-imagen').value   = '';
+    document.getElementById('fuente-notas').value    = '';
+    document.getElementById('titulo-modal-fuente').textContent = '🧴 Nueva Botella Fuente';
+    renderTallasDefault();
 }
 
-// ── Modal Helpers ─────────────────────────────────────────
-function inicializarTamanos() {
-    const cont = document.getElementById('contenedor-tamanos');
-    if (!cont) return;
-    cont.innerHTML = '';
-    tamanoCounter = 0;
-    TAMANOS_DEFAULT.forEach(ml => agregarTamano(ml));
+function editarFuente(id) {
+    const f = _fuentes.find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('fuente-edit-id').value   = f.id;
+    document.getElementById('fuente-nombre').value    = f.nombre;
+    document.getElementById('fuente-marca').value     = f.marca || '';
+    document.getElementById('fuente-ml-total').value  = f.mlTotal || '';
+    document.getElementById('fuente-ml-usados').value = f.mlUsados || 0;
+    document.getElementById('fuente-costo').value     = f.costo || '';
+    document.getElementById('fuente-imagen').value    = f.imagen || '';
+    document.getElementById('fuente-notas').value     = f.notas || '';
+    document.getElementById('titulo-modal-fuente').textContent = '✏️ Editar Fuente';
+
+    _tallasFila = (f.tallas || []).map((t, i) => ({ id: i, ml: t.ml, precio: t.precio, activa: true }));
+    if (!_tallasFila.length) renderTallasDefault();
+    else renderFilasTallas();
+
+    new bootstrap.Modal(document.getElementById('modalNuevaFuente')).show();
 }
 
-function agregarTamano(mlDefault = '') {
-    const id  = `tam-${tamanoCounter++}`;
-    const row = document.createElement('div');
-    row.className = 'col-md-6 col-lg-4';
-    row.id        = `row-${id}`;
-    row.innerHTML = `
-        <div class="d-flex gap-2 align-items-center border rounded p-2 bg-dark bg-opacity-25">
-            <div class="input-group input-group-sm" style="max-width:90px;">
-                <input type="number" class="form-control" id="ml-${id}" placeholder="ml" value="${mlDefault}" min="1">
-                <span class="input-group-text">ml</span>
-            </div>
-            <div class="input-group input-group-sm">
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control" id="precio-${id}" placeholder="Precio" step="0.50" min="0">
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="document.getElementById('row-${id}').remove()">
-                <i class="bi bi-x"></i>
-            </button>
-        </div>`;
-    document.getElementById('contenedor-tamanos').appendChild(row);
-}
-
-function leerTamanos() {
-    const cont = document.getElementById('contenedor-tamanos');
-    if (!cont) return [];
-    const rows = cont.querySelectorAll('[id^="row-tam-"]');
-    const result = [];
-    rows.forEach(row => {
-        const sfx    = row.id.replace('row-', '');
-        const mlEl   = document.getElementById(`ml-${sfx}`);
-        const precEl = document.getElementById(`precio-${sfx}`);
-        if (!mlEl || !precEl) return;
-        const ml    = parseFloat(mlEl.value);
-        const prec  = parseFloat(precEl.value);
-        if (ml > 0 && prec >= 0) result.push({ ml, precio: prec });
+function eliminarFuente(id) {
+    const f = _fuentes.find(x => x.id === id);
+    if (!f) return;
+    if (!confirm(`🗑️ ¿Eliminar la fuente "${f.nombre}"?\nSe eliminarán también sus ventas de decants.`)) return;
+    _fuentes  = _fuentes.filter(x => x.id !== id);
+    _ventasD  = _ventasD.filter(v => v.fuenteId !== id);
+    Promise.all([
+        saveData(DECANTS_FUENTES_KEY, _fuentes),
+        saveData(DECANTS_VENTAS_KEY, _ventasD)
+    ]).then(() => {
+        cargarFuentes();
+        cargarHistorialVentas();
+        actualizarKPIs();
+        llenarSelectFuentes();
+        mostrarToast('🗑️ Fuente eliminada', 'warning');
     });
-    return result;
 }
 
-function toggleOrigenInventario() {
-    const origen = document.getElementById('dec-origen')?.value;
-    const bloque = document.getElementById('bloque-inventario-src');
-    if (!bloque) return;
-    bloque.style.display = origen === 'inventario' ? 'block' : 'none';
+// =========================================================
+// AJUSTE ML
+// =========================================================
+function abrirAjusteML(id) {
+    const f = _fuentes.find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('ajuste-fuente-id').value       = id;
+    document.getElementById('ajuste-fuente-nombre').textContent = f.nombre;
+    document.getElementById('ajuste-ml-usados').value       = f.mlUsados || 0;
+    new bootstrap.Modal(document.getElementById('modalAjusteML')).show();
 }
 
-function cargarListaInventarioEnModal() {
-    const sel = document.getElementById('dec-inventario-id');
+function guardarAjusteML() {
+    const id = document.getElementById('ajuste-fuente-id').value;
+    const nuevoVal = parseFloat(document.getElementById('ajuste-ml-usados').value) || 0;
+    const idx = _fuentes.findIndex(f => f.id === id);
+    if (idx === -1) return;
+    _fuentes[idx].mlUsados = nuevoVal;
+    saveData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalAjusteML'))?.hide();
+        cargarFuentes();
+        actualizarKPIs();
+        mostrarToast('🔧 ml ajustados correctamente', 'info');
+    });
+}
+
+// =========================================================
+// MODAL VENDER DECANT
+// =========================================================
+function llenarSelectFuentes() {
+    const sel = document.getElementById('venta-fuente-id');
     if (!sel) return;
-    const productos = JSON.parse(localStorage.getItem('perfume_inventory_v1') || 'null')
-                   || JSON.parse(localStorage.getItem('fitoscents_inventory') || '[]');
-    sel.innerHTML = '<option value="">-- Selecciona --</option>';
-    (Array.isArray(productos) ? productos : []).forEach(p => {
+    sel.innerHTML = '<option value="">-- Selecciona perfume --</option>';
+    _fuentes.forEach(f => {
+        const mlDisp = (f.mlTotal||0) - (f.mlUsados||0);
         const opt = document.createElement('option');
-        opt.value = p.id || p.sku;
-        opt.textContent = `${p.nombre} (${p.marca || ''}) — $${p.costo}`;
-        opt.dataset.costo  = p.costo || 0;
-        opt.dataset.nombre = p.nombre;
-        opt.dataset.marca  = p.marca || '';
-        opt.dataset.imagen = p.imagen || '';
+        opt.value = f.id;
+        opt.textContent = `${f.nombre} (${mlDisp} ml disp.)`;
         sel.appendChild(opt);
     });
 }
 
-function precargarDeInventario() {
-    const sel = document.getElementById('dec-inventario-id');
-    const opt = sel?.selectedOptions[0];
-    if (!opt || !opt.value) return;
-    setVal('dec-nombre', opt.dataset.nombre);
-    setVal('dec-marca',  opt.dataset.marca);
-    setVal('dec-imagen', opt.dataset.imagen);
-    // El costo viene en MXN — convertir a USD aproximado
-    const costoMXN = parseFloat(opt.dataset.costo) || 0;
-    const tc = parseFloat(document.getElementById('dec-tipo-cambio')?.value) || tipoCambioActual;
-    setVal('dec-costo-usd', (costoMXN / tc).toFixed(2));
-    calcularPreciosDecant();
-}
-
-function setVal(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-}
-
-// ── Calculadora automática ────────────────────────────────
-function calcularPreciosDecant() {
-    const costoUSD    = parseFloat(document.getElementById('dec-costo-usd')?.value) || 0;
-    const tc          = parseFloat(document.getElementById('dec-tipo-cambio')?.value) || tipoCambioActual;
-    const mlTotal     = parseFloat(document.getElementById('dec-ml-total')?.value) || 0;
-    const precMercado = parseFloat(document.getElementById('dec-precio-mercado')?.value) || 0;
-    const bloque      = document.getElementById('bloque-calculo-decant');
-
-    if (costoUSD <= 0 || mlTotal <= 0) {
-        if (bloque) bloque.style.display = 'none';
-        return;
-    }
-    if (bloque) bloque.style.display = 'block';
-
-    const costoMXN  = costoUSD * tc;
-    const basePrice = precMercado > 0 ? precMercado : costoMXN;
-    const precPorMl = basePrice / mlTotal;
-    const prec2ml   = Math.ceil(precPorMl * 2);
-    const prec5ml   = Math.ceil(precPorMl * 5);
-
-    setText('calc-costo-mxn',    `$${costoMXN.toFixed(0)}`);
-    setText('calc-precio-por-ml', `$${precPorMl.toFixed(1)}/ml`);
-    setText('calc-precio-2ml',   `$${prec2ml}`);
-    setText('calc-precio-5ml',   `$${prec5ml}`);
-
-    // Auto-rellenar precios en los tamaños si están vacíos
-    const cont = document.getElementById('contenedor-tamanos');
-    if (!cont) return;
-    cont.querySelectorAll('[id^="row-tam-"]').forEach(row => {
-        const sfx    = row.id.replace('row-', '');
-        const mlEl   = document.getElementById(`ml-${sfx}`);
-        const precEl = document.getElementById(`precio-${sfx}`);
-        if (!mlEl || !precEl || precEl.value) return;
-        const ml = parseFloat(mlEl.value);
-        if (ml > 0) precEl.value = Math.ceil(precPorMl * ml);
-    });
-}
-
-// ── Guardar / Editar ──────────────────────────────────────
-function guardarDecant() {
-    const nombre     = document.getElementById('dec-nombre')?.value.trim();
-    const marca      = document.getElementById('dec-marca')?.value.trim();
-    const imagen     = document.getElementById('dec-imagen')?.value.trim();
-    const mlTotal    = parseFloat(document.getElementById('dec-ml-total')?.value);
-    const mlActuales = parseFloat(document.getElementById('dec-ml-actuales')?.value);
-    const costoUSD   = parseFloat(document.getElementById('dec-costo-usd')?.value) || 0;
-    const precMerc   = parseFloat(document.getElementById('dec-precio-mercado')?.value) || 0;
-    const tc         = parseFloat(document.getElementById('dec-tipo-cambio')?.value) || tipoCambioActual;
-    const notas      = document.getElementById('dec-notas')?.value.trim();
-    const porcent    = parseFloat(document.getElementById('dec-porcentaje')?.value) || null;
-    const origen     = document.getElementById('dec-origen')?.value || 'manual';
-    const invId      = document.getElementById('dec-inventario-id')?.value || null;
-    const tamanos    = leerTamanos();
-
-    if (!nombre || !mlTotal || isNaN(mlActuales)) {
-        alert('⚠️ Completa nombre, ml total y ml actuales.');
-        return;
-    }
-
-    const decants = getDecants();
-
-    const obj = {
-        id:           decantEditIndex !== null ? decants[decantEditIndex].id : Date.now(),
-        nombre, marca, imagen,
-        mlTotal, mlActuales,
-        costoUSD, precMercado: precMerc, tipoCambio: tc,
-        tamanos, notas, porcentaje: porcent,
-        origen, inventarioId: invId,
-        fechaRegistro: decantEditIndex !== null ? decants[decantEditIndex].fechaRegistro : new Date().toISOString(),
-        fechaActualizacion: new Date().toISOString()
-    };
-
-    if (decantEditIndex !== null) {
-        decants[decantEditIndex] = obj;
-        decantEditIndex = null;
-    } else {
-        decants.push(obj);
-    }
-
-    saveDecants(decants);
-    bootstrap.Modal.getInstance(document.getElementById('modalNuevoDecant'))?.hide();
-    document.getElementById('form-decant')?.reset();
-    inicializarTamanos();
-    setText('titulo-modal-decant', '🧪 Registrar Decant');
-    document.getElementById('btn-guardar-decant').textContent = '💾 Guardar Decant';
-    renderDecants();
-    calcularKPIsDecants();
-}
-
-function editarDecant(idx) {
-    const decants = getDecants();
-    const d = decants[idx];
-    if (!d) return;
-    decantEditIndex = idx;
-
-    setVal('dec-nombre',          d.nombre);
-    setVal('dec-marca',           d.marca || '');
-    setVal('dec-imagen',          d.imagen || '');
-    setVal('dec-ml-total',        d.mlTotal);
-    setVal('dec-ml-actuales',     d.mlActuales);
-    setVal('dec-costo-usd',       d.costoUSD || '');
-    setVal('dec-precio-mercado',  d.precMercado || '');
-    setVal('dec-tipo-cambio',     d.tipoCambio || tipoCambioActual);
-    setVal('dec-notas',           d.notas || '');
-    setVal('dec-porcentaje',      d.porcentaje || '');
-    setVal('dec-origen',          d.origen || 'manual');
-    toggleOrigenInventario();
-
-    // Tamaños
-    const cont = document.getElementById('contenedor-tamanos');
-    if (cont) {
-        cont.innerHTML = '';
-        tamanoCounter = 0;
-        (d.tamanos || []).forEach(t => {
-            agregarTamano(t.ml);
-            const sfx    = `tam-${tamanoCounter - 1}`;
-            const precEl = document.getElementById(`precio-${sfx}`);
-            if (precEl) precEl.value = t.precio;
-        });
-        if (!(d.tamanos?.length)) inicializarTamanos();
-    }
-
-    calcularPreciosDecant();
-    setText('titulo-modal-decant', '✏️ Editar Decant');
-    document.getElementById('btn-guardar-decant').textContent = '💾 Guardar Cambios';
-    new bootstrap.Modal(document.getElementById('modalNuevoDecant')).show();
-}
-
-function eliminarDecant(idx) {
-    const decants = getDecants();
-    if (!confirm(`¿Eliminar "${decants[idx]?.nombre}"? Esta acción no se puede deshacer.`)) return;
-    decants.splice(idx, 1);
-    saveDecants(decants);
-    renderDecants();
-    calcularKPIsDecants();
-}
-
-// ── Ajuste de ML ──────────────────────────────────────────
-function abrirAjusteML(idx) {
-    const d = getDecants()[idx];
-    if (!d) return;
-    document.getElementById('ajuste-dec-id').value  = idx;
-    document.getElementById('ajuste-dec-ml').value  = d.mlActuales;
-    document.getElementById('ajuste-dec-info').textContent =
-        `${d.nombre} — actualmente ${d.mlActuales}ml de ${d.mlTotal}ml`;
-    new bootstrap.Modal(document.getElementById('modalAjusteML')).show();
-}
-
-function confirmarAjusteML() {
-    const idx = parseInt(document.getElementById('ajuste-dec-id').value);
-    const ml  = parseFloat(document.getElementById('ajuste-dec-ml').value);
-    if (isNaN(idx) || isNaN(ml) || ml < 0) return alert('⚠️ Valor inválido');
-    const decants = getDecants();
-    if (!decants[idx]) return;
-    decants[idx].mlActuales = ml;
-    decants[idx].fechaActualizacion = new Date().toISOString();
-    saveDecants(decants);
-    bootstrap.Modal.getInstance(document.getElementById('modalAjusteML'))?.hide();
-    renderDecants();
-    calcularKPIsDecants();
-}
-
-// ── Vender Decant ─────────────────────────────────────────
-function abrirVentaDecant(idx) {
-    const d = getDecants()[idx];
-    if (!d) return;
-    if (d.mlActuales <= 0) return alert('⚠️ Este decant ya está agotado.');
-
-    setText('venta-dec-nombre', `${d.nombre} ${d.marca ? '— ' + d.marca : ''}`);
-    document.getElementById('venta-dec-id').value = idx;
-
-    const sel = document.getElementById('venta-dec-tamanio');
-    sel.innerHTML = '';
-    (d.tamanos || []).forEach(t => {
-        if (t.ml <= d.mlActuales) {
-            const opt = document.createElement('option');
-            opt.value       = t.ml;
-            opt.textContent = `${t.ml}ml`;
-            opt.dataset.precio = t.precio;
-            sel.appendChild(opt);
-        }
-    });
-    // Opción personalizada
-    const custom = document.createElement('option');
-    custom.value       = 'custom';
-    custom.textContent = 'Otro tamaño (personalizado)';
-    custom.dataset.precio = 0;
-    sel.appendChild(custom);
-
-    actualizarPrecioVentaDec();
-    setVal('venta-dec-cliente', '');
-    setVal('venta-dec-nota', '');
+function abrirVentaRapida(fuenteId) {
+    llenarSelectFuentes();
+    const sel = document.getElementById('venta-fuente-id');
+    if (sel) sel.value = fuenteId;
+    onSeleccionarFuente();
     new bootstrap.Modal(document.getElementById('modalVenderDecant')).show();
 }
 
-function actualizarPrecioVentaDec() {
-    const sel = document.getElementById('venta-dec-tamanio');
-    const opt = sel?.selectedOptions[0];
-    if (!opt) return;
-    setVal('venta-dec-precio', opt.dataset.precio || 0);
+function onSeleccionarFuente() {
+    const id = document.getElementById('venta-fuente-id').value;
+    const bloque = document.getElementById('bloque-tallas-venta');
+    const cont   = document.getElementById('tallas-venta-btns');
+    if (!id || !bloque || !cont) { bloque && (bloque.style.display='none'); return; }
+
+    const f = _fuentes.find(x => x.id === id);
+    if (!f || !f.tallas?.length) { bloque.style.display='none'; return; }
+
+    bloque.style.display = 'block';
+    cont.innerHTML = f.tallas.map(t => `
+        <button type="button" class="btn btn-outline-light btn-sm talla-btn"
+            onclick="seleccionarTalla(this, ${t.ml}, ${t.precio})">
+            ${t.ml}ml${t.precio ? ' — $'+t.precio : ''}
+        </button>`).join('');
+
+    document.getElementById('venta-ml').value = '';
+    document.getElementById('venta-precio-sugerido').value = '';
+    document.getElementById('venta-precio').value = '';
 }
 
-function confirmarVentaDecant() {
-    const idx       = parseInt(document.getElementById('venta-dec-id').value);
-    const sel       = document.getElementById('venta-dec-tamanio');
-    const mlVendido = sel.value === 'custom'
-        ? parseFloat(prompt('¿Cuántos ml vendes?') || '0')
-        : parseFloat(sel.value);
-    const precio    = parseFloat(document.getElementById('venta-dec-precio').value) || 0;
-    const cliente   = document.getElementById('venta-dec-cliente').value.trim();
-    const nota      = document.getElementById('venta-dec-nota').value.trim();
-
-    if (!mlVendido || mlVendido <= 0) return alert('⚠️ Selecciona un tamaño válido.');
-
-    const decants = getDecants();
-    const d = decants[idx];
-    if (!d) return;
-
-    if (mlVendido > d.mlActuales) {
-        return alert(`⚠️ Solo quedan ${d.mlActuales}ml disponibles.`);
-    }
-
-    // Descontar ML
-    d.mlActuales -= mlVendido;
-    d.fechaActualizacion = new Date().toISOString();
-
-    // Registrar historial en el decant
-    if (!d.historialVentas) d.historialVentas = [];
-    d.historialVentas.push({
-        fecha:   new Date().toISOString(),
-        ml:      mlVendido,
-        precio,
-        cliente,
-        nota
-    });
-
-    saveDecants(decants);
-
-    // También registrar en ventas globales si la función existe
-    if (typeof window.registrarVentaDecant === 'function') {
-        window.registrarVentaDecant({ nombre: d.nombre, ml: mlVendido, precio, cliente, nota });
-    }
-
-    bootstrap.Modal.getInstance(document.getElementById('modalVenderDecant'))?.hide();
-    renderDecants();
-    calcularKPIsDecants();
-
-    alert(`✅ Venta registrada: ${mlVendido}ml de ${d.nombre} — $${precio}\nQuedan ${d.mlActuales}ml.`);
+function seleccionarTalla(btn, ml, precio) {
+    document.querySelectorAll('.talla-btn').forEach(b => b.classList.remove('active','btn-warning'));
+    btn.classList.add('active','btn-warning');
+    document.getElementById('venta-ml').value = ml;
+    document.getElementById('venta-precio-sugerido').value = precio;
+    if (precio) document.getElementById('venta-precio').value = precio;
+    validarMLDisponibles();
 }
 
-// ── Función para agregar decant desde Inventario (acceso externo) ─
-window.abrirDecantDesdeInventario = function(prod) {
-    const modal = document.getElementById('modalNuevoDecant');
-    if (!modal) {
-        alert('Ve a la página de Decants para registrarlo.');
+function validarMLDisponibles() {
+    const id       = document.getElementById('venta-fuente-id').value;
+    const ml       = parseFloat(document.getElementById('venta-ml').value) || 0;
+    const cant     = parseInt(document.getElementById('venta-cantidad')?.value) || 1;
+    const alerta   = document.getElementById('alerta-ml-insuficiente');
+    if (!id || !ml) { alerta?.classList.add('d-none'); return; }
+    const f = _fuentes.find(x => x.id === id);
+    const disp = f ? ((f.mlTotal||0) - (f.mlUsados||0)) : 0;
+    if (ml * cant > disp) alerta?.classList.remove('d-none');
+    else alerta?.classList.add('d-none');
+}
+
+function registrarVentaDecant() {
+    const fuenteId = document.getElementById('venta-fuente-id').value;
+    const ml       = parseFloat(document.getElementById('venta-ml').value) || 0;
+    const precio   = parseFloat(document.getElementById('venta-precio').value) || 0;
+    const cantidad = parseInt(document.getElementById('venta-cantidad').value) || 1;
+    const cliente  = document.getElementById('venta-cliente').value.trim();
+
+    if (!fuenteId) { alert('⚠️ Selecciona una botella fuente.'); return; }
+    if (!ml)       { alert('⚠️ Selecciona una talla.'); return; }
+    if (!precio)   { alert('⚠️ Ingresa el precio de venta.'); return; }
+
+    const fIdx = _fuentes.findIndex(f => f.id === fuenteId);
+    if (fIdx === -1) return;
+    const f     = _fuentes[fIdx];
+    const disp  = (f.mlTotal||0) - (f.mlUsados||0);
+    const total = ml * cantidad;
+
+    if (total > disp) {
+        alert(`❌ No hay suficientes ml. Disponibles: ${disp}ml, necesitas: ${total}ml.`);
         return;
     }
-    setVal('dec-nombre', prod.nombre);
-    setVal('dec-marca',  prod.marca || '');
-    setVal('dec-imagen', prod.imagen || '');
-    setVal('dec-costo-usd', '');
-    setVal('dec-origen', 'inventario');
-    toggleOrigenInventario();
-    cargarTipoCambio();
-    inicializarTamanos();
-    new bootstrap.Modal(modal).show();
-};
+
+    const costoPorMl = f.costo && f.mlTotal ? (f.costo / f.mlTotal) : 0;
+    const costoAprox = costoPorMl * ml * cantidad;
+
+    _fuentes[fIdx].mlUsados = (f.mlUsados||0) + total;
+
+    for (let i = 0; i < cantidad; i++) {
+        _ventasD.push({
+            id:            'dv_' + Date.now() + '_' + i,
+            fuenteId,
+            nombrePerfume: f.nombre,
+            marca:         f.marca || '',
+            ml,
+            precio,
+            costoAprox:    costoAprox / cantidad,
+            cliente,
+            fecha:         new Date().toISOString()
+        });
+    }
+
+    Promise.all([
+        saveData(DECANTS_FUENTES_KEY, _fuentes),
+        saveData(DECANTS_VENTAS_KEY,  _ventasD)
+    ]).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalVenderDecant'))?.hide();
+        document.getElementById('venta-fuente-id').value = '';
+        document.getElementById('venta-ml').value = '';
+        document.getElementById('venta-precio').value = '';
+        document.getElementById('venta-cantidad').value = '1';
+        document.getElementById('venta-cliente').value = '';
+        document.getElementById('bloque-tallas-venta').style.display = 'none';
+
+        cargarFuentes();
+        cargarHistorialVentas();
+        actualizarKPIs();
+        mostrarToast(`✅ ${cantidad} decant(s) de ${ml}ml vendido(s) y guardados en Firebase 🔥`, 'success');
+    });
+}
+
+// =========================================================
+// TOAST
+// =========================================================
+function mostrarToast(msg, tipo = 'success') {
+    const map = { success:'bg-success', warning:'bg-warning text-dark', info:'bg-info text-dark', danger:'bg-danger' };
+    const el  = document.getElementById('toast-decant');
+    if (!el) return;
+    el.className = `toast align-items-center border-0 ${map[tipo] || 'bg-dark text-white'}`;
+    document.getElementById('toast-body-decant').textContent = msg;
+    new bootstrap.Toast(el, { delay: 3500 }).show();
+}
