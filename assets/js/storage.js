@@ -12,7 +12,9 @@ const STORAGE_KEYS = {
     sugerencias: 'sugerencias_db',
     clientes:    'clientes_db',
     mensajes:    'mensajes_db',
-    config:      'config_db'
+    config:      'config_db',
+    decants_fuentes: 'fitoscents_decants_fuentes_v1',
+    decants_ventas:  'fitoscents_decants_ventas_v1'  
 };
 
 // =========================================================
@@ -55,8 +57,8 @@ async function restaurarDesdeFirebase() {
     if (typeof getDataCloud !== 'function') {
         return showToast('Firebase no está conectado.', 'error');
     }
-    const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas'];
-    let total = 0;
+    const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas', 'decants_fuentes', 'decants_ventas'];
+        let total = 0;
     const log = [];
     for (const key of claves) {
         try {
