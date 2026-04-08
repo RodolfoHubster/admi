@@ -1,8 +1,14 @@
 // --- UTILIDADES Y AYUDAS ---
 
-function solicitarPin() {
+async function solicitarPin() {
     const intento = prompt("🔐 SEGURIDAD: Ingrese el PIN de Administrador:");
-    return intento === ADMIN_PIN;
+    if (!intento) return false;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(intento);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex === ADMIN_PIN;
 }
 
 function formatMoney(amount) {
