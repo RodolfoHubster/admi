@@ -7,10 +7,9 @@ const DECANTS_FUENTES_KEY  = 'decants_fuentes';
 const DECANTS_VENTAS_KEY   = 'decants_ventas';
 const TALLAS_DEFAULT       = [2, 3, 5, 8, 10, 15, 20, 30];
 
-// ── Estado local de la pantalla ──────────────────────────
 let _fuentes  = [];
 let _ventasD  = [];
-let _tallasFila = [];  // filas del form de tallas
+let _tallasFila = [];
 
 // =========================================================
 // INIT
@@ -36,79 +35,106 @@ async function cargarDatosDecants() {
 }
 
 // =========================================================
-// FUNCIONES DE LECTURA/ESCRITURA FIREBASE + FALLBACK LOCAL
+// LECTURA/ESCRITURA FIREBASE + FALLBACK LOCAL
 // =========================================================
 async function getData(key) {
-    if (typeof getDataCloud === 'function') {
-        return await getDataCloud(key);
-    }
+    if (typeof getDataCloud === 'function') return await getDataCloud(key);
     const raw = localStorage.getItem('fitoscents_' + key);
     return raw ? JSON.parse(raw) : [];
 }
 
 async function saveData(key, data) {
-    // 🔥 FIX: Forzamos el uso de la función maestra setData de tu storage.js
-    if (typeof setData === 'function') {
-        setData(key, data);
-    } else if (typeof setDataCloud === 'function') {
-        await setDataCloud(key, data);
-    }
-    // Respaldo local por seguridad
+    if (typeof setData === 'function') setData(key, data);
+    else if (typeof setDataCloud === 'function') await setDataCloud(key, data);
     localStorage.setItem('fitoscents_' + key, JSON.stringify(data));
 }
 
 // =========================================================
-// PRECARGA DIRECTA A FIREBASE (botón 🧪)
+// PRECARGA DESDE INVENTARIO (botón 🧪) — SIN prompt()
 // =========================================================
-async function verificarPrecarga() {
+function verificarPrecarga() {
     const raw = localStorage.getItem('decant_precarga_tmp');
     if (!raw) return;
-    
     localStorage.removeItem('decant_precarga_tmp');
     const p = JSON.parse(raw);
 
-    // 1. Preguntamos los ml totales
-    const mlInput = prompt(`🧪 Pasando a Decants: "${p.nombre}"\n\n¿De cuántos mililitros (ml) es la botella original?`, "100");
-    
-    // 2. Si cancelas, abrimos el modal manual como respaldo
-    if (mlInput === null) {
-        resetFormFuente();
-        document.getElementById('fuente-nombre').value  = p.nombre  || '';
-        document.getElementById('fuente-marca').value   = p.marca   || '';
-        document.getElementById('fuente-imagen').value  = p.imagen  || '';
-        document.getElementById('fuente-costo').value   = p.costo   || '';
-        setTimeout(() => new bootstrap.Modal(document.getElementById('modalNuevaFuente')).show(), 300);
-        return;
+    // Crear modal dinámico si no existe
+    let modal = document.getElementById('__modal-precarga-ml');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = '__modal-precarga-ml';
+        modal.className = 'modal fade';
+        modal.tabIndex = -1;
+        modal.innerHTML = `
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border border-warning">
+                <div class="modal-header border-secondary pb-2">
+                    <h6 class="modal-title fw-bold">🧪 Nueva Botella Fuente</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <p class="small mb-3" id="__precarga-nombre-label"></p>
+                    <label class="form-label small fw-bold">¿Cuántos ml tiene la botella?</label>
+                    <input type="number" id="__precarga-ml-input" class="form-control bg-dark text-white border-secondary"
+                        placeholder="Ej: 100" min="1" value="100">
+                </div>
+                <div class="modal-footer border-secondary pt-2 gap-2">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" id="__precarga-cancelar">Cancelar — editar manualmente</button>
+                    <button class="btn btn-warning btn-sm fw-bold" id="__precarga-confirmar">Guardar 🔥</button>
+                </div>
+            </div>
+        </div>`;
+        document.body.appendChild(modal);
     }
 
-    // 3. Construimos el objeto para Firebase
-    const mlTotal = parseFloat(mlInput) || 100;
-    const nuevaFuente = {
-        id:       'fuente_' + Date.now(),
-        nombre:   p.nombre || '',
-        marca:    p.marca || '',
-        mlTotal:  mlTotal,
-        mlUsados: 0,
-        costo:    parseFloat(p.costo) || 0,
-        imagen:   p.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
-        tallas:   [ {ml: 5, precio: ''}, {ml: 10, precio: ''} ],
-        notas:    'Agregado directo desde el inventario',
-        createdAt: new Date().toISOString()
+    document.getElementById('__precarga-nombre-label').textContent =
+        `"${p.nombre}" (${p.marca || 'Sin marca'}) — $${p.costo || 0} costo`;
+    document.getElementById('__precarga-ml-input').value = 100;
+
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+
+    // Cancelar → abrir modal completo con datos precargados
+    document.getElementById('__precarga-cancelar').onclick = () => {
+        bsModal.hide();
+        resetFormFuente();
+        document.getElementById('fuente-nombre').value = p.nombre  || '';
+        document.getElementById('fuente-marca').value  = p.marca   || '';
+        document.getElementById('fuente-imagen').value = p.imagen  || '';
+        document.getElementById('fuente-costo').value  = p.costo   || '';
+        setTimeout(() => new bootstrap.Modal(document.getElementById('modalNuevaFuente')).show(), 400);
     };
 
-    _fuentes.push(nuevaFuente);
-    
-    // 4. Subimos a Firebase y actualizamos la interfaz
-    try {
-        await saveData(DECANTS_FUENTES_KEY, _fuentes);
-        cargarFuentes();
-        actualizarKPIs();
-        llenarSelectFuentes();
-        mostrarToast(`🔥 "${p.nombre}" guardado exitosamente en Firebase`, 'success');
-    } catch (error) {
-        console.error("Error al guardar en Firebase:", error);
-        alert("❌ Error al conectar con la base de datos.");
-    }
+    // Confirmar → guardar directo en Firebase
+    document.getElementById('__precarga-confirmar').onclick = async () => {
+        const mlTotal = parseFloat(document.getElementById('__precarga-ml-input').value) || 100;
+        bsModal.hide();
+
+        const nuevaFuente = {
+            id:        'fuente_' + Date.now(),
+            nombre:    p.nombre  || '',
+            marca:     p.marca   || '',
+            mlTotal,
+            mlUsados:  0,
+            costo:     parseFloat(p.costo) || 0,
+            imagen:    p.imagen  || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
+            tallas:    [{ ml: 5, precio: '' }, { ml: 10, precio: '' }],
+            notas:     'Agregado desde inventario',
+            createdAt: new Date().toISOString()
+        };
+
+        _fuentes.push(nuevaFuente);
+        try {
+            await saveData(DECANTS_FUENTES_KEY, _fuentes);
+            cargarFuentes();
+            actualizarKPIs();
+            llenarSelectFuentes();
+            mostrarToast(`🔥 "${p.nombre}" guardado en Firebase (${mlTotal}ml)`, 'success');
+        } catch (e) {
+            console.error('Error Firebase:', e);
+            mostrarToast('❌ Error al conectar con la base de datos.', 'danger');
+        }
+    };
 }
 
 // =========================================================
@@ -133,11 +159,9 @@ function cargarFuentes() {
         const pct    = f.mlTotal ? Math.round(((f.mlUsados||0) / f.mlTotal) * 100) : 0;
         const badgeCls = mlDisp <= 0 ? 'badge-ml-low' : mlDisp < (f.mlTotal * 0.2) ? 'badge-ml-mid' : 'badge-ml-avail';
         const img    = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
-
         const tallasHTML = (f.tallas || []).map(t =>
             `<span class="badge bg-secondary ml-badge me-1">${t.ml}ml $${t.precio}</span>`
         ).join('');
-
         const contVentas = _ventasD.filter(v => v.fuenteId === f.id).length;
 
         return `
@@ -154,9 +178,7 @@ function cargarFuentes() {
                 </div>
                 <small class="text-muted">${f.mlUsados || 0} / ${f.mlTotal || 0} ml usados</small>
             </td>
-            <td>
-                <span class="badge ml-badge ${badgeCls}">${mlDisp} ml</span>
-            </td>
+            <td><span class="badge ml-badge ${badgeCls}">${mlDisp} ml</span></td>
             <td><span class="badge bg-info bg-opacity-25 text-info border border-info">${contVentas} 💧</span></td>
             <td class="text-center">
                 <div class="d-flex gap-1 justify-content-center flex-wrap">
@@ -195,12 +217,11 @@ function cargarHistorialVentas() {
     }
 
     const ordenadas = [..._ventasD].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
     tbody.innerHTML = ordenadas.map(v => {
-        const fuente  = _fuentes.find(f => f.id === v.fuenteId);
-        const nombre  = fuente ? fuente.nombre : (v.nombrePerfume || '-');
+        const fuente   = _fuentes.find(f => f.id === v.fuenteId);
+        const nombre   = fuente ? fuente.nombre : (v.nombrePerfume || '-');
         const ganancia = (v.precio || 0) - (v.costoAprox || 0);
-        const fecha   = new Date(v.fecha).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit' });
+        const fecha    = new Date(v.fecha).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit' });
         return `
         <tr>
             <td><small class="text-muted">${fecha}</small></td>
@@ -218,9 +239,8 @@ function cargarHistorialVentas() {
 // KPIs
 // =========================================================
 function actualizarKPIs() {
-    const mlTotal = _fuentes.reduce((s, f) => s + ((f.mlTotal||0) - (f.mlUsados||0)), 0);
-    const ganancia = _ventasD.reduce((s, v) => s + ((v.precio||0) - (v.costoAprox||0)), 0);
-
+    const mlTotal  = _fuentes.reduce((s, f) => s + ((f.mlTotal||0) - (f.mlUsados||0)), 0);
+    const ganancia = _ventasD.reduce((s, v)  => s + ((v.precio||0)  - (v.costoAprox||0)), 0);
     document.getElementById('kpi-fuentes').textContent  = _fuentes.length;
     document.getElementById('kpi-ml-total').textContent = mlTotal + ' ml';
     document.getElementById('kpi-vendidos').textContent = _ventasD.length;
@@ -228,12 +248,10 @@ function actualizarKPIs() {
 }
 
 // =========================================================
-// FORMULARIO TALLAS (en modal nueva fuente)
+// FORMULARIO TALLAS
 // =========================================================
 function renderTallasDefault() {
-    _tallasFila = TALLAS_DEFAULT.map((ml, i) => ({
-        id: i, ml: ml, precio: '', activa: [2,5,10].includes(ml)
-    }));
+    _tallasFila = TALLAS_DEFAULT.map((ml, i) => ({ id: i, ml, precio: '', activa: [2,5,10].includes(ml) }));
     renderFilasTallas();
 }
 
@@ -278,12 +296,9 @@ function quitarFilaTalla(i) {
 // GUARDAR / EDITAR FUENTE
 // =========================================================
 function guardarFuente() {
-    const nombre   = document.getElementById('fuente-nombre').value.trim();
-    const mlTotal  = parseFloat(document.getElementById('fuente-ml-total').value) || 0;
-    if (!nombre || !mlTotal) {
-        alert('⚠️ Nombre y ml totales son obligatorios.');
-        return;
-    }
+    const nombre  = document.getElementById('fuente-nombre').value.trim();
+    const mlTotal = parseFloat(document.getElementById('fuente-ml-total').value) || 0;
+    if (!nombre || !mlTotal) { alert('⚠️ Nombre y ml totales son obligatorios.'); return; }
 
     const tallas = _tallasFila
         .filter(t => t.activa && t.ml > 0)
@@ -296,8 +311,7 @@ function guardarFuente() {
         const idx = _fuentes.findIndex(f => f.id === editId);
         if (idx !== -1) {
             _fuentes[idx] = {
-                ..._fuentes[idx],
-                nombre,
+                ..._fuentes[idx], nombre,
                 marca:    document.getElementById('fuente-marca').value.trim(),
                 mlTotal,
                 mlUsados: parseFloat(document.getElementById('fuente-ml-usados').value) || _fuentes[idx].mlUsados || 0,
@@ -310,8 +324,7 @@ function guardarFuente() {
         }
     } else {
         _fuentes.push({
-            id:       'fuente_' + Date.now(),
-            nombre,
+            id:       'fuente_' + Date.now(), nombre,
             marca:    document.getElementById('fuente-marca').value.trim(),
             mlTotal,
             mlUsados: parseFloat(document.getElementById('fuente-ml-usados').value) || 0,
@@ -334,14 +347,14 @@ function guardarFuente() {
 }
 
 function resetFormFuente() {
-    document.getElementById('fuente-edit-id').value  = '';
-    document.getElementById('fuente-nombre').value   = '';
-    document.getElementById('fuente-marca').value    = '';
-    document.getElementById('fuente-ml-total').value = '';
-    document.getElementById('fuente-ml-usados').value= '0';
-    document.getElementById('fuente-costo').value    = '';
-    document.getElementById('fuente-imagen').value   = '';
-    document.getElementById('fuente-notas').value    = '';
+    document.getElementById('fuente-edit-id').value   = '';
+    document.getElementById('fuente-nombre').value    = '';
+    document.getElementById('fuente-marca').value     = '';
+    document.getElementById('fuente-ml-total').value  = '';
+    document.getElementById('fuente-ml-usados').value = '0';
+    document.getElementById('fuente-costo').value     = '';
+    document.getElementById('fuente-imagen').value    = '';
+    document.getElementById('fuente-notas').value     = '';
     document.getElementById('titulo-modal-fuente').textContent = '🧴 Nueva Botella Fuente';
     renderTallasDefault();
 }
@@ -358,30 +371,74 @@ function editarFuente(id) {
     document.getElementById('fuente-imagen').value    = f.imagen || '';
     document.getElementById('fuente-notas').value     = f.notas || '';
     document.getElementById('titulo-modal-fuente').textContent = '✏️ Editar Fuente';
-
     _tallasFila = (f.tallas || []).map((t, i) => ({ id: i, ml: t.ml, precio: t.precio, activa: true }));
     if (!_tallasFila.length) renderTallasDefault();
     else renderFilasTallas();
-
     new bootstrap.Modal(document.getElementById('modalNuevaFuente')).show();
 }
 
 function eliminarFuente(id) {
     const f = _fuentes.find(x => x.id === id);
     if (!f) return;
-    if (!confirm(`🗑️ ¿Eliminar la fuente "${f.nombre}"?\nSe eliminarán también sus ventas de decants.`)) return;
-    _fuentes  = _fuentes.filter(x => x.id !== id);
-    _ventasD  = _ventasD.filter(v => v.fuenteId !== id);
-    Promise.all([
-        saveData(DECANTS_FUENTES_KEY, _fuentes),
-        saveData(DECANTS_VENTAS_KEY, _ventasD)
-    ]).then(() => {
-        cargarFuentes();
-        cargarHistorialVentas();
-        actualizarKPIs();
-        llenarSelectFuentes();
-        mostrarToast('🗑️ Fuente eliminada', 'warning');
-    });
+    // Modal de confirmación Bootstrap en vez de confirm()
+    _confirmarAccion(
+        `🗑️ ¿Eliminar "${f.nombre}"?`,
+        'Se eliminarán también sus ventas de decants. Esta acción no se puede deshacer.',
+        'Eliminar',
+        'btn-danger',
+        () => {
+            _fuentes = _fuentes.filter(x => x.id !== id);
+            _ventasD = _ventasD.filter(v => v.fuenteId !== id);
+            Promise.all([
+                saveData(DECANTS_FUENTES_KEY, _fuentes),
+                saveData(DECANTS_VENTAS_KEY,  _ventasD)
+            ]).then(() => {
+                cargarFuentes();
+                cargarHistorialVentas();
+                actualizarKPIs();
+                llenarSelectFuentes();
+                mostrarToast('🗑️ Fuente eliminada', 'warning');
+            });
+        }
+    );
+}
+
+// =========================================================
+// HELPER: Modal de confirmación genérico (reemplaza confirm())
+// =========================================================
+function _confirmarAccion(titulo, mensaje, btnLabel, btnClass, onConfirm) {
+    let modal = document.getElementById('__modal-confirm-decant');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = '__modal-confirm-decant';
+        modal.className = 'modal fade';
+        modal.tabIndex = -1;
+        modal.innerHTML = `
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border border-secondary">
+                <div class="modal-header border-secondary pb-2">
+                    <h6 class="modal-title fw-bold" id="__confirm-titulo"></h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-2">
+                    <p class="small mb-0" id="__confirm-mensaje"></p>
+                </div>
+                <div class="modal-footer border-secondary pt-2 gap-2">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-sm fw-bold" id="__confirm-btn"></button>
+                </div>
+            </div>
+        </div>`;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('__confirm-titulo').textContent  = titulo;
+    document.getElementById('__confirm-mensaje').textContent = mensaje;
+    const btn = document.getElementById('__confirm-btn');
+    btn.textContent = btnLabel;
+    btn.className   = `btn btn-sm fw-bold ${btnClass}`;
+    const bsModal = new bootstrap.Modal(modal);
+    btn.onclick = () => { bsModal.hide(); onConfirm(); };
+    bsModal.show();
 }
 
 // =========================================================
@@ -390,16 +447,16 @@ function eliminarFuente(id) {
 function abrirAjusteML(id) {
     const f = _fuentes.find(x => x.id === id);
     if (!f) return;
-    document.getElementById('ajuste-fuente-id').value       = id;
+    document.getElementById('ajuste-fuente-id').value           = id;
     document.getElementById('ajuste-fuente-nombre').textContent = f.nombre;
-    document.getElementById('ajuste-ml-usados').value       = f.mlUsados || 0;
+    document.getElementById('ajuste-ml-usados').value           = f.mlUsados || 0;
     new bootstrap.Modal(document.getElementById('modalAjusteML')).show();
 }
 
 function guardarAjusteML() {
-    const id = document.getElementById('ajuste-fuente-id').value;
+    const id       = document.getElementById('ajuste-fuente-id').value;
     const nuevoVal = parseFloat(document.getElementById('ajuste-ml-usados').value) || 0;
-    const idx = _fuentes.findIndex(f => f.id === id);
+    const idx      = _fuentes.findIndex(f => f.id === id);
     if (idx === -1) return;
     _fuentes[idx].mlUsados = nuevoVal;
     saveData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
@@ -435,21 +492,18 @@ function abrirVentaRapida(fuenteId) {
 }
 
 function onSeleccionarFuente() {
-    const id = document.getElementById('venta-fuente-id').value;
+    const id     = document.getElementById('venta-fuente-id').value;
     const bloque = document.getElementById('bloque-tallas-venta');
     const cont   = document.getElementById('tallas-venta-btns');
     if (!id || !bloque || !cont) { bloque && (bloque.style.display='none'); return; }
-
     const f = _fuentes.find(x => x.id === id);
     if (!f || !f.tallas?.length) { bloque.style.display='none'; return; }
-
     bloque.style.display = 'block';
     cont.innerHTML = f.tallas.map(t => `
         <button type="button" class="btn btn-outline-light btn-sm talla-btn"
             onclick="seleccionarTalla(this, ${t.ml}, ${t.precio})">
             ${t.ml}ml${t.precio ? ' — $'+t.precio : ''}
         </button>`).join('');
-
     document.getElementById('venta-ml').value = '';
     document.getElementById('venta-precio-sugerido').value = '';
     document.getElementById('venta-precio').value = '';
@@ -465,12 +519,12 @@ function seleccionarTalla(btn, ml, precio) {
 }
 
 function validarMLDisponibles() {
-    const id       = document.getElementById('venta-fuente-id').value;
-    const ml       = parseFloat(document.getElementById('venta-ml').value) || 0;
-    const cant     = parseInt(document.getElementById('venta-cantidad')?.value) || 1;
-    const alerta   = document.getElementById('alerta-ml-insuficiente');
+    const id     = document.getElementById('venta-fuente-id').value;
+    const ml     = parseFloat(document.getElementById('venta-ml').value) || 0;
+    const cant   = parseInt(document.getElementById('venta-cantidad')?.value) || 1;
+    const alerta = document.getElementById('alerta-ml-insuficiente');
     if (!id || !ml) { alerta?.classList.add('d-none'); return; }
-    const f = _fuentes.find(x => x.id === id);
+    const f    = _fuentes.find(x => x.id === id);
     const disp = f ? ((f.mlTotal||0) - (f.mlUsados||0)) : 0;
     if (ml * cant > disp) alerta?.classList.remove('d-none');
     else alerta?.classList.add('d-none');
@@ -489,8 +543,8 @@ function registrarVentaDecant() {
 
     const fIdx = _fuentes.findIndex(f => f.id === fuenteId);
     if (fIdx === -1) return;
-    const f     = _fuentes[fIdx];
-    const disp  = (f.mlTotal||0) - (f.mlUsados||0);
+    const f    = _fuentes[fIdx];
+    const disp = (f.mlTotal||0) - (f.mlUsados||0);
     const total = ml * cantidad;
 
     if (total > disp) {
@@ -500,7 +554,6 @@ function registrarVentaDecant() {
 
     const costoPorMl = f.costo && f.mlTotal ? (f.costo / f.mlTotal) : 0;
     const costoAprox = costoPorMl * ml * cantidad;
-
     _fuentes[fIdx].mlUsados = (f.mlUsados||0) + total;
 
     for (let i = 0; i < cantidad; i++) {
@@ -509,8 +562,7 @@ function registrarVentaDecant() {
             fuenteId,
             nombrePerfume: f.nombre,
             marca:         f.marca || '',
-            ml,
-            precio,
+            ml, precio,
             costoAprox:    costoAprox / cantidad,
             cliente,
             fecha:         new Date().toISOString()
@@ -528,11 +580,10 @@ function registrarVentaDecant() {
         document.getElementById('venta-cantidad').value = '1';
         document.getElementById('venta-cliente').value = '';
         document.getElementById('bloque-tallas-venta').style.display = 'none';
-
         cargarFuentes();
         cargarHistorialVentas();
         actualizarKPIs();
-        mostrarToast(`✅ ${cantidad} decant(s) de ${ml}ml vendido(s) y guardados en Firebase 🔥`, 'success');
+        mostrarToast(`✅ ${cantidad} decant(s) de ${ml}ml vendido(s) 🔥`, 'success');
     });
 }
 
@@ -542,68 +593,51 @@ function registrarVentaDecant() {
 function abrirVentaBotella(id) {
     const f = _fuentes.find(x => x.id === id);
     if (!f) return;
-
     const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
-    if (mlDisp <= 0) {
-        alert("❌ Esta botella ya no tiene líquido disponible.");
-        return;
-    }
-
-    // Calculamos qué fracción del costo original corresponde a los ml que sobraron
-    const costoPorMl = (f.costo && f.mlTotal) ? (f.costo / f.mlTotal) : 0;
+    if (mlDisp <= 0) { alert('❌ Esta botella ya no tiene líquido disponible.'); return; }
+    const costoPorMl    = (f.costo && f.mlTotal) ? (f.costo / f.mlTotal) : 0;
     const costoRestante = costoPorMl * mlDisp;
-
-    document.getElementById('vb-id').value = id;
-    document.getElementById('vb-nombre').textContent = f.nombre;
-    document.getElementById('vb-ml').textContent = mlDisp + ' ml';
-    document.getElementById('vb-costo').textContent = '$' + costoRestante.toFixed(2);
-    
-    document.getElementById('vb-precio').value = '';
-    document.getElementById('vb-cliente').value = '';
-
+    document.getElementById('vb-id').value              = id;
+    document.getElementById('vb-nombre').textContent    = f.nombre;
+    document.getElementById('vb-ml').textContent        = mlDisp + ' ml';
+    document.getElementById('vb-costo').textContent     = '$' + costoRestante.toFixed(2);
+    document.getElementById('vb-precio').value          = '';
+    document.getElementById('vb-cliente').value         = '';
     new bootstrap.Modal(document.getElementById('modalVenderBotella')).show();
 }
 
 function registrarVentaBotella() {
-    const id = document.getElementById('vb-id').value;
-    const precio = parseFloat(document.getElementById('vb-precio').value) || 0;
+    const id      = document.getElementById('vb-id').value;
+    const precio  = parseFloat(document.getElementById('vb-precio').value) || 0;
     const cliente = document.getElementById('vb-cliente').value.trim();
-
-    if (!precio) return alert("⚠️ Ingresa el precio de venta final.");
-
+    if (!precio) { alert('⚠️ Ingresa el precio de venta final.'); return; }
     const fIdx = _fuentes.findIndex(x => x.id === id);
     if (fIdx === -1) return;
-
-    const f = _fuentes[fIdx];
-    const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
-    const costoPorMl = (f.costo && f.mlTotal) ? (f.costo / f.mlTotal) : 0;
+    const f             = _fuentes[fIdx];
+    const mlDisp        = (f.mlTotal || 0) - (f.mlUsados || 0);
+    const costoPorMl    = (f.costo && f.mlTotal) ? (f.costo / f.mlTotal) : 0;
     const costoRestante = costoPorMl * mlDisp;
-
-    // Registramos la venta en el historial de decants, etiquetada como botella física
     _ventasD.push({
-        id: 'dv_bot_' + Date.now(),
-        fuenteId: f.id,
+        id:            'dv_bot_' + Date.now(),
+        fuenteId:      f.id,
         nombrePerfume: f.nombre + ' 🍾 (Botella Restante)',
-        marca: f.marca || '',
-        ml: mlDisp,
-        precio: precio,
-        costoAprox: costoRestante,
-        cliente: cliente,
-        fecha: new Date().toISOString()
+        marca:         f.marca || '',
+        ml:            mlDisp,
+        precio,
+        costoAprox:    costoRestante,
+        cliente,
+        fecha:         new Date().toISOString()
     });
-
-    // Agotamos la botella en el inventario de fuentes
     _fuentes[fIdx].mlUsados = f.mlTotal;
-
     Promise.all([
         saveData(DECANTS_FUENTES_KEY, _fuentes),
-        saveData(DECANTS_VENTAS_KEY, _ventasD)
+        saveData(DECANTS_VENTAS_KEY,  _ventasD)
     ]).then(() => {
         bootstrap.Modal.getInstance(document.getElementById('modalVenderBotella'))?.hide();
         cargarFuentes();
         cargarHistorialVentas();
         actualizarKPIs();
-        mostrarToast(`🍾 Botella restante liquidada exitosamente`, 'info');
+        mostrarToast('🍾 Botella restante liquidada exitosamente', 'info');
     });
 }
 
