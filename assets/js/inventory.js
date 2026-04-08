@@ -258,10 +258,9 @@ function renderFilaHija(prod, index) {
 
 // ========== BOTONES ACCIÓN (actualizado con "Pasar a Decants") ==========
 function getBotonesAccion(index) {
-    // El botón 🧪 abre un mini-modal para pasar a Decants
     return `
         <div class="d-flex gap-1 flex-wrap justify-content-center">
-            <button class="btn btn-sm btn-gold" onclick="abrirModalVenta(${index})" title="Vender">
+            <button class="btn btn-sm btn-gold" onclick="iniciarVenta(${index})" title="Vender">
                 <i class="bi bi-cash-coin"></i>
             </button>
             <button class="btn btn-sm btn-outline-secondary" onclick="agregarAlCarrito(${index})" title="Carrito">
@@ -270,7 +269,7 @@ function getBotonesAccion(index) {
             <button class="btn btn-sm btn-outline-warning" onclick="editarProducto(${index})" title="Editar">
                 <i class="bi bi-pencil"></i>
             </button>
-            <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" style="font-size:0.75rem;">
+            <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" style="font-size:0.75rem">
                 🧪
             </button>
             <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index})" title="Eliminar">
