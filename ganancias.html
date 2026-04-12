@@ -18,77 +18,33 @@
     <script type="module" src="assets/js/firebase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* ── KPI Cards ── */
-        .kpi-card {
-            border-radius: 16px;
-            border: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+        .kpi-card { border-radius: 16px; border: none; transition: transform 0.2s, box-shadow 0.2s; }
         .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
         .kpi-main { font-size: 1.9rem; font-weight: 700; line-height: 1.1; }
         .kpi-sub  { font-size: 0.70rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.7; margin-bottom: 4px; }
-
-        /* ── Tendencia badge ── */
-        .kpi-trend {
-            font-size: 0.72rem; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 3px;
-            padding: 2px 8px; border-radius: 20px; margin-top: 6px;
-        }
-        .trend-up   { background: rgba(40,167,69,0.2); color: #28a745; }
+        .kpi-trend { font-size: 0.72rem; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; margin-top: 6px; }
+        .trend-up   { background: rgba(40,167,69,0.2);  color: #28a745; }
         .trend-down { background: rgba(220,53,69,0.2);  color: #dc3545; }
         .trend-flat { background: rgba(150,150,150,0.2); color: #888; }
-
-        /* ── Sparkline canvas ── */
-        .sparkline { display: block; margin-top: 6px; }
-
-        /* ── Período selector ── */
+        .sparkline  { display: block; margin-top: 6px; }
         .periodo-btn.active { background: #FFD700 !important; color: #000 !important; border-color: #FFD700 !important; font-weight: 700; }
-
-        /* ── Chips de perfumes ── */
-        .perfume-chip {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: #23211a; border: 1px solid #3a3830;
-            border-radius: 20px; padding: 4px 14px 4px 10px;
-            font-size: 0.82rem; cursor: pointer; transition: all 0.15s;
-            color: #ccc;
-        }
+        .perfume-chip { display: inline-flex; align-items: center; gap: 6px; background: #23211a; border: 1px solid #3a3830; border-radius: 20px; padding: 4px 14px 4px 10px; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; color: #ccc; }
         .perfume-chip.selected { background: #FFD700; color: #000; border-color: #FFD700; font-weight: 600; }
         .perfume-chip:hover { border-color: #FFD700; }
-
-        /* ── Tabla ── */
         .detalle-row:hover { background: rgba(255,215,0,0.05); }
         .badge-ganancia { background: rgba(40,167,69,0.18); color: #28a745; border: 1px solid #28a745; }
         .badge-costo    { background: rgba(220,53,69,0.18);  color: #dc3545; border: 1px solid #dc3545; }
         .badge-venta    { background: rgba(13,202,240,0.18); color: #0dcaf0; border: 1px solid #0dcaf0; }
         #search-perfume { background: #1a1a1a; border: 1px solid #3a3830; color: #ccc; border-radius: 10px; }
         #search-perfume:focus { border-color: #FFD700; outline: none; box-shadow: 0 0 0 2px rgba(255,215,0,0.15); }
-        .section-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: #888; font-weight: 700; margin-bottom: 12px; }
         .table-detalle thead th { background: #1a1a1a; color: #999; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #2d2d2d; }
         .empty-analysis { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #555; gap: 12px; }
         .empty-analysis i { font-size: 3rem; }
-
-        /* ── Meta mensual ── */
-        .meta-progress-bar {
-            height: 10px; border-radius: 20px;
-            background: #2d2d2d; overflow: hidden;
-        }
-        .meta-progress-fill {
-            height: 100%; border-radius: 20px;
-            background: linear-gradient(90deg, #FFD700, #ff9900);
-            transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
-        }
-        .meta-input {
-            background: #111; border: 1px solid #333; color: #FFD700;
-            border-radius: 8px; padding: 4px 10px; font-size: 0.85rem;
-            width: 130px; font-weight: 600;
-        }
+        .meta-progress-bar  { height: 10px; border-radius: 20px; background: #2d2d2d; overflow: hidden; }
+        .meta-progress-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #FFD700, #ff9900); transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+        .meta-input { background: #111; border: 1px solid #333; color: #FFD700; border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; width: 130px; font-weight: 600; }
         .meta-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 2px rgba(255,215,0,0.15); }
-
-        /* ── Mejor/Peor día ── */
-        .dia-highlight {
-            border-radius: 12px; padding: 12px 16px;
-            display: flex; flex-direction: column; gap: 2px;
-        }
+        .dia-highlight { border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; }
         .dia-mejor { background: rgba(40,167,69,0.12); border: 1px solid rgba(40,167,69,0.3); }
         .dia-peor  { background: rgba(220,53,69,0.12);  border: 1px solid rgba(220,53,69,0.3); }
         .dia-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
@@ -126,9 +82,7 @@
                     <input type="number" id="meta-ganancia" class="meta-input" placeholder="ej. 5000" oninput="actualizarMeta()">
                 </div>
                 <div class="flex-grow-1" style="min-width:120px">
-                    <div class="meta-progress-bar">
-                        <div class="meta-progress-fill" id="meta-fill" style="width:0%"></div>
-                    </div>
+                    <div class="meta-progress-bar"><div class="meta-progress-fill" id="meta-fill" style="width:0%"></div></div>
                 </div>
                 <span id="meta-pct" style="font-size:0.85rem;color:#FFD700;font-weight:700;min-width:60px">0%</span>
                 <span id="meta-falta" style="font-size:0.78rem;color:#888"></span>
@@ -157,7 +111,7 @@
         </div>
     </div>
 
-    <!-- KPIs PRINCIPALES -->
+    <!-- KPIs -->
     <div class="row g-3 mb-4" id="kpis-row">
         <div class="col-6 col-md-4 col-lg-2">
             <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#1a2a1a,#0d1f0d)">
@@ -216,7 +170,7 @@
     </div>
 
     <!-- MEJOR / PEOR DÍA -->
-    <div class="row g-3 mb-4" id="dias-highlight-row">
+    <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
             <div class="dia-highlight dia-mejor">
                 <span class="dia-label" style="color:#28a745">🟢 Mejor día</span>
@@ -232,14 +186,14 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="dia-highlight" style="background:rgba(13,202,240,0.08);border:1px solid rgba(13,202,240,0.25);">
+            <div class="dia-highlight" style="background:rgba(13,202,240,0.08);border:1px solid rgba(13,202,240,0.25)">
                 <span class="dia-label" style="color:#0dcaf0">📦 Venta promedio</span>
                 <span class="dia-val text-info" id="promedio-venta">$—</span>
-                <span class="dia-fecha" id="promedio-venta-sub">por venta</span>
+                <span class="dia-fecha">por venta</span>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="dia-highlight" style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25);">
+            <div class="dia-highlight" style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25)">
                 <span class="dia-label" style="color:#FFD700">📈 Margen promedio</span>
                 <span class="dia-val" style="color:#FFD700" id="margen-promedio">—%</span>
                 <span class="dia-fecha">del período</span>
@@ -247,23 +201,17 @@
         </div>
     </div>
 
-    <!-- SEGUNDA FILA: Gráfica barras + Donut distribución + Tabla semanal -->
+    <!-- GRÁFICAS -->
     <div class="row g-4 mb-4">
         <div class="col-lg-5">
             <div class="card border-0 shadow" style="background:#1a1a1a">
-                <div class="card-header border-0 pb-0" style="background:#1a1a1a">
-                    <h6 class="fw-bold mb-0">📊 Ingresos vs Ganancia</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="chartGanancias" height="160"></canvas>
-                </div>
+                <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">📊 Ingresos vs Ganancia</h6></div>
+                <div class="card-body"><canvas id="chartGanancias" height="160"></canvas></div>
             </div>
         </div>
         <div class="col-lg-3">
             <div class="card border-0 shadow h-100" style="background:#1a1a1a">
-                <div class="card-header border-0 pb-0" style="background:#1a1a1a">
-                    <h6 class="fw-bold mb-0">🥧 Distribución del ingreso</h6>
-                </div>
+                <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">🥧 Distribución del ingreso</h6></div>
                 <div class="card-body d-flex flex-column align-items-center justify-content-center">
                     <canvas id="chartDonut" width="200" height="200"></canvas>
                     <div class="mt-3 d-flex flex-column gap-1 w-100" style="font-size:0.78rem">
@@ -276,23 +224,12 @@
         </div>
         <div class="col-lg-4">
             <div class="card border-0 shadow h-100" style="background:#1a1a1a">
-                <div class="card-header border-0 pb-0" style="background:#1a1a1a">
-                    <h6 class="fw-bold mb-0">📋 Resumen por semana</h6>
-                </div>
+                <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">📋 Resumen por semana</h6></div>
                 <div class="card-body p-0">
                     <div class="table-responsive" style="max-height:280px;overflow-y:auto">
                         <table class="table table-sm mb-0 table-detalle">
-                            <thead>
-                                <tr>
-                                    <th>Semana</th>
-                                    <th class="text-end">Ingresos</th>
-                                    <th class="text-end">Ganancia</th>
-                                    <th class="text-end">#</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-semanas">
-                                <tr><td colspan="4" class="text-center text-muted py-3">Selecciona un período</td></tr>
-                            </tbody>
+                            <thead><tr><th>Semana</th><th class="text-end">Ingresos</th><th class="text-end">Ganancia</th><th class="text-end">#</th></tr></thead>
+                            <tbody id="tabla-semanas"><tr><td colspan="4" class="text-center text-muted py-3">Selecciona un período</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -311,44 +248,26 @@
             <div id="chips-perfumes" class="d-flex flex-wrap gap-2 pb-3"></div>
         </div>
         <div class="card-body" id="analisis-perfume-body">
-            <div class="empty-analysis">
-                <i class="bi bi-search"></i>
-                <span>Selecciona un perfume arriba para ver su historial</span>
-            </div>
+            <div class="empty-analysis"><i class="bi bi-search"></i><span>Selecciona un perfume arriba para ver su historial</span></div>
         </div>
     </div>
 
-    <!-- HISTORIAL COMPLETO DEL PERÍODO -->
+    <!-- HISTORIAL -->
     <div class="card border-0 shadow" style="background:#1a1a1a">
         <div class="card-header border-0 pt-4 px-4 pb-2" style="background:#1a1a1a">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h6 class="fw-bold mb-0">📜 Todas las ventas del período</h6>
                 <div class="d-flex gap-2 align-items-center">
                     <span class="badge bg-secondary" id="total-ventas-badge">0 ventas</span>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="exportarHistorialCSV()" title="Descargar CSV">
-                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV
-                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="exportarHistorialCSV()"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV</button>
                 </div>
             </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-sm mb-0 table-detalle table-hover" id="tabla-historial-el">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Producto</th>
-                            <th>Cliente</th>
-                            <th class="text-end">Precio venta</th>
-                            <th class="text-end">Costo</th>
-                            <th class="text-end">Ganancia</th>
-                            <th class="text-end">Margen</th>
-                            <th>Tipo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-historial">
-                        <tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr>
-                    </tbody>
+                <table class="table table-sm mb-0 table-detalle table-hover">
+                    <thead><tr><th>Fecha</th><th>Producto</th><th>Cliente</th><th class="text-end">Precio venta</th><th class="text-end">Costo</th><th class="text-end">Ganancia</th><th class="text-end">Margen</th><th>Tipo</th></tr></thead>
+                    <tbody id="tabla-historial"><tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -365,12 +284,7 @@
 <script src="assets/js/ganancias.js"></script>
 
 <script>
-/* ─────────────────────────────────────────────
-   MEJORAS UI v2 — se enganchan después de que
-   ganancias.js carga los datos
-───────────────────────────────────────────── */
-
-// ── Donut Chart (Distribución del ingreso) ──
+// ── Donut Chart ──
 let donutChart = null;
 window._actualizarDonut = function(ingresos, costos, gastosOp) {
     const ctx = document.getElementById('chartDonut');
@@ -378,21 +292,14 @@ window._actualizarDonut = function(ingresos, costos, gastosOp) {
     const neta = Math.max(0, ingresos - costos - gastosOp);
     const data = [neta, costos, gastosOp];
     const total = data.reduce((a,b) => a+b, 0) || 1;
-    document.getElementById('donut-neta-pct').textContent = Math.round(neta/total*100) + '%';
-    document.getElementById('donut-costos-pct').textContent = Math.round(costos/total*100) + '%';
-    document.getElementById('donut-gastos-pct').textContent = Math.round(gastosOp/total*100) + '%';
+    document.getElementById('donut-neta-pct').textContent    = Math.round(neta/total*100) + '%';
+    document.getElementById('donut-costos-pct').textContent  = Math.round(costos/total*100) + '%';
+    document.getElementById('donut-gastos-pct').textContent  = Math.round(gastosOp/total*100) + '%';
     if (donutChart) donutChart.destroy();
     donutChart = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: ['Ganancia neta','Costos','Gastos op.'],
-            datasets: [{ data, backgroundColor: ['#28a745','#dc3545','#ffc107'],
-                borderWidth: 2, borderColor: '#1a1a1a', hoverOffset: 6 }]
-        },
-        options: {
-            cutout: '68%', plugins: { legend: { display: false },
-            tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.toLocaleString('es-MX') } } }
-        }
+        data: { labels: ['Ganancia neta','Costos','Gastos op.'], datasets: [{ data, backgroundColor: ['#28a745','#dc3545','#ffc107'], borderWidth: 2, borderColor: '#1a1a1a', hoverOffset: 6 }] },
+        options: { cutout: '68%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' $' + c.parsed.toLocaleString('es-MX') } } } }
     });
 };
 
@@ -400,10 +307,8 @@ window._actualizarDonut = function(ingresos, costos, gastosOp) {
 window._dibujarSparkline = function(canvasId, datos, color) {
     const c = document.getElementById(canvasId);
     if (!c || !datos || datos.length < 2) return;
-    const ctx = c.getContext('2d');
-    const w = c.width, h = c.height;
-    const min = Math.min(...datos), max = Math.max(...datos);
-    const range = max - min || 1;
+    const ctx = c.getContext('2d'), w = c.width, h = c.height;
+    const min = Math.min(...datos), max = Math.max(...datos), range = max - min || 1;
     ctx.clearRect(0,0,w,h);
     ctx.beginPath();
     datos.forEach((v,i) => {
@@ -420,50 +325,59 @@ window._actualizarTrend = function(elId, actual, anterior) {
     if (!el) return;
     if (!anterior || anterior === 0) { el.className='kpi-trend trend-flat'; el.textContent='— sin cambio'; return; }
     const pct = ((actual - anterior) / Math.abs(anterior) * 100).toFixed(1);
-    if (pct > 0) { el.className='kpi-trend trend-up'; el.innerHTML='▲ +'+pct+'% vs ant.'; }
-    else if (pct < 0) { el.className='kpi-trend trend-down'; el.innerHTML='▼ '+pct+'% vs ant.'; }
-    else { el.className='kpi-trend trend-flat'; el.textContent='— sin cambio'; }
+    if      (pct > 0)  { el.className='kpi-trend trend-up';   el.innerHTML='▲ +'+pct+'% vs ant.'; }
+    else if (pct < 0)  { el.className='kpi-trend trend-down'; el.innerHTML='▼ '+pct+'% vs ant.'; }
+    else               { el.className='kpi-trend trend-flat'; el.textContent='— sin cambio'; }
 };
 
-// ── Mejor/Peor día ──
+// ── Mejor / Peor día ──
+// Recibe ventas con { ts: <timestamp ms>, ganancia, precio }
 window._actualizarDias = function(ventas) {
     if (!ventas || ventas.length === 0) return;
+
+    // Agrupar por día usando el timestamp numérico directamente
     const porDia = {};
     ventas.forEach(v => {
-        const d = (v.fecha || '').slice(0,10);
-        if (!d) return;
-        if (!porDia[d]) porDia[d] = 0;
-        porDia[d] += (v.ganancia || 0);
+        if (!v.ts || v.ts <= 0) return;
+        const d = new Date(v.ts);
+        // clave: año-mes-dia en local para no tener problemas de zona horaria
+        const clave = d.getFullYear() + '-'
+            + String(d.getMonth()+1).padStart(2,'0') + '-'
+            + String(d.getDate()).padStart(2,'0');
+        if (!porDia[clave]) porDia[clave] = { ganancia: 0, ts: v.ts };
+        porDia[clave].ganancia += (v.ganancia || 0);
     });
-    const entradas = Object.entries(porDia);
+
+    const entradas = Object.entries(porDia); // [[clave, {ganancia, ts}], ...]
     if (entradas.length === 0) return;
-    const mejor = entradas.reduce((a,b) => b[1]>a[1]?b:a);
-    const peor  = entradas.reduce((a,b) => b[1]<a[1]?b:a);
-    const fmt = d => new Date(d+'T12:00:00').toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short'});
-    document.getElementById('mejor-dia-val').textContent = '$' + mejor[1].toLocaleString('es-MX', {minimumFractionDigits:2,maximumFractionDigits:2});
-    document.getElementById('mejor-dia-fecha').textContent = fmt(mejor[0]);
-    document.getElementById('peor-dia-val').textContent = '$' + peor[1].toLocaleString('es-MX', {minimumFractionDigits:2,maximumFractionDigits:2});
-    document.getElementById('peor-dia-fecha').textContent = fmt(peor[0]);
-    if (ventas.length > 0) {
-        const totalIngresos = ventas.reduce((a,v) => a+(v.precio||0), 0);
-        const totalGanancias = ventas.reduce((a,v) => a+(v.ganancia||0), 0);
-        document.getElementById('promedio-venta').textContent = '$' + (totalIngresos/ventas.length).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
-        document.getElementById('margen-promedio').textContent = totalIngresos > 0 ? Math.round(totalGanancias/totalIngresos*100)+'%' : '—%';
-    }
+
+    const mejor = entradas.reduce((a,b) => b[1].ganancia > a[1].ganancia ? b : a);
+    const peor  = entradas.reduce((a,b) => b[1].ganancia < a[1].ganancia ? b : a);
+
+    // Formatear fecha a partir del timestamp guardado en cada grupo
+    const fmtTs = ts => new Date(ts).toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' });
+
+    document.getElementById('mejor-dia-val').textContent   = '$' + mejor[1].ganancia.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('mejor-dia-fecha').textContent = fmtTs(mejor[1].ts);
+    document.getElementById('peor-dia-val').textContent    = '$' + peor[1].ganancia.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('peor-dia-fecha').textContent  = fmtTs(peor[1].ts);
+
+    const totalIngresos  = ventas.reduce((a,v) => a + (v.precio   || 0), 0);
+    const totalGanancias = ventas.reduce((a,v) => a + (v.ganancia || 0), 0);
+    document.getElementById('promedio-venta').textContent  = '$' + (ventas.length > 0 ? (totalIngresos / ventas.length) : 0).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('margen-promedio').textContent = totalIngresos > 0 ? Math.round(totalGanancias / totalIngresos * 100) + '%' : '—%';
 };
 
 // ── Meta de ganancia ──
 window.actualizarMeta = function() {
     const meta = parseFloat(document.getElementById('meta-ganancia').value) || 0;
     const netaEl = document.getElementById('kpi-neta');
-    const netaStr = netaEl ? netaEl.textContent.replace(/[$,]/g,'') : '0';
-    const neta = parseFloat(netaStr) || 0;
-    const pct = meta > 0 ? Math.min(100, Math.round(neta / meta * 100)) : 0;
+    const neta = parseFloat((netaEl ? netaEl.textContent : '0').replace(/[$,]/g,'')) || 0;
+    const pct  = meta > 0 ? Math.min(100, Math.round(neta / meta * 100)) : 0;
     document.getElementById('meta-fill').style.width = pct + '%';
-    document.getElementById('meta-pct').textContent = pct + '%';
+    document.getElementById('meta-pct').textContent  = pct + '%';
     const falta = meta - neta;
-    document.getElementById('meta-falta').textContent = falta > 0 ? `Faltan $${falta.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}` : falta <= 0 && meta > 0 ? '✅ ¡Meta alcanzada!' : '';
-    // guardar en memoria
+    document.getElementById('meta-falta').textContent = falta > 0 ? `Faltan $${falta.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}` : (falta <= 0 && meta > 0 ? '✅ ¡Meta alcanzada!' : '');
     window._metaGanancia = meta;
 };
 
@@ -472,22 +386,18 @@ window.exportarHistorialCSV = function() {
     const tbody = document.getElementById('tabla-historial');
     if (!tbody) return;
     const filas = tbody.querySelectorAll('tr');
-    if (filas.length === 0 || (filas.length === 1 && filas[0].querySelector('td[colspan]'))) {
-        alert('No hay datos para exportar.'); return;
-    }
+    if (filas.length === 0 || (filas.length === 1 && filas[0].querySelector('td[colspan]'))) { alert('No hay datos para exportar.'); return; }
     const headers = ['Fecha','Producto','Cliente','Precio venta','Costo','Ganancia','Margen','Tipo'];
     let csv = headers.join(',') + '\n';
     filas.forEach(tr => {
         const tds = tr.querySelectorAll('td');
         if (tds.length < 8) return;
-        const row = Array.from(tds).map(td => '"' + td.textContent.trim().replace(/"/g,'""') + '"');
-        csv += row.join(',') + '\n';
+        csv += Array.from(tds).map(td => '"' + td.textContent.trim().replace(/"/g,'""') + '"').join(',') + '\n';
     });
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'ganancias-fitoscents.csv'; a.click();
-    URL.revokeObjectURL(url);
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+    a.download = 'ganancias-fitoscents.csv';
+    a.click();
 };
 </script>
 </body>

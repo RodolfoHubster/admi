@@ -11,7 +11,6 @@ let todasVentas    = [];
 let todosGastos    = [];
 
 // Historial de períodos anteriores para calcular tendencias
-// Guarda { ingresos, costos, bruta, gastos, neta, cobrar } del período previo
 let _kpiAnterior   = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -62,7 +61,6 @@ function aplicarPeriodo(periodo) {
         desde = new Date(0);
     }
 
-    // Calcular período anterior para tendencias
     const duracion = ahora.getTime() - desde.getTime();
     const desdeAnterior = desde.getTime() - duracion;
     const hastaAnterior = desde.getTime() - 1;
@@ -81,8 +79,24 @@ function aplicarRangoPersonalizado() {
     fechaDesde = new Date(d + 'T00:00:00').getTime();
     fechaHasta = new Date(h + 'T23:59:59').getTime();
     periodoActual = 'custom';
-    _kpiAnterior = null; // sin período anterior en rango custom
+    _kpiAnterior = null;
     calcularYRenderizar();
+}
+
+// =========================================================
+// HELPER: obtener timestamp de una venta de forma segura
+// =========================================================
+
+function _tsDeVenta(v) {
+    if (typeof v.id === 'number' && v.id > 0) return v.id;
+    if (typeof v.id === 'string' && !isNaN(Number(v.id))) return Number(v.id);
+    if (v.fecha) {
+        const n = Number(v.fecha);
+        if (!isNaN(n) && n > 1000000000000) return n;       // timestamp ms
+        const d = new Date(v.fecha);
+        if (!isNaN(d.getTime())) return d.getTime();
+    }
+    return 0;
 }
 
 // =========================================================
@@ -91,7 +105,7 @@ function aplicarRangoPersonalizado() {
 
 function _calcularKpisParaRango(desde, hasta) {
     const ventas = todasVentas.filter(v => {
-        const ts = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+        const ts = _tsDeVenta(v);
         return ts >= desde && ts <= hasta;
     });
     const gastos = todosGastos.filter(g => {
@@ -124,7 +138,7 @@ function _calcularKpisParaRango(desde, hasta) {
 
 function ventasEnPeriodo() {
     return todasVentas.filter(v => {
-        const ts = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+        const ts = _tsDeVenta(v);
         return ts >= fechaDesde && ts <= fechaHasta;
     });
 }
@@ -170,7 +184,6 @@ function calcularYRenderizar() {
     const margenBruto  = ingresos > 0 ? ((bruta / ingresos) * 100).toFixed(1) : 0;
     const margenNeto   = ingresos > 0 ? ((neta  / ingresos) * 100).toFixed(1) : 0;
 
-    // KPIs
     setText('kpi-ingresos',       fmt(ingresos));
     setText('kpi-ingresos-ventas', `${ventas.length} venta${ventas.length !== 1 ? 's' : ''}`);
     setText('kpi-costos',          fmt(costos));
@@ -190,23 +203,22 @@ function calcularYRenderizar() {
 
     // ── WIDGETS NUEVOS (mejoras-ui-v2) ──────────────────────
 
-    // 1) Donut chart — distribución del ingreso
+    // 1) Donut chart
     if (typeof window._actualizarDonut === 'function') {
         window._actualizarDonut(ingresos, costos, gastosOperativos);
     }
 
-    // 2) Mejor / peor día + venta promedio + margen promedio
+    // 2) Mejor / peor día — se pasa timestamp numérico, nunca string
     if (typeof window._actualizarDias === 'function') {
-        // Adaptar ventas al formato esperado: { fecha, ganancia, precio }
         const ventasNorm = ventas.map(v => ({
-            fecha   : v.fecha || (v.id ? new Date(v.id).toISOString() : null),
+            ts      : _tsDeVenta(v),           // ← timestamp seguro, siempre número
             ganancia: parseFloat(v.utilidad   || 0),
             precio  : parseFloat(v.precioFinal || 0)
         }));
         window._actualizarDias(ventasNorm);
     }
 
-    // 3) Sparklines (mini gráficas por semana en cada KPI)
+    // 3) Sparklines
     if (typeof window._dibujarSparkline === 'function') {
         const sparkData = _buildSparkData(ventas, gastos);
         window._dibujarSparkline('spark-ingresos', sparkData.ingresos, '#0dcaf0');
@@ -217,7 +229,7 @@ function calcularYRenderizar() {
         window._dibujarSparkline('spark-cobrar',   sparkData.cobrar,   '#f06fb5');
     }
 
-    // 4) Indicadores de tendencia vs período anterior
+    // 4) Tendencias vs período anterior
     if (typeof window._actualizarTrend === 'function' && _kpiAnterior) {
         window._actualizarTrend('trend-ingresos', ingresos,         _kpiAnterior.ingresos);
         window._actualizarTrend('trend-costos',   costos,           _kpiAnterior.costos);
@@ -227,7 +239,7 @@ function calcularYRenderizar() {
         window._actualizarTrend('trend-cobrar',   porCobrar,        _kpiAnterior.cobrar);
     }
 
-    // 5) Actualizar barra de meta si hay valor definido
+    // 5) Barra de meta
     if (typeof window.actualizarMeta === 'function') {
         window.actualizarMeta();
     }
@@ -246,7 +258,7 @@ function _buildSparkData(ventas, gastos) {
     };
 
     ventas.forEach(v => {
-        const ts = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+        const ts = _tsDeVenta(v);
         const k  = getKey(ts);
         if (!semanas[k]) semanas[k] = { ingresos:0, costos:0, bruta:0, gastosSem:0, cobrar:0 };
         const precio = parseFloat(v.precioFinal || 0);
@@ -293,7 +305,7 @@ function renderGrafica(ventas) {
 
     if (diferenciaDias <= 31) {
         ventas.forEach(v => {
-            const ts   = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+            const ts   = _tsDeVenta(v);
             const key  = new Date(ts).toLocaleDateString('es-MX', { day:'2-digit', month:'short' });
             if (!agrupado[key]) agrupado[key] = { ingresos: 0, ganancia: 0 };
             agrupado[key].ingresos  += parseFloat(v.precioFinal || 0);
@@ -301,7 +313,7 @@ function renderGrafica(ventas) {
         });
     } else {
         ventas.forEach(v => {
-            const ts   = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+            const ts   = _tsDeVenta(v);
             const d    = new Date(ts);
             const key  = d.toLocaleDateString('es-MX', { month:'short', year:'2-digit' });
             if (!agrupado[key]) agrupado[key] = { ingresos: 0, ganancia: 0 };
@@ -348,7 +360,7 @@ function renderTablaSemanas(ventas) {
     const semanas = {};
 
     ventas.forEach(v => {
-        const ts  = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+        const ts  = _tsDeVenta(v);
         const d   = new Date(ts);
         const lun = new Date(d);
         const diffLun = d.getDay() === 0 ? 6 : d.getDay() - 1;
@@ -392,19 +404,14 @@ function renderHistorial(ventas) {
         return;
     }
 
-    const sorted = [...ventas].sort((a, b) => {
-        const ta = typeof a.id === 'number' ? a.id : new Date(a.fecha || 0).getTime();
-        const tb = typeof b.id === 'number' ? b.id : new Date(b.fecha || 0).getTime();
-        return tb - ta;
-    });
+    const sorted = [...ventas].sort((a, b) => _tsDeVenta(b) - _tsDeVenta(a));
 
     tbody.innerHTML = sorted.map(v => {
         const precio   = parseFloat(v.precioFinal || 0);
         const ganancia = parseFloat(v.utilidad    || 0);
         const costo    = precio - ganancia;
         const margen   = precio > 0 ? ((ganancia / precio) * 100).toFixed(1) : 0;
-        const ts       = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
-        const fecha    = new Date(ts).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+        const fecha    = new Date(_tsDeVenta(v)).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
         const tipoBadge = v.esCredito
             ? `<span class="badge bg-warning text-dark">Crédito</span>`
             : `<span class="badge bg-success">Contado</span>`;
@@ -471,11 +478,7 @@ function renderAnalisisPerfume() {
 
     perfumesSeleccionados.forEach(nombre => {
         const ventasPerfume = todasVentas.filter(v => v.producto === nombre)
-            .sort((a, b) => {
-                const ta = typeof a.id === 'number' ? a.id : new Date(a.fecha || 0).getTime();
-                const tb = typeof b.id === 'number' ? b.id : new Date(b.fecha || 0).getTime();
-                return tb - ta;
-            });
+            .sort((a, b) => _tsDeVenta(b) - _tsDeVenta(a));
 
         let totalIngresos = 0, totalGanancia = 0, totalCosto = 0;
         ventasPerfume.forEach(v => {
@@ -516,8 +519,7 @@ function renderAnalisisPerfume() {
                                 const ganancia = parseFloat(v.utilidad    || 0);
                                 const costo    = precio - ganancia;
                                 const margen   = precio > 0 ? ((ganancia / precio) * 100).toFixed(1) : 0;
-                                const ts       = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
-                                const fecha    = new Date(ts).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+                                const fecha    = new Date(_tsDeVenta(v)).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' });
                                 return `
                                 <tr class="detalle-row">
                                     <td style="font-size:0.78rem;white-space:nowrap">${fecha}</td>
