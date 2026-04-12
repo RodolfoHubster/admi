@@ -29,6 +29,9 @@ function cargarHeader() {
                         <a href="ventas.html" class="nav-link" data-page="ventas">
                             💰 Ventas
                         </a>
+                        <a href="ganancias.html" class="nav-link" data-page="ganancias">
+                            📊 Ganancias
+                        </a>
                         <a href="gastos.html" class="nav-link" data-page="gastos">
                             💸 Gastos
                         </a>
