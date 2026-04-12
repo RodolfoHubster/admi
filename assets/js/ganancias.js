@@ -10,6 +10,10 @@ let perfumesSeleccionados = new Set();
 let todasVentas    = [];
 let todosGastos    = [];
 
+// Historial de períodos anteriores para calcular tendencias
+// Guarda { ingresos, costos, bruta, gastos, neta, cobrar } del período previo
+let _kpiAnterior   = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
     await initApp();
     todasVentas  = JSON.parse(localStorage.getItem(SALES_KEY))    || [];
@@ -42,7 +46,7 @@ function aplicarPeriodo(periodo) {
 
     if (periodo === 'semana') {
         desde = new Date(ahora);
-        const dia = desde.getDay(); // 0=domingo
+        const dia = desde.getDay();
         const diff = dia === 0 ? 6 : dia - 1;
         desde.setDate(desde.getDate() - diff);
         desde.setHours(0, 0, 0, 0);
@@ -58,6 +62,12 @@ function aplicarPeriodo(periodo) {
         desde = new Date(0);
     }
 
+    // Calcular período anterior para tendencias
+    const duracion = ahora.getTime() - desde.getTime();
+    const desdeAnterior = desde.getTime() - duracion;
+    const hastaAnterior = desde.getTime() - 1;
+    _kpiAnterior = _calcularKpisParaRango(desdeAnterior, hastaAnterior);
+
     fechaDesde = desde.getTime();
     fechaHasta = ahora.getTime();
     calcularYRenderizar();
@@ -71,7 +81,41 @@ function aplicarRangoPersonalizado() {
     fechaDesde = new Date(d + 'T00:00:00').getTime();
     fechaHasta = new Date(h + 'T23:59:59').getTime();
     periodoActual = 'custom';
+    _kpiAnterior = null; // sin período anterior en rango custom
     calcularYRenderizar();
+}
+
+// =========================================================
+// CÁLCULO AUXILIAR (para período anterior)
+// =========================================================
+
+function _calcularKpisParaRango(desde, hasta) {
+    const ventas = todasVentas.filter(v => {
+        const ts = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+        return ts >= desde && ts <= hasta;
+    });
+    const gastos = todosGastos.filter(g => {
+        const ts = g.timestamp || new Date(g.fecha || 0).getTime();
+        return ts >= desde && ts <= hasta;
+    });
+    let ingresos = 0, costos = 0, bruta = 0, cobrar = 0;
+    ventas.forEach(v => {
+        const precio = parseFloat(v.precioFinal || 0);
+        const gan    = parseFloat(v.utilidad    || 0);
+        ingresos += precio; costos += precio - gan; bruta += gan;
+        if (v.esCredito && parseFloat(v.saldoPendiente || 0) > 0)
+            cobrar += parseFloat(v.saldoPendiente);
+    });
+    const gastosOp = gastos.reduce((s, g) => {
+        if (g.quienPago === 'mio')    return s + parseFloat(g.monto || 0);
+        if (g.quienPago === 'mitad')  return s + parseFloat(g.monto || 0) * 0.5;
+        if (g.quienPago === 'personalizado') {
+            const pct = 100 - (g.porcentajeSocio || 0);
+            return s + parseFloat(g.monto || 0) * (pct / 100);
+        }
+        return s;
+    }, 0);
+    return { ingresos, costos, bruta, gastos: gastosOp, neta: bruta - gastosOp, cobrar };
 }
 
 // =========================================================
@@ -143,6 +187,100 @@ function calcularYRenderizar() {
     renderTablaSemanas(ventas);
     renderHistorial(ventas);
     if (perfumesSeleccionados.size > 0) renderAnalisisPerfume();
+
+    // ── WIDGETS NUEVOS (mejoras-ui-v2) ──────────────────────
+
+    // 1) Donut chart — distribución del ingreso
+    if (typeof window._actualizarDonut === 'function') {
+        window._actualizarDonut(ingresos, costos, gastosOperativos);
+    }
+
+    // 2) Mejor / peor día + venta promedio + margen promedio
+    if (typeof window._actualizarDias === 'function') {
+        // Adaptar ventas al formato esperado: { fecha, ganancia, precio }
+        const ventasNorm = ventas.map(v => ({
+            fecha   : v.fecha || (v.id ? new Date(v.id).toISOString() : null),
+            ganancia: parseFloat(v.utilidad   || 0),
+            precio  : parseFloat(v.precioFinal || 0)
+        }));
+        window._actualizarDias(ventasNorm);
+    }
+
+    // 3) Sparklines (mini gráficas por semana en cada KPI)
+    if (typeof window._dibujarSparkline === 'function') {
+        const sparkData = _buildSparkData(ventas, gastos);
+        window._dibujarSparkline('spark-ingresos', sparkData.ingresos, '#0dcaf0');
+        window._dibujarSparkline('spark-costos',   sparkData.costos,   '#dc3545');
+        window._dibujarSparkline('spark-bruta',    sparkData.bruta,    '#FFD700');
+        window._dibujarSparkline('spark-gastos',   sparkData.gastosSem,'#ffc107');
+        window._dibujarSparkline('spark-neta',     sparkData.neta,     '#20c997');
+        window._dibujarSparkline('spark-cobrar',   sparkData.cobrar,   '#f06fb5');
+    }
+
+    // 4) Indicadores de tendencia vs período anterior
+    if (typeof window._actualizarTrend === 'function' && _kpiAnterior) {
+        window._actualizarTrend('trend-ingresos', ingresos,         _kpiAnterior.ingresos);
+        window._actualizarTrend('trend-costos',   costos,           _kpiAnterior.costos);
+        window._actualizarTrend('trend-bruta',    bruta,            _kpiAnterior.bruta);
+        window._actualizarTrend('trend-gastos',   gastosOperativos, _kpiAnterior.gastos);
+        window._actualizarTrend('trend-neta',     neta,             _kpiAnterior.neta);
+        window._actualizarTrend('trend-cobrar',   porCobrar,        _kpiAnterior.cobrar);
+    }
+
+    // 5) Actualizar barra de meta si hay valor definido
+    if (typeof window.actualizarMeta === 'function') {
+        window.actualizarMeta();
+    }
+}
+
+// Agrupa ventas y gastos por semana para los sparklines
+function _buildSparkData(ventas, gastos) {
+    const semanas = {};
+    const getKey = ts => {
+        const d = new Date(ts);
+        const lun = new Date(d);
+        const diff = d.getDay() === 0 ? 6 : d.getDay() - 1;
+        lun.setDate(d.getDate() - diff);
+        lun.setHours(0,0,0,0);
+        return lun.getTime();
+    };
+
+    ventas.forEach(v => {
+        const ts = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
+        const k  = getKey(ts);
+        if (!semanas[k]) semanas[k] = { ingresos:0, costos:0, bruta:0, gastosSem:0, cobrar:0 };
+        const precio = parseFloat(v.precioFinal || 0);
+        const gan    = parseFloat(v.utilidad    || 0);
+        semanas[k].ingresos += precio;
+        semanas[k].costos   += precio - gan;
+        semanas[k].bruta    += gan;
+        if (v.esCredito && parseFloat(v.saldoPendiente || 0) > 0)
+            semanas[k].cobrar += parseFloat(v.saldoPendiente);
+    });
+
+    gastos.forEach(g => {
+        const ts = g.timestamp || new Date(g.fecha || 0).getTime();
+        const k  = getKey(ts);
+        if (!semanas[k]) semanas[k] = { ingresos:0, costos:0, bruta:0, gastosSem:0, cobrar:0 };
+        let monto = 0;
+        if (g.quienPago === 'mio')    monto = parseFloat(g.monto || 0);
+        if (g.quienPago === 'mitad')  monto = parseFloat(g.monto || 0) * 0.5;
+        if (g.quienPago === 'personalizado') {
+            const pct = 100 - (g.porcentajeSocio || 0);
+            monto = parseFloat(g.monto || 0) * (pct / 100);
+        }
+        semanas[k].gastosSem += monto;
+    });
+
+    const keys = Object.keys(semanas).sort((a,b) => a-b);
+    return {
+        ingresos : keys.map(k => semanas[k].ingresos),
+        costos   : keys.map(k => semanas[k].costos),
+        bruta    : keys.map(k => semanas[k].bruta),
+        gastosSem: keys.map(k => semanas[k].gastosSem),
+        neta     : keys.map(k => semanas[k].bruta - semanas[k].gastosSem),
+        cobrar   : keys.map(k => semanas[k].cobrar)
+    };
 }
 
 // =========================================================
@@ -154,7 +292,6 @@ function renderGrafica(ventas) {
     const agrupado = {};
 
     if (diferenciaDias <= 31) {
-        // Por día
         ventas.forEach(v => {
             const ts   = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
             const key  = new Date(ts).toLocaleDateString('es-MX', { day:'2-digit', month:'short' });
@@ -163,7 +300,6 @@ function renderGrafica(ventas) {
             agrupado[key].ganancia  += parseFloat(v.utilidad    || 0);
         });
     } else {
-        // Por mes
         ventas.forEach(v => {
             const ts   = typeof v.id === 'number' ? v.id : new Date(v.fecha || 0).getTime();
             const d    = new Date(ts);
