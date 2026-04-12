@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="assets/js/auth.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitoscents - Ganancias</title>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/ui.css">
+    <link rel="stylesheet" href="assets/css/features.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+    <script type="module" src="assets/js/firebase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .kpi-card {
+            border-radius: 16px;
+            border: none;
+            transition: transform 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-2px); }
+        .kpi-main { font-size: 2rem; font-weight: 700; }
+        .kpi-sub  { font-size: 0.78rem; opacity: 0.75; }
+        .periodo-btn.active { background: #FFD700 !important; color: #000 !important; border-color: #FFD700 !important; font-weight: 700; }
+        .perfume-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #23211a; border: 1px solid #3a3830;
+            border-radius: 20px; padding: 4px 14px 4px 10px;
+            font-size: 0.82rem; cursor: pointer; transition: all 0.15s;
+            color: #ccc;
+        }
+        .perfume-chip.selected { background: #FFD700; color: #000; border-color: #FFD700; font-weight: 600; }
+        .perfume-chip:hover { border-color: #FFD700; }
+        .detalle-row:hover { background: rgba(255,215,0,0.05); }
+        .badge-ganancia { background: rgba(40,167,69,0.18); color: #28a745; border: 1px solid #28a745; }
+        .badge-costo    { background: rgba(220,53,69,0.18);  color: #dc3545; border: 1px solid #dc3545; }
+        .badge-venta    { background: rgba(13,202,240,0.18); color: #0dcaf0; border: 1px solid #0dcaf0; }
+        #search-perfume { background: #1a1a1a; border: 1px solid #3a3830; color: #ccc; border-radius: 10px; }
+        #search-perfume:focus { border-color: #FFD700; outline: none; box-shadow: 0 0 0 2px rgba(255,215,0,0.15); }
+        .section-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: #888; font-weight: 700; margin-bottom: 12px; }
+        .table-detalle thead th { background: #1a1a1a; color: #999; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #2d2d2d; }
+        .empty-analysis { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #555; gap: 12px; }
+        .empty-analysis i { font-size: 3rem; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid my-4" style="max-width:1400px">
+
+    <!-- HEADER -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold mb-0">💰 Centro de Ganancias</h2>
+            <p class="text-muted mb-0">Análisis completo de ingresos, costos y rentabilidad</p>
+        </div>
+        <div class="col-auto">
+            <a href="index.html" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- FILTRO PERÍODO -->
+    <div class="card mb-4 border-0 shadow-sm" style="background:#1a1a1a">
+        <div class="card-body py-3">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted me-2" style="font-size:0.85rem">📅 Ver período:</span>
+                <button class="btn btn-sm btn-outline-secondary periodo-btn active" data-periodo="semana">Esta semana</button>
+                <button class="btn btn-sm btn-outline-secondary periodo-btn" data-periodo="mes">Este mes</button>
+                <button class="btn btn-sm btn-outline-secondary periodo-btn" data-periodo="3meses">3 meses</button>
+                <button class="btn btn-sm btn-outline-secondary periodo-btn" data-periodo="6meses">6 meses</button>
+                <button class="btn btn-sm btn-outline-secondary periodo-btn" data-periodo="año">Este año</button>
+                <button class="btn btn-sm btn-outline-secondary periodo-btn" data-periodo="todo">Todo</button>
+                <div class="ms-auto d-flex gap-2 align-items-center flex-wrap">
+                    <input type="date" id="fecha-desde" class="form-control form-control-sm" style="background:#111;border:1px solid #333;color:#ccc;border-radius:8px;width:150px">
+                    <span class="text-muted">–</span>
+                    <input type="date" id="fecha-hasta" class="form-control form-control-sm" style="background:#111;border:1px solid #333;color:#ccc;border-radius:8px;width:150px">
+                    <button class="btn btn-sm btn-outline-warning" onclick="aplicarRangoPersonalizado()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs PRINCIPALES -->
+    <div class="row g-3 mb-4" id="kpis-row">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#1a2a1a,#0d1f0d)">
+                <div class="kpi-sub">💵 INGRESOS TOTALES</div>
+                <div class="kpi-main text-success" id="kpi-ingresos">$0</div>
+                <small class="text-muted" id="kpi-ingresos-ventas">0 ventas</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#1a1a2a,#0d0d1f)">
+                <div class="kpi-sub">💸 COSTO TOTAL</div>
+                <div class="kpi-main text-danger" id="kpi-costos">$0</div>
+                <small class="text-muted">lo invertido en período</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a2a0d,#1f1f00)">
+                <div class="kpi-sub">✅ GANANCIA BRUTA</div>
+                <div class="kpi-main" style="color:#FFD700" id="kpi-bruta">$0</div>
+                <small class="text-muted" id="kpi-margen-bruto">Margen: 0%</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a1a1a,#1f0d0d)">
+                <div class="kpi-sub">🧾 GASTOS OPERATIVOS</div>
+                <div class="kpi-main text-warning" id="kpi-gastos">$0</div>
+                <small class="text-muted" id="kpi-gastos-count">0 gastos</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#0d2a2a,#001f1f)">
+                <div class="kpi-sub">🏆 GANANCIA NETA</div>
+                <div class="kpi-main text-info" id="kpi-neta">$0</div>
+                <small class="text-muted" id="kpi-margen-neto">Margen neto: 0%</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a1a2a,#1f001f)">
+                <div class="kpi-sub">⏳ POR COBRAR</div>
+                <div class="kpi-main" style="color:#f06fb5" id="kpi-cobrar">$0</div>
+                <small class="text-muted" id="kpi-cobrar-clientes">0 clientes</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEGUNDA FILA: Gráfica + Tabla resumen por período -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow" style="background:#1a1a1a">
+                <div class="card-header border-0 pb-0" style="background:#1a1a1a">
+                    <h6 class="fw-bold mb-0">📊 Ingresos vs Ganancia — período seleccionado</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartGanancias" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow h-100" style="background:#1a1a1a">
+                <div class="card-header border-0 pb-0" style="background:#1a1a1a">
+                    <h6 class="fw-bold mb-0">📋 Resumen por semana</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height:280px;overflow-y:auto">
+                        <table class="table table-sm mb-0 table-detalle">
+                            <thead>
+                                <tr>
+                                    <th>Semana</th>
+                                    <th class="text-end">Ingresos</th>
+                                    <th class="text-end">Ganancia</th>
+                                    <th class="text-end">#</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-semanas">
+                                <tr><td colspan="4" class="text-center text-muted py-3">Selecciona un período</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANÁLISIS POR PERFUME -->
+    <div class="card border-0 shadow mb-4" style="background:#1a1a1a">
+        <div class="card-header border-0 pb-0 pt-4 px-4" style="background:#1a1a1a">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="fw-bold mb-0">🔍 Análisis por Perfume</h6>
+                <input type="text" id="search-perfume" placeholder="Buscar perfume..." class="form-control form-control-sm" style="max-width:220px" oninput="filtrarChips()">
+            </div>
+            <p class="text-muted mt-1 mb-3" style="font-size:0.82rem">Selecciona uno o varios perfumes para ver el detalle de sus ventas</p>
+            <div id="chips-perfumes" class="d-flex flex-wrap gap-2 pb-3"></div>
+        </div>
+        <div class="card-body" id="analisis-perfume-body">
+            <div class="empty-analysis">
+                <i class="bi bi-search"></i>
+                <span>Selecciona un perfume arriba para ver su historial</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORIAL COMPLETO DEL PERÍODO -->
+    <div class="card border-0 shadow" style="background:#1a1a1a">
+        <div class="card-header border-0 pt-4 px-4 pb-2" style="background:#1a1a1a">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">📜 Todas las ventas del período</h6>
+                <span class="badge bg-secondary" id="total-ventas-badge">0 ventas</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 table-detalle table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Cliente</th>
+                            <th class="text-end">Precio venta</th>
+                            <th class="text-end">Costo</th>
+                            <th class="text-end">Ganancia</th>
+                            <th class="text-end">Margen</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-historial">
+                        <tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="components/header.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/inventory.js"></script>
+<script src="assets/js/sales.js"></script>
+<script src="assets/js/ganancias.js"></script>
+</body>
+</html>
