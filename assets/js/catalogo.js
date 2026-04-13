@@ -1,5 +1,5 @@
 // =========================================================
-// CATÁLOGO VISUAL PARA WHATSAPP
+// CATÁLOGO VISUAL FITOSCENTS
 // =========================================================
 
 let productosDisponibles = [];
@@ -10,24 +10,42 @@ const WHATSAPP_NUMERO = '526648162623';
 document.addEventListener('DOMContentLoaded', () => {
     cargarCatalogo();
 
-    // Al imprimir, forzar filtro solo-disponibles temporalmente
+    // Al imprimir: forzar solo disponibles (sin pedidos ni en camino)
     window.addEventListener('beforeprint', () => {
-        const sel = document.getElementById('filtro-disponibilidad');
-        sel._valorOriginal = sel.value;
-        sel.value = 'disponibles';
+        // Guardar estado actual de checkboxes
+        window._printCheckState = {
+            disponible: document.getElementById('chk-disponible').checked,
+            camino:     document.getElementById('chk-camino').checked,
+            pedido:     document.getElementById('chk-pedido').checked,
+        };
+        // Forzar solo disponibles para el PDF del cliente
+        setChecks(true, false, false);
         filtrarCatalogo();
     });
 
-    // Al cerrar el dialogo de impresion, restaurar filtro original
+    // Al cerrar dialogo: restaurar checkboxes originales
     window.addEventListener('afterprint', () => {
-        const sel = document.getElementById('filtro-disponibilidad');
-        if (sel._valorOriginal !== undefined) {
-            sel.value = sel._valorOriginal;
-            delete sel._valorOriginal;
+        if (window._printCheckState) {
+            const s = window._printCheckState;
+            setChecks(s.disponible, s.camino, s.pedido);
             filtrarCatalogo();
+            delete window._printCheckState;
         }
     });
 });
+
+// Helper: pone los 3 checkboxes y actualiza clases visuales
+function setChecks(disponible, camino, pedido) {
+    const vals = { disponible, camino, pedido };
+    for (const tipo of ['disponible', 'camino', 'pedido']) {
+        const chk = document.getElementById('chk-' + tipo);
+        const lbl = document.getElementById('lbl-' + tipo);
+        if (chk && lbl) {
+            chk.checked = vals[tipo];
+            lbl.classList.toggle('activo', vals[tipo]);
+        }
+    }
+}
 
 // =========================================================
 // CARGAR PRODUCTOS
@@ -38,31 +56,42 @@ async function cargarCatalogo() {
         setTimeout(cargarCatalogo, 50);
         return;
     }
-
     try {
         const productos = await window.getDataCloud('perfumes') || [];
         productosDisponibles = productos;
         filtrarCatalogo();
     } catch (error) {
-        console.error("Error al cargar el catálogo desde la nube:", error);
+        console.error('Error al cargar el catálogo desde la nube:', error);
     }
 }
 
+// =========================================================
+// FILTRAR — usa checkboxes
+// =========================================================
+
 function filtrarCatalogo() {
-    const busqueda = document.getElementById('buscar-catalogo').value.toLowerCase();
-    const disponibilidad = document.getElementById('filtro-disponibilidad').value;
-    const orden = document.getElementById('filtro-orden').value;
+    const busqueda    = document.getElementById('buscar-catalogo').value.toLowerCase();
+    const orden       = document.getElementById('filtro-orden').value;
+    const verDisp     = document.getElementById('chk-disponible')?.checked ?? true;
+    const verCamino   = document.getElementById('chk-camino')?.checked ?? false;
+    const verPedido   = document.getElementById('chk-pedido')?.checked ?? false;
 
     let filtrados = productosDisponibles.filter(p => {
+        // Busqueda por nombre/marca
         const matchBusqueda = p.nombre.toLowerCase().includes(busqueda) ||
                               p.marca.toLowerCase().includes(busqueda);
         if (!matchBusqueda) return false;
-        if (disponibilidad === 'disponibles') {
-            return p.destino === 'stock' && p.ubicacion !== 'en_camino';
-        } else if (disponibilidad === 'pedidos') {
-            return p.destino === 'pedido';
-        }
-        return true; // 'todos'
+
+        // Clasificar el producto
+        const esCamino    = p.ubicacion === 'en_camino';
+        const esPedido    = p.destino === 'pedido' && !esCamino;
+        const esDisponible = !esCamino && !esPedido;
+
+        // Incluir si su categoría está marcada
+        if (esDisponible && verDisp)  return true;
+        if (esCamino    && verCamino) return true;
+        if (esPedido    && verPedido) return true;
+        return false;
     });
 
     filtrados.sort((a, b) => {
@@ -78,7 +107,6 @@ function filtrarCatalogo() {
 
 // =========================================================
 // AGRUPAR DUPLICADOS
-// Junta productos con mismo nombre + marca en una sola tarjeta
 // =========================================================
 
 function agruparProductos(productos) {
@@ -106,7 +134,6 @@ function agruparProductos(productos) {
 function renderCatalogo(productos) {
     const grid  = document.getElementById('catalogo-grid');
     const vacio = document.getElementById('catalogo-vacio');
-
     const agrupados = agruparProductos(productos);
 
     document.getElementById('total-productos').innerText = agrupados.length;
@@ -124,24 +151,18 @@ function renderCatalogo(productos) {
         const imagenUrl = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
         const cantidad  = prod._cantidad || 1;
 
+        // Badge según estado
         let badge = '';
-        if (prod.destino === 'pedido') {
+        if (prod.ubicacion === 'en_camino') {
+            badge = '<div class="badge-camino">🚚 En Camino</div>';
+        } else if (prod.destino === 'pedido') {
             badge = '<div class="badge-pedido">📋 Pedido</div>';
-        } else if (prod.ubicacion === 'en_camino') {
-            badge = '<div class="badge-pedido">🚚 En Camino</div>';
         } else {
             badge = '<div class="badge-disponible">✓ Disponible</div>';
         }
 
         const badgeCantidad = cantidad > 1
-            ? `<div style="
-                position:absolute; bottom:8px; right:8px;
-                background:#FFD700; color:#000;
-                font-size:11px; font-weight:700;
-                border-radius:20px; padding:2px 8px;
-                box-shadow:0 2px 6px rgba(0,0,0,0.4);
-                z-index:2;
-               ">x${cantidad} disponibles</div>`
+            ? `<div style="position:absolute;bottom:8px;right:8px;background:#FFD700;color:#000;font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;box-shadow:0 2px 6px rgba(0,0,0,0.4);z-index:2;">x${cantidad} disponibles</div>`
             : '';
 
         const prodLimpio = Object.assign({}, prod);
@@ -154,9 +175,7 @@ function renderCatalogo(productos) {
                 <div class="product-card" onclick='verDetalleProducto(${JSON.stringify(prodLimpio).replace(/'/g, "&apos;")})'>
                     <div style="position:relative;">
                         ${badge}
-                        <img src="${imagenUrl}"
-                             class="product-image"
-                             alt="${prod.nombre}"
+                        <img src="${imagenUrl}" class="product-image" alt="${prod.nombre}"
                              onerror="this.src='https://cdn-icons-png.flaticon.com/512/2636/2636280.png'">
                         ${badgeCantidad}
                     </div>
@@ -173,27 +192,22 @@ function renderCatalogo(productos) {
 }
 
 // =========================================================
-// DETALLE DE PRODUCTO
+// DETALLE
 // =========================================================
 
 function verDetalleProducto(producto) {
     productoSeleccionado = producto;
-
     document.getElementById('modal-nombre').innerText = producto.nombre;
     document.getElementById('modal-marca').innerText  = producto.marca;
     document.getElementById('modal-precio').innerText = `$${producto.precioVenta.toFixed(0)}`;
     document.getElementById('modal-sku').innerText    = producto.sku;
-
-    const imagenUrl = producto.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
-    document.getElementById('modal-imagen').src = imagenUrl;
-
+    document.getElementById('modal-imagen').src = producto.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
     const elCantidad = document.getElementById('modal-cantidad');
     if (elCantidad) {
         const cant = producto._cantidadCatalogo || 1;
         elCantidad.style.display = cant > 1 ? 'block' : 'none';
         elCantidad.innerText = `📦 ${cant} unidades disponibles`;
     }
-
     new bootstrap.Modal(document.getElementById('modalDetalleProducto')).show();
 }
 
@@ -201,48 +215,27 @@ function consultarProducto() {
     if (!productoSeleccionado) return;
     const cant = productoSeleccionado._cantidadCatalogo || 1;
     const cantTexto = cant > 1 ? ` (${cant} disponibles)` : '';
-    const mensaje = `Hola! Me interesa este perfume:\n\n` +
-                    `${productoSeleccionado.nombre}${cantTexto}\n` +
-                    `${productoSeleccionado.marca}\n` +
-                    `$${productoSeleccionado.precioVenta}\n\n` +
-                    `Esta disponible?`;
-    const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
+    const mensaje = `Hola! Me interesa este perfume:\n\n${productoSeleccionado.nombre}${cantTexto}\n${productoSeleccionado.marca}\n$${productoSeleccionado.precioVenta}\n\nEsta disponible?`;
+    window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
 // =========================================================
-// COMPARTIR CATÁLOGO
+// COMPARTIR
 // =========================================================
 
 function compartirCatalogo() {
     const productos = productosDisponibles.filter(p =>
         p.destino === 'stock' && p.ubicacion !== 'en_camino'
     );
-
-    if (productos.length === 0) {
-        alert('No hay productos disponibles para compartir');
-        return;
-    }
-
+    if (productos.length === 0) { alert('No hay productos disponibles para compartir'); return; }
     const agrupados = agruparProductos(productos);
-
     let listaPerfumes = '';
     agrupados.forEach((p, i) => {
         const cant = p._cantidad || 1;
-        const cantTexto = cant > 1 ? ` (x${cant})` : '';
-        listaPerfumes += `${i + 1}. ${p.nombre}${cantTexto} - $${p.precioVenta}\n`;
+        listaPerfumes += `${i + 1}. ${p.nombre}${cant > 1 ? ` (x${cant})` : ''} - $${p.precioVenta}\n`;
     });
-
-    const mensaje = `*CATALOGO FITOSCENTS*\n\n` +
-                    `${agrupados.length} perfumes disponibles\n` +
-                    `100% Originales\n` +
-                    `Entregas en diferentes partes de Tijuana\n\n` +
-                    `*Disponibles:*\n` +
-                    `${listaPerfumes}\n` +
-                    `Cual te interesa?`;
-
-    const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
+    const mensaje = `*CATALOGO FITOSCENTS*\n\n${agrupados.length} perfumes disponibles\n100% Originales\nEntregas en diferentes partes de Tijuana\n\n*Disponibles:*\n${listaPerfumes}\nCual te interesa?`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
 // =========================================================
@@ -251,7 +244,8 @@ function compartirCatalogo() {
 
 function limpiarFiltros() {
     document.getElementById('buscar-catalogo').value = '';
-    document.getElementById('filtro-disponibilidad').value = 'disponibles';
     document.getElementById('filtro-orden').value = 'precio-desc';
+    // Restaurar solo Disponibles marcado
+    setChecks(true, false, false);
     filtrarCatalogo();
 }
