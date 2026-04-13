@@ -7,21 +7,30 @@ let productoSeleccionado = null;
 
 const WHATSAPP_NUMERO = '526648162623';
 
+// =========================================================
+// CLASIFICAR PRODUCTO
+// Regla: pedido siempre gana, sin importar ubicacion
+// =========================================================
+function clasificarProducto(p) {
+    if (p.destino === 'pedido')         return 'pedido';    // pedido de cliente = siempre pedido
+    if (p.ubicacion === 'en_camino')    return 'camino';    // stock en tránsito
+    return 'disponible';                                    // stock en tienda
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     cargarCatalogo();
 
-    // Al imprimir: forzar Disponibles + En Camino (excluir Pedidos)
+    // Al imprimir: disponibles + en camino (sin pedidos del cliente)
     window.addEventListener('beforeprint', () => {
         window._printCheckState = {
             disponible: document.getElementById('chk-disponible').checked,
             camino:     document.getElementById('chk-camino').checked,
             pedido:     document.getElementById('chk-pedido').checked,
         };
-        setChecks(true, true, false); // disponibles ✅ + en camino ✅ + pedidos ❌
+        setChecks(true, true, false);
         filtrarCatalogo();
     });
 
-    // Al cerrar dialogo: restaurar checkboxes originales
     window.addEventListener('afterprint', () => {
         if (window._printCheckState) {
             const s = window._printCheckState;
@@ -32,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Helper: pone los 3 checkboxes y actualiza clases visuales
 function setChecks(disponible, camino, pedido) {
     const vals = { disponible, camino, pedido };
     for (const tipo of ['disponible', 'camino', 'pedido']) {
@@ -64,28 +72,25 @@ async function cargarCatalogo() {
 }
 
 // =========================================================
-// FILTRAR — usa checkboxes
+// FILTRAR
 // =========================================================
 
 function filtrarCatalogo() {
-    const busqueda    = document.getElementById('buscar-catalogo').value.toLowerCase();
-    const orden       = document.getElementById('filtro-orden').value;
-    const verDisp     = document.getElementById('chk-disponible')?.checked ?? true;
-    const verCamino   = document.getElementById('chk-camino')?.checked ?? false;
-    const verPedido   = document.getElementById('chk-pedido')?.checked ?? false;
+    const busqueda  = document.getElementById('buscar-catalogo').value.toLowerCase();
+    const orden     = document.getElementById('filtro-orden').value;
+    const verDisp   = document.getElementById('chk-disponible')?.checked ?? true;
+    const verCamino = document.getElementById('chk-camino')?.checked    ?? false;
+    const verPedido = document.getElementById('chk-pedido')?.checked    ?? false;
 
     let filtrados = productosDisponibles.filter(p => {
         const matchBusqueda = p.nombre.toLowerCase().includes(busqueda) ||
                               p.marca.toLowerCase().includes(busqueda);
         if (!matchBusqueda) return false;
 
-        const esCamino     = p.ubicacion === 'en_camino';
-        const esPedido     = p.destino === 'pedido' && !esCamino;
-        const esDisponible = !esCamino && !esPedido;
-
-        if (esDisponible && verDisp)  return true;
-        if (esCamino    && verCamino) return true;
-        if (esPedido    && verPedido) return true;
+        const tipo = clasificarProducto(p);
+        if (tipo === 'disponible' && verDisp)   return true;
+        if (tipo === 'camino'     && verCamino)  return true;
+        if (tipo === 'pedido'     && verPedido)  return true;
         return false;
     });
 
@@ -145,18 +150,16 @@ function renderCatalogo(productos) {
     agrupados.forEach(prod => {
         const imagenUrl = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
         const cantidad  = prod._cantidad || 1;
+        const tipo      = clasificarProducto(prod);
 
+        // Badge según tipo (usando la misma función — consistencia garantizada)
         let badge = '';
-        if (prod.ubicacion === 'en_camino') {
-            badge = '<div class="badge-camino">🚚 En Camino</div>';
-        } else if (prod.destino === 'pedido') {
-            badge = '<div class="badge-pedido">📋 Pedido</div>';
-        } else {
-            badge = '<div class="badge-disponible">✓ Disponible</div>';
-        }
+        if (tipo === 'pedido')      badge = '<div class="badge-pedido">📋 Pedido</div>';
+        else if (tipo === 'camino') badge = '<div class="badge-camino">🚚 En Camino</div>';
+        else                        badge = '<div class="badge-disponible">✓ Disponible</div>';
 
         const badgeCantidad = cantidad > 1
-            ? `<div style="position:absolute;bottom:8px;right:8px;background:#FFD700;color:#000;font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;box-shadow:0 2px 6px rgba(0,0,0,0.4);z-index:2;">x${cantidad} disponibles</div>`
+            ? `<div style="position:absolute;bottom:8px;right:8px;background:#FFD700;color:#000;font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;box-shadow:0 2px 6px rgba(0,0,0,0.4);z-index:2;">x${cantidad}</div>`
             : '';
 
         const prodLimpio = Object.assign({}, prod);
@@ -200,7 +203,7 @@ function verDetalleProducto(producto) {
     if (elCantidad) {
         const cant = producto._cantidadCatalogo || 1;
         elCantidad.style.display = cant > 1 ? 'block' : 'none';
-        elCantidad.innerText = `📦 ${cant} unidades disponibles`;
+        elCantidad.innerText = `📦 ${cant} unidades`;
     }
     new bootstrap.Modal(document.getElementById('modalDetalleProducto')).show();
 }
@@ -218,9 +221,8 @@ function consultarProducto() {
 // =========================================================
 
 function compartirCatalogo() {
-    const productos = productosDisponibles.filter(p =>
-        p.destino === 'stock' && p.ubicacion !== 'en_camino'
-    );
+    // Compartir solo disponibles (stock en tienda, no en tránsito)
+    const productos = productosDisponibles.filter(p => clasificarProducto(p) === 'disponible');
     if (productos.length === 0) { alert('No hay productos disponibles para compartir'); return; }
     const agrupados = agruparProductos(productos);
     let listaPerfumes = '';
