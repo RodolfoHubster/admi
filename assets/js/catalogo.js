@@ -10,16 +10,14 @@ const WHATSAPP_NUMERO = '526648162623';
 document.addEventListener('DOMContentLoaded', () => {
     cargarCatalogo();
 
-    // Al imprimir: forzar solo disponibles (sin pedidos ni en camino)
+    // Al imprimir: forzar Disponibles + En Camino (excluir Pedidos)
     window.addEventListener('beforeprint', () => {
-        // Guardar estado actual de checkboxes
         window._printCheckState = {
             disponible: document.getElementById('chk-disponible').checked,
             camino:     document.getElementById('chk-camino').checked,
             pedido:     document.getElementById('chk-pedido').checked,
         };
-        // Forzar solo disponibles para el PDF del cliente
-        setChecks(true, false, false);
+        setChecks(true, true, false); // disponibles ✅ + en camino ✅ + pedidos ❌
         filtrarCatalogo();
     });
 
@@ -77,17 +75,14 @@ function filtrarCatalogo() {
     const verPedido   = document.getElementById('chk-pedido')?.checked ?? false;
 
     let filtrados = productosDisponibles.filter(p => {
-        // Busqueda por nombre/marca
         const matchBusqueda = p.nombre.toLowerCase().includes(busqueda) ||
                               p.marca.toLowerCase().includes(busqueda);
         if (!matchBusqueda) return false;
 
-        // Clasificar el producto
-        const esCamino    = p.ubicacion === 'en_camino';
-        const esPedido    = p.destino === 'pedido' && !esCamino;
+        const esCamino     = p.ubicacion === 'en_camino';
+        const esPedido     = p.destino === 'pedido' && !esCamino;
         const esDisponible = !esCamino && !esPedido;
 
-        // Incluir si su categoría está marcada
         if (esDisponible && verDisp)  return true;
         if (esCamino    && verCamino) return true;
         if (esPedido    && verPedido) return true;
@@ -151,7 +146,6 @@ function renderCatalogo(productos) {
         const imagenUrl = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
         const cantidad  = prod._cantidad || 1;
 
-        // Badge según estado
         let badge = '';
         if (prod.ubicacion === 'en_camino') {
             badge = '<div class="badge-camino">🚚 En Camino</div>';
@@ -245,7 +239,6 @@ function compartirCatalogo() {
 function limpiarFiltros() {
     document.getElementById('buscar-catalogo').value = '';
     document.getElementById('filtro-orden').value = 'precio-desc';
-    // Restaurar solo Disponibles marcado
     setChecks(true, false, false);
     filtrarCatalogo();
 }
