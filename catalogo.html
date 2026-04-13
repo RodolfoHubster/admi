@@ -31,153 +31,111 @@
             box-shadow: 0 12px 32px rgba(255,215,0,0.2);
             border-color: rgba(255,215,0,0.55);
         }
-        .product-image {
-            width: 100%;
-            height: 260px;
-            object-fit: cover;
-        }
-        .product-info {
-            padding: 18px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .product-name {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--gold-flat);
-            margin-bottom: 4px;
-            line-height: 1.3;
-        }
-        .product-brand {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-        }
-        .product-price {
-            font-size: 1.7rem;
-            font-weight: 800;
-            color: var(--gold-flat);
-            margin-top: auto;
-            text-shadow: 0 0 10px rgba(255,215,0,0.3);
-        }
-        .badge-disponible {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(255,215,0,0.92);
-            color: #000;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 700;
-        }
-        .badge-pedido {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(30,30,40,0.92);
-            color: var(--gold-flat);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            border: 1px solid rgba(255,215,0,0.4);
-        }
+        .product-image { width: 100%; height: 260px; object-fit: cover; }
+        .product-info { padding: 18px; flex-grow: 1; display: flex; flex-direction: column; }
+        .product-name { font-size: 1rem; font-weight: 700; color: var(--gold-flat); margin-bottom: 4px; line-height: 1.3; }
+        .product-brand { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; }
+        .product-price { font-size: 1.7rem; font-weight: 800; color: var(--gold-flat); margin-top: auto; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        .badge-disponible { position: absolute; top: 12px; right: 12px; background: rgba(255,215,0,0.92); color: #000; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+        .badge-pedido { position: absolute; top: 12px; right: 12px; background: rgba(30,30,40,0.92); color: var(--gold-flat); padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; border: 1px solid rgba(255,215,0,0.4); }
         .filtros-catalogo .form-control,
-        .filtros-catalogo .form-select {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,215,0,0.25);
-            color: var(--text-primary);
-        }
-        .filtros-catalogo .form-control:focus,
-        .filtros-catalogo .form-select .form-select:focus {
-            border-color: var(--gold-flat);
-            box-shadow: 0 0 0 0.2rem rgba(255,215,0,0.2);
-        }
+        .filtros-catalogo .form-select { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,215,0,0.25); color: var(--text-primary); }
         .filtros-catalogo .form-control::placeholder { color: var(--text-secondary); }
         .filtros-catalogo .form-select option { background: #111; color: #fff; }
-        .btn-whatsapp {
-            background: #25D366;
-            color: #fff;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 30px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .btn-whatsapp:hover {
-            background: #128C7E;
-            color: #fff;
-            transform: scale(1.04);
-            box-shadow: 0 4px 12px rgba(37,211,102,0.4);
-        }
+        .btn-whatsapp { background: #25D366; color: #fff; border: none; padding: 10px 22px; border-radius: 30px; font-weight: 600; transition: all 0.3s; }
+        .btn-whatsapp:hover { background: #128C7E; color: #fff; transform: scale(1.04); box-shadow: 0 4px 12px rgba(37,211,102,0.4); }
 
-        /* =============================================
-           PRINT — Catálogo profesional oscuro Fitoscents
-           Activa: Archivo > Imprimir > "Guardar como PDF"
-           En Chrome: activar "Gráficos de fondo"
-           ============================================= */
+        /* Elementos exclusivos para impresion - ocultos en pantalla */
+        .print-only { display: none !important; }
+
+        /* ==============================================
+           PRINT — Catalogo profesional oscuro Fitoscents
+           Chrome: Mas opciones > activar "Graficos de fondo"
+           ============================================== */
         @media print {
-            /* Forzar colores de fondo en todo el navegador */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
                 color-adjust: exact !important;
             }
 
-            /* Página: fondo negro, sin márgenes extra */
+            /* Maqueta A4 con margenes generosos */
             @page {
                 size: A4 portrait;
-                margin: 12mm 10mm;
+                margin: 16mm 15mm 14mm 15mm;
             }
 
-            html, body {
+            html {
+                background: #0d0d0d !important;
+            }
+
+            body {
                 background: #0d0d0d !important;
                 background-color: #0d0d0d !important;
                 color: #f0f0f0 !important;
                 font-family: 'Poppins', sans-serif !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
-            /* Ocultar controles de UI */
+            /* Ocultar controles de pantalla */
             .no-print,
             .filtros-catalogo,
             header, nav,
-            .modal {
+            .modal,
+            #catalogo-vacio,
+            .print-tip {
                 display: none !important;
             }
 
-            /* Encabezado del catálogo impreso */
+            /* Quitar padding/margin de Bootstrap al container */
+            .container-xl {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Mostrar elementos solo-print */
+            .print-only {
+                display: block !important;
+            }
+
+            /* Header del catalogo */
             .print-header {
                 display: flex !important;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0 0 12px 0;
-                margin-bottom: 16px;
-                border-bottom: 1.5px solid #FFD700;
+                padding-bottom: 10px;
+                margin-bottom: 14px;
+                border-bottom: 2px solid #FFD700;
             }
             .print-header-logo {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
                 font-weight: 700;
                 color: #FFD700 !important;
-                letter-spacing: 2px;
+                letter-spacing: 3px;
                 text-transform: uppercase;
             }
             .print-header-sub {
-                font-size: 0.78rem;
+                font-size: 0.75rem;
                 color: #aaa !important;
                 text-align: right;
+                line-height: 1.5;
             }
 
-            /* Grid de 3 columnas */
+            /* Grid 3 columnas */
             #catalogo-grid {
                 display: grid !important;
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 10px !important;
+                gap: 8px !important;
                 padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
             }
 
-            /* Resetear columnas de Bootstrap */
+            /* Resetear columnas Bootstrap */
             #catalogo-grid > [class*="col"] {
                 width: 100% !important;
                 max-width: 100% !important;
@@ -185,123 +143,121 @@
                 padding: 0 !important;
             }
 
-            /* Tarjeta oscura con borde dorado */
+            /* Tarjeta */
             .product-card {
-                background: #1a1a1a !important;
-                background-color: #1a1a1a !important;
-                border: 1px solid #FFD700 !important;
-                border-radius: 10px !important;
+                background: #1c1c1c !important;
+                background-color: #1c1c1c !important;
+                border: 1.5px solid #FFD700 !important;
+                border-radius: 8px !important;
                 overflow: hidden !important;
                 break-inside: avoid !important;
                 page-break-inside: avoid !important;
                 display: flex !important;
                 flex-direction: column !important;
                 height: auto !important;
+                box-shadow: none !important;
+                transform: none !important;
             }
 
-            /* Imagen del perfume */
+            /* Imagen */
             .product-image {
                 width: 100% !important;
-                height: 160px !important;
+                height: 155px !important;
                 object-fit: cover !important;
                 display: block !important;
-                background: #111 !important;
             }
 
-            /* Info de la tarjeta */
+            /* Info */
             .product-info {
-                padding: 10px 12px !important;
-                background: #1a1a1a !important;
-                background-color: #1a1a1a !important;
+                padding: 8px 10px 10px !important;
+                background: #1c1c1c !important;
+                background-color: #1c1c1c !important;
             }
 
-            /* Nombre del perfume — dorado */
+            /* Nombre */
             .product-name {
                 color: #FFD700 !important;
-                font-size: 0.82rem !important;
+                font-size: 0.80rem !important;
                 font-weight: 700 !important;
-                margin-bottom: 2px !important;
+                margin-bottom: 1px !important;
                 text-shadow: none !important;
+                line-height: 1.2 !important;
             }
 
-            /* Marca — gris claro */
+            /* Marca */
             .product-brand {
-                color: #aaa !important;
-                font-size: 0.72rem !important;
-                margin-bottom: 6px !important;
+                color: #999 !important;
+                font-size: 0.68rem !important;
+                margin-bottom: 5px !important;
             }
 
-            /* Precio — grande y dorado */
+            /* Precio */
             .product-price {
                 color: #FFD700 !important;
-                font-size: 1.25rem !important;
+                font-size: 1.15rem !important;
                 font-weight: 800 !important;
                 text-shadow: none !important;
-                margin-top: 4px !important;
+                margin-top: 2px !important;
             }
 
-            /* Badge disponible — dorado sobre negro */
+            /* Badge disponible */
             .badge-disponible {
                 background: #FFD700 !important;
                 color: #000 !important;
-                font-size: 0.62rem !important;
-                padding: 3px 8px !important;
-                border-radius: 12px !important;
+                font-size: 0.58rem !important;
+                padding: 2px 7px !important;
+                border-radius: 10px !important;
                 font-weight: 700 !important;
-                top: 8px !important;
-                right: 8px !important;
+                top: 7px !important;
+                right: 7px !important;
             }
 
-            /* Badge pedido — oscuro con borde */
+            /* Badge pedido */
             .badge-pedido {
                 background: #111 !important;
                 color: #FFD700 !important;
                 border: 1px solid #FFD700 !important;
-                font-size: 0.62rem !important;
-                padding: 3px 8px !important;
-                border-radius: 12px !important;
-                top: 8px !important;
-                right: 8px !important;
+                font-size: 0.58rem !important;
+                padding: 2px 7px !important;
+                border-radius: 10px !important;
+                top: 7px !important;
+                right: 7px !important;
             }
 
-            /* Footer impreso */
+            /* Footer */
             .print-footer {
                 display: block !important;
                 text-align: center;
-                margin-top: 16px;
-                padding-top: 10px;
-                border-top: 1px solid #333;
-                font-size: 0.70rem;
-                color: #666 !important;
-                letter-spacing: 0.5px;
+                margin-top: 14px;
+                padding-top: 8px;
+                border-top: 1px solid #2a2a2a;
+                font-size: 0.65rem;
+                color: #555 !important;
+                letter-spacing: 0.8px;
             }
         }
-
-        /* Ocultar header/footer de impresión por defecto */
-        .print-header, .print-footer { display: none; }
     </style>
 </head>
 <body>
 
-<!-- Header visible solo al imprimir -->
-<div class="print-header container-xl">
-    <div class="print-header-logo">👑 FITOSCENTS</div>
-    <div class="print-header-sub">Catálogo de Perfumes<br><span id="print-fecha"></span></div>
-</div>
-
 <div class="container-xl my-4">
 
-    <!-- Header -->
+    <!-- HEADER IMPRESO (oculto en pantalla, visible al imprimir) -->
+    <div class="print-only print-header">
+        <div class="print-header-logo">&#128081; FITOSCENTS</div>
+        <div class="print-header-sub">
+            Cat&aacute;logo de Perfumes<br>
+            <span id="print-fecha"></span>
+        </div>
+    </div>
+
+    <!-- Header de pantalla -->
     <div class="card shadow-sm mb-4 no-print">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h2 class="fw-bold mb-1">
-                        <i class="bi bi-gem text-gold"></i> Catálogo de Perfumes
-                    </h2>
-                    <p class="text-muted mb-0">
-                        <span id="total-productos">0</span> productos disponibles
-                    </p>
+                    <h2 class="fw-bold mb-1"><i class="bi bi-gem text-gold"></i> Cat&aacute;logo de Perfumes</h2>
+                    <p class="text-muted mb-0"><span id="total-productos">0</span> productos disponibles</p>
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
                     <button class="btn btn-outline-secondary" onclick="window.location.href='index.html'">
@@ -323,17 +279,11 @@
         <div class="card-body">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label class="form-label fw-bold small">
-                        <i class="bi bi-search"></i> Buscar
-                    </label>
-                    <input type="text" class="form-control" id="buscar-catalogo"
-                           placeholder="Nombre, marca..."
-                           onkeyup="filtrarCatalogo()">
+                    <label class="form-label fw-bold small"><i class="bi bi-search"></i> Buscar</label>
+                    <input type="text" class="form-control" id="buscar-catalogo" placeholder="Nombre, marca..." onkeyup="filtrarCatalogo()">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small">
-                        <i class="bi bi-funnel"></i> Mostrar
-                    </label>
+                    <label class="form-label fw-bold small"><i class="bi bi-funnel"></i> Mostrar</label>
                     <select class="form-select" id="filtro-disponibilidad" onchange="filtrarCatalogo()">
                         <option value="disponibles">Solo Disponibles</option>
                         <option value="todos">Todos (incluye pedidos)</option>
@@ -341,14 +291,12 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small">
-                        <i class="bi bi-sort-down"></i> Ordenar por
-                    </label>
+                    <label class="form-label fw-bold small"><i class="bi bi-sort-down"></i> Ordenar por</label>
                     <select class="form-select" id="filtro-orden" onchange="filtrarCatalogo()">
                         <option value="precio-desc">Precio: Mayor a Menor</option>
                         <option value="precio-asc">Precio: Menor a Mayor</option>
                         <option value="nombre">Nombre A-Z</option>
-                        <option value="reciente">Más Recientes</option>
+                        <option value="reciente">M&aacute;s Recientes</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -360,26 +308,24 @@
         </div>
     </div>
 
-    <!-- Grid -->
+    <!-- Grid de productos -->
     <div class="row g-4" id="catalogo-grid"></div>
 
-    <!-- Vacío -->
+    <!-- Estado vacio -->
     <div id="catalogo-vacio" class="text-center py-5" style="display:none;">
         <div class="card p-5 shadow">
             <i class="bi bi-inbox text-muted" style="font-size:4rem;"></i>
             <h3 class="mt-3">No hay productos para mostrar</h3>
             <p class="text-muted">Ajusta los filtros o agrega productos al inventario</p>
-            <a href="products.html" class="btn btn-gold mt-3">
-                <i class="bi bi-plus-circle"></i> Agregar Productos
-            </a>
+            <a href="products.html" class="btn btn-gold mt-3"><i class="bi bi-plus-circle"></i> Agregar Productos</a>
         </div>
     </div>
 
-</div>
+    <!-- FOOTER IMPRESO (oculto en pantalla, visible al imprimir) -->
+    <div class="print-only print-footer">
+        Fitoscents &mdash; Cat&aacute;logo de Perfumes &mdash; Tijuana, B.C. &mdash; <span id="print-fecha-footer"></span>
+    </div>
 
-<!-- Footer visible solo al imprimir -->
-<div class="print-footer">
-    Fitoscents &mdash; Catálogo de Perfumes &mdash; Tijuana, B.C. &mdash; <span id="print-fecha-footer"></span>
 </div>
 
 <!-- Modal Detalle -->
@@ -391,7 +337,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <img id="modal-imagen" src="" class="img-fluid rounded-3 mb-3" style="max-height:300px;">
+                <img id="modal-imagen" src="" class="img-fluid rounded-3 mb-3" style="max-height:300px;" alt="">
                 <h4 class="fw-bold mb-3" style="color:var(--gold-flat);" id="modal-precio"></h4>
                 <p class="text-muted mb-2" id="modal-marca"></p>
                 <span class="badge bg-secondary" id="modal-sku"></span>
@@ -411,22 +357,21 @@
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/catalogo.js"></script>
 <script>
-    // Fecha dinámica en el header/footer de impresión
+    // Fecha dinamica en header/footer de impresion
     const fechaHoy = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
     document.querySelectorAll('#print-fecha, #print-fecha-footer').forEach(el => el.textContent = fechaHoy);
 
-    // Aviso al usuario sobre la opción "Gráficos de fondo"
+    // Imprimir — el tip tiene clase print-tip para que @media print lo oculte
     function imprimirCatalogo() {
-        const esChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        if (esChrome) {
-            // Mostrar tip rápido antes de abrir el diálogo
-            const tip = document.createElement('div');
-            tip.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFD700;color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-size:0.85rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
-            tip.innerHTML = '💡 Activa <b>"Gráficos de fondo"</b> en el diálogo de impresión para ver el fondo oscuro';
-            document.body.appendChild(tip);
-            setTimeout(() => tip.remove(), 5000);
-        }
-        window.print();
+        const tip = document.createElement('div');
+        tip.className = 'print-tip';
+        tip.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFD700;color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-size:0.85rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;';
+        tip.innerHTML = '&#128161; Chrome: <b>M&aacute;s opciones</b> &rarr; activa <b>"Gr&aacute;ficos de fondo"</b> para el fondo oscuro';
+        document.body.appendChild(tip);
+        setTimeout(() => {
+            window.print();
+            setTimeout(() => tip.remove(), 2000);
+        }, 350);
     }
 </script>
 </body>
