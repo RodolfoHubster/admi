@@ -9,6 +9,24 @@ const WHATSAPP_NUMERO = '526648162623';
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarCatalogo();
+
+    // Al imprimir, forzar filtro solo-disponibles temporalmente
+    window.addEventListener('beforeprint', () => {
+        const sel = document.getElementById('filtro-disponibilidad');
+        sel._valorOriginal = sel.value;
+        sel.value = 'disponibles';
+        filtrarCatalogo();
+    });
+
+    // Al cerrar el dialogo de impresion, restaurar filtro original
+    window.addEventListener('afterprint', () => {
+        const sel = document.getElementById('filtro-disponibilidad');
+        if (sel._valorOriginal !== undefined) {
+            sel.value = sel._valorOriginal;
+            delete sel._valorOriginal;
+            filtrarCatalogo();
+        }
+    });
 });
 
 // =========================================================
@@ -16,18 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // =========================================================
 
 async function cargarCatalogo() {
-    // 1. Espera a que Firebase termine de conectarse
     if (typeof window.getDataCloud !== 'function') {
         setTimeout(cargarCatalogo, 50);
         return;
     }
-    
+
     try {
-        // 2. Descarga el inventario de la nube
         const productos = await window.getDataCloud('perfumes') || [];
         productosDisponibles = productos;
-        
-        // 3. Renderiza las tarjetas
         filtrarCatalogo();
     } catch (error) {
         console.error("Error al cargar el catálogo desde la nube:", error);
@@ -48,7 +62,7 @@ function filtrarCatalogo() {
         } else if (disponibilidad === 'pedidos') {
             return p.destino === 'pedido';
         }
-        return true;
+        return true; // 'todos'
     });
 
     filtrados.sort((a, b) => {
@@ -65,7 +79,6 @@ function filtrarCatalogo() {
 // =========================================================
 // AGRUPAR DUPLICADOS
 // Junta productos con mismo nombre + marca en una sola tarjeta
-// y muestra la cantidad total disponible.
 // =========================================================
 
 function agruparProductos(productos) {
@@ -75,7 +88,6 @@ function agruparProductos(productos) {
         if (mapa.has(clave)) {
             const existente = mapa.get(clave);
             existente._cantidad = (existente._cantidad || 1) + 1;
-            // Sumar stock si tiene campo cantidad
             existente._totalUnidades = (existente._totalUnidades || (existente.cantidad || 1)) + (p.cantidad || 1);
         } else {
             const copia = Object.assign({}, p);
@@ -95,7 +107,6 @@ function renderCatalogo(productos) {
     const grid  = document.getElementById('catalogo-grid');
     const vacio = document.getElementById('catalogo-vacio');
 
-    // Agrupar antes de renderizar
     const agrupados = agruparProductos(productos);
 
     document.getElementById('total-productos').innerText = agrupados.length;
@@ -113,7 +124,6 @@ function renderCatalogo(productos) {
         const imagenUrl = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
         const cantidad  = prod._cantidad || 1;
 
-        // Badge disponibilidad
         let badge = '';
         if (prod.destino === 'pedido') {
             badge = '<div class="badge-pedido">📋 Pedido</div>';
@@ -123,7 +133,6 @@ function renderCatalogo(productos) {
             badge = '<div class="badge-disponible">✓ Disponible</div>';
         }
 
-        // Badge de cantidad (solo si hay más de 1)
         const badgeCantidad = cantidad > 1
             ? `<div style="
                 position:absolute; bottom:8px; right:8px;
@@ -135,11 +144,10 @@ function renderCatalogo(productos) {
                ">x${cantidad} disponibles</div>`
             : '';
 
-        // Serializar sin _cantidad/_totalUnidades para el modal
         const prodLimpio = Object.assign({}, prod);
         delete prodLimpio._cantidad;
         delete prodLimpio._totalUnidades;
-        prodLimpio._cantidadCatalogo = cantidad; // pasa la cantidad al modal
+        prodLimpio._cantidadCatalogo = cantidad;
 
         const card = `
             <div class="col-6 col-md-4 col-lg-3">
@@ -179,7 +187,6 @@ function verDetalleProducto(producto) {
     const imagenUrl = producto.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
     document.getElementById('modal-imagen').src = imagenUrl;
 
-    // Mostrar cantidad si hay más de 1
     const elCantidad = document.getElementById('modal-cantidad');
     if (elCantidad) {
         const cant = producto._cantidadCatalogo || 1;
@@ -217,7 +224,6 @@ function compartirCatalogo() {
         return;
     }
 
-    // Agrupar para el mensaje de WhatsApp
     const agrupados = agruparProductos(productos);
 
     let listaPerfumes = '';
