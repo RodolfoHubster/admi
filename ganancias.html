@@ -35,6 +35,7 @@
         .badge-ganancia { background: rgba(40,167,69,0.18); color: #28a745; border: 1px solid #28a745; }
         .badge-costo    { background: rgba(220,53,69,0.18);  color: #dc3545; border: 1px solid #dc3545; }
         .badge-venta    { background: rgba(13,202,240,0.18); color: #0dcaf0; border: 1px solid #0dcaf0; }
+        .badge-decant   { background: rgba(111,66,193,0.18); color: #a78bfa; border: 1px solid #a78bfa; }
         #search-perfume { background: #1a1a1a; border: 1px solid #3a3830; color: #ccc; border-radius: 10px; }
         #search-perfume:focus { border-color: #FFD700; outline: none; box-shadow: 0 0 0 2px rgba(255,215,0,0.15); }
         .table-detalle thead th { background: #1a1a1a; color: #999; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #2d2d2d; }
@@ -50,6 +51,13 @@
         .dia-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
         .dia-val   { font-size: 1.3rem; font-weight: 700; }
         .dia-fecha { font-size: 0.78rem; opacity: 0.7; }
+        /* ── TABS ── */
+        .ganancia-tab-btn { background: #1a1a1a; border: 1px solid #333; color: #888; border-radius: 12px; padding: 8px 24px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .ganancia-tab-btn.active { background: #FFD700; color: #000; border-color: #FFD700; }
+        .ganancia-tab-btn:hover:not(.active) { border-color: #FFD700; color: #FFD700; }
+        .kpi-card-decant { border-radius: 16px; border: none; transition: transform 0.2s, box-shadow 0.2s; }
+        .kpi-card-decant:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .decant-row:hover { background: rgba(167,139,250,0.06); }
     </style>
 </head>
 <body>
@@ -72,25 +80,17 @@
         </div>
     </div>
 
-    <!-- META MENSUAL -->
-    <div class="card mb-4 border-0 shadow-sm" style="background:#1a1a1a">
-        <div class="card-body py-3">
-            <div class="d-flex flex-wrap gap-3 align-items-center">
-                <span style="font-size:0.82rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:1px">🎯 Meta de ganancia neta:</span>
-                <div class="d-flex align-items-center gap-2">
-                    <span style="color:#888;font-size:0.85rem">$</span>
-                    <input type="number" id="meta-ganancia" class="meta-input" placeholder="ej. 5000" oninput="actualizarMeta()">
-                </div>
-                <div class="flex-grow-1" style="min-width:120px">
-                    <div class="meta-progress-bar"><div class="meta-progress-fill" id="meta-fill" style="width:0%"></div></div>
-                </div>
-                <span id="meta-pct" style="font-size:0.85rem;color:#FFD700;font-weight:700;min-width:60px">0%</span>
-                <span id="meta-falta" style="font-size:0.78rem;color:#888"></span>
-            </div>
-        </div>
+    <!-- PESTAÑAS -->
+    <div class="d-flex gap-2 mb-4">
+        <button class="ganancia-tab-btn active" id="tab-perfumes-btn" onclick="switchTab('perfumes')">
+            🧴 Perfumes
+        </button>
+        <button class="ganancia-tab-btn" id="tab-decants-btn" onclick="switchTab('decants')">
+            💧 Decants
+        </button>
     </div>
 
-    <!-- FILTRO PERÍODO -->
+    <!-- FILTRO PERÍODO (compartido) -->
     <div class="card mb-4 border-0 shadow-sm" style="background:#1a1a1a">
         <div class="card-body py-3">
             <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -111,167 +111,290 @@
         </div>
     </div>
 
-    <!-- KPIs -->
-    <div class="row g-3 mb-4" id="kpis-row">
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#1a2a1a,#0d1f0d)">
-                <div class="kpi-sub">💵 INGRESOS TOTALES</div>
-                <div class="kpi-main text-success" id="kpi-ingresos">$0</div>
-                <small class="text-muted" id="kpi-ingresos-ventas">0 ventas</small>
-                <canvas class="sparkline" id="spark-ingresos" width="100" height="32"></canvas>
-                <span class="kpi-trend trend-flat" id="trend-ingresos">— sin cambio</span>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#1a1a2a,#0d0d1f)">
-                <div class="kpi-sub">💸 COSTO TOTAL</div>
-                <div class="kpi-main text-danger" id="kpi-costos">$0</div>
-                <small class="text-muted">lo invertido en período</small>
-                <canvas class="sparkline" id="spark-costos" width="100" height="32"></canvas>
-                <span class="kpi-trend trend-flat" id="trend-costos">— sin cambio</span>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a2a0d,#1f1f00)">
-                <div class="kpi-sub">✅ GANANCIA BRUTA</div>
-                <div class="kpi-main" style="color:#FFD700" id="kpi-bruta">$0</div>
-                <small class="text-muted" id="kpi-margen-bruto">Margen: 0%</small>
-                <canvas class="sparkline" id="spark-bruta" width="100" height="32"></canvas>
-                <span class="kpi-trend trend-flat" id="trend-bruta">— sin cambio</span>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a1a1a,#1f0d0d)">
-                <div class="kpi-sub">🧾 GASTOS OPERATIVOS</div>
-                <div class="kpi-main text-warning" id="kpi-gastos">$0</div>
-                <small class="text-muted" id="kpi-gastos-count">0 gastos</small>
-                <canvas class="sparkline" id="spark-gastos" width="100" height="32"></canvas>
-                <span class="kpi-trend trend-flat" id="trend-gastos">— sin cambio</span>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#0d2a2a,#001f1f)">
-                <div class="kpi-sub">🏆 GANANCIA NETA</div>
-                <div class="kpi-main text-info" id="kpi-neta">$0</div>
-                <small class="text-muted" id="kpi-margen-neto">Margen neto: 0%</small>
-                <canvas class="sparkline" id="spark-neta" width="100" height="32"></canvas>
-                <span class="kpi-trend trend-flat" id="trend-neta">— sin cambio</span>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a1a2a,#1f001f)">
-                <div class="kpi-sub">⏳ POR COBRAR</div>
-                <div class="kpi-main" style="color:#f06fb5" id="kpi-cobrar">$0</div>
-                <small class="text-muted" id="kpi-cobrar-clientes">0 clientes</small>
-                <canvas class="sparkline" id="spark-cobrar" width="100" height="32"></canvas>
-                <span class="kpi-trend trend-flat" id="trend-cobrar">— sin cambio</span>
-            </div>
-        </div>
-    </div>
+    <!-- ══════════════════════════════════════════════════════
+         PANEL: PERFUMES
+    ══════════════════════════════════════════════════════ -->
+    <div id="panel-perfumes">
 
-    <!-- MEJOR / PEOR DÍA -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="dia-highlight dia-mejor">
-                <span class="dia-label" style="color:#28a745">🟢 Mejor día</span>
-                <span class="dia-val text-success" id="mejor-dia-val">$—</span>
-                <span class="dia-fecha" id="mejor-dia-fecha">sin datos</span>
+        <!-- META MENSUAL -->
+        <div class="card mb-4 border-0 shadow-sm" style="background:#1a1a1a">
+            <div class="card-body py-3">
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <span style="font-size:0.82rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:1px">🎯 Meta de ganancia neta:</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="color:#888;font-size:0.85rem">$</span>
+                        <input type="number" id="meta-ganancia" class="meta-input" placeholder="ej. 5000" oninput="actualizarMeta()">
+                    </div>
+                    <div class="flex-grow-1" style="min-width:120px">
+                        <div class="meta-progress-bar"><div class="meta-progress-fill" id="meta-fill" style="width:0%"></div></div>
+                    </div>
+                    <span id="meta-pct" style="font-size:0.85rem;color:#FFD700;font-weight:700;min-width:60px">0%</span>
+                    <span id="meta-falta" style="font-size:0.78rem;color:#888"></span>
+                </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="dia-highlight dia-peor">
-                <span class="dia-label" style="color:#dc3545">🔴 Peor día</span>
-                <span class="dia-val text-danger" id="peor-dia-val">$—</span>
-                <span class="dia-fecha" id="peor-dia-fecha">sin datos</span>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="dia-highlight" style="background:rgba(13,202,240,0.08);border:1px solid rgba(13,202,240,0.25)">
-                <span class="dia-label" style="color:#0dcaf0">📦 Venta promedio</span>
-                <span class="dia-val text-info" id="promedio-venta">$—</span>
-                <span class="dia-fecha">por venta</span>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="dia-highlight" style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25)">
-                <span class="dia-label" style="color:#FFD700">📈 Margen promedio</span>
-                <span class="dia-val" style="color:#FFD700" id="margen-promedio">—%</span>
-                <span class="dia-fecha">del período</span>
-            </div>
-        </div>
-    </div>
 
-    <!-- GRÁFICAS -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-5">
-            <div class="card border-0 shadow" style="background:#1a1a1a">
-                <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">📊 Ingresos vs Ganancia</h6></div>
-                <div class="card-body"><canvas id="chartGanancias" height="160"></canvas></div>
+        <!-- KPIs PERFUMES -->
+        <div class="row g-3 mb-4" id="kpis-row">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#1a2a1a,#0d1f0d)">
+                    <div class="kpi-sub">💵 INGRESOS TOTALES</div>
+                    <div class="kpi-main text-success" id="kpi-ingresos">$0</div>
+                    <small class="text-muted" id="kpi-ingresos-ventas">0 ventas</small>
+                    <canvas class="sparkline" id="spark-ingresos" width="100" height="32"></canvas>
+                    <span class="kpi-trend trend-flat" id="trend-ingresos">— sin cambio</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#1a1a2a,#0d0d1f)">
+                    <div class="kpi-sub">💸 COSTO TOTAL</div>
+                    <div class="kpi-main text-danger" id="kpi-costos">$0</div>
+                    <small class="text-muted">lo invertido en período</small>
+                    <canvas class="sparkline" id="spark-costos" width="100" height="32"></canvas>
+                    <span class="kpi-trend trend-flat" id="trend-costos">— sin cambio</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a2a0d,#1f1f00)">
+                    <div class="kpi-sub">✅ GANANCIA BRUTA</div>
+                    <div class="kpi-main" style="color:#FFD700" id="kpi-bruta">$0</div>
+                    <small class="text-muted" id="kpi-margen-bruto">Margen: 0%</small>
+                    <canvas class="sparkline" id="spark-bruta" width="100" height="32"></canvas>
+                    <span class="kpi-trend trend-flat" id="trend-bruta">— sin cambio</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a1a1a,#1f0d0d)">
+                    <div class="kpi-sub">🧾 GASTOS OPERATIVOS</div>
+                    <div class="kpi-main text-warning" id="kpi-gastos">$0</div>
+                    <small class="text-muted" id="kpi-gastos-count">0 gastos</small>
+                    <canvas class="sparkline" id="spark-gastos" width="100" height="32"></canvas>
+                    <span class="kpi-trend trend-flat" id="trend-gastos">— sin cambio</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#0d2a2a,#001f1f)">
+                    <div class="kpi-sub">🏆 GANANCIA NETA</div>
+                    <div class="kpi-main text-info" id="kpi-neta">$0</div>
+                    <small class="text-muted" id="kpi-margen-neto">Margen neto: 0%</small>
+                    <canvas class="sparkline" id="spark-neta" width="100" height="32"></canvas>
+                    <span class="kpi-trend trend-flat" id="trend-neta">— sin cambio</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card h-100 p-3" style="background:linear-gradient(135deg,#2a1a2a,#1f001f)">
+                    <div class="kpi-sub">⏳ POR COBRAR</div>
+                    <div class="kpi-main" style="color:#f06fb5" id="kpi-cobrar">$0</div>
+                    <small class="text-muted" id="kpi-cobrar-clientes">0 clientes</small>
+                    <canvas class="sparkline" id="spark-cobrar" width="100" height="32"></canvas>
+                    <span class="kpi-trend trend-flat" id="trend-cobrar">— sin cambio</span>
+                </div>
             </div>
         </div>
-        <div class="col-lg-3">
-            <div class="card border-0 shadow h-100" style="background:#1a1a1a">
-                <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">🥧 Distribución del ingreso</h6></div>
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                    <canvas id="chartDonut" width="200" height="200"></canvas>
-                    <div class="mt-3 d-flex flex-column gap-1 w-100" style="font-size:0.78rem">
-                        <div class="d-flex justify-content-between"><span><span style="color:#28a745">●</span> Ganancia neta</span><span class="fw-bold" id="donut-neta-pct">0%</span></div>
-                        <div class="d-flex justify-content-between"><span><span style="color:#dc3545">●</span> Costos</span><span class="fw-bold" id="donut-costos-pct">0%</span></div>
-                        <div class="d-flex justify-content-between"><span><span style="color:#ffc107">●</span> Gastos op.</span><span class="fw-bold" id="donut-gastos-pct">0%</span></div>
+
+        <!-- MEJOR / PEOR DÍA -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="dia-highlight dia-mejor">
+                    <span class="dia-label" style="color:#28a745">🟢 Mejor día</span>
+                    <span class="dia-val text-success" id="mejor-dia-val">$—</span>
+                    <span class="dia-fecha" id="mejor-dia-fecha">sin datos</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="dia-highlight dia-peor">
+                    <span class="dia-label" style="color:#dc3545">🔴 Peor día</span>
+                    <span class="dia-val text-danger" id="peor-dia-val">$—</span>
+                    <span class="dia-fecha" id="peor-dia-fecha">sin datos</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="dia-highlight" style="background:rgba(13,202,240,0.08);border:1px solid rgba(13,202,240,0.25)">
+                    <span class="dia-label" style="color:#0dcaf0">📦 Venta promedio</span>
+                    <span class="dia-val text-info" id="promedio-venta">$—</span>
+                    <span class="dia-fecha">por venta</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="dia-highlight" style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25)">
+                    <span class="dia-label" style="color:#FFD700">📈 Margen promedio</span>
+                    <span class="dia-val" style="color:#FFD700" id="margen-promedio">—%</span>
+                    <span class="dia-fecha">del período</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRÁFICAS PERFUMES -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow" style="background:#1a1a1a">
+                    <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">📊 Ingresos vs Ganancia</h6></div>
+                    <div class="card-body"><canvas id="chartGanancias" height="160"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="card border-0 shadow h-100" style="background:#1a1a1a">
+                    <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">🥧 Distribución del ingreso</h6></div>
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <canvas id="chartDonut" width="200" height="200"></canvas>
+                        <div class="mt-3 d-flex flex-column gap-1 w-100" style="font-size:0.78rem">
+                            <div class="d-flex justify-content-between"><span><span style="color:#28a745">●</span> Ganancia neta</span><span class="fw-bold" id="donut-neta-pct">0%</span></div>
+                            <div class="d-flex justify-content-between"><span><span style="color:#dc3545">●</span> Costos</span><span class="fw-bold" id="donut-costos-pct">0%</span></div>
+                            <div class="d-flex justify-content-between"><span><span style="color:#ffc107">●</span> Gastos op.</span><span class="fw-bold" id="donut-gastos-pct">0%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-0 shadow h-100" style="background:#1a1a1a">
+                    <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">📋 Resumen por semana</h6></div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height:280px;overflow-y:auto">
+                            <table class="table table-sm mb-0 table-detalle">
+                                <thead><tr><th>Semana</th><th class="text-end">Ingresos</th><th class="text-end">Ganancia</th><th class="text-end">#</th></tr></thead>
+                                <tbody id="tabla-semanas"><tr><td colspan="4" class="text-center text-muted py-3">Selecciona un período</td></tr></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="card border-0 shadow h-100" style="background:#1a1a1a">
-                <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">📋 Resumen por semana</h6></div>
-                <div class="card-body p-0">
-                    <div class="table-responsive" style="max-height:280px;overflow-y:auto">
-                        <table class="table table-sm mb-0 table-detalle">
-                            <thead><tr><th>Semana</th><th class="text-end">Ingresos</th><th class="text-end">Ganancia</th><th class="text-end">#</th></tr></thead>
-                            <tbody id="tabla-semanas"><tr><td colspan="4" class="text-center text-muted py-3">Selecciona un período</td></tr></tbody>
-                        </table>
+
+        <!-- ANÁLISIS POR PERFUME -->
+        <div class="card border-0 shadow mb-4" style="background:#1a1a1a">
+            <div class="card-header border-0 pb-0 pt-4 px-4" style="background:#1a1a1a">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h6 class="fw-bold mb-0">🔍 Análisis por Perfume</h6>
+                    <input type="text" id="search-perfume" placeholder="Buscar perfume..." class="form-control form-control-sm" style="max-width:220px" oninput="filtrarChips()">
+                </div>
+                <p class="text-muted mt-1 mb-3" style="font-size:0.82rem">Selecciona uno o varios perfumes para ver el detalle de sus ventas</p>
+                <div id="chips-perfumes" class="d-flex flex-wrap gap-2 pb-3"></div>
+            </div>
+            <div class="card-body" id="analisis-perfume-body">
+                <div class="empty-analysis"><i class="bi bi-search"></i><span>Selecciona un perfume arriba para ver su historial</span></div>
+            </div>
+        </div>
+
+        <!-- HISTORIAL PERFUMES -->
+        <div class="card border-0 shadow" style="background:#1a1a1a">
+            <div class="card-header border-0 pt-4 px-4 pb-2" style="background:#1a1a1a">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h6 class="fw-bold mb-0">📜 Todas las ventas del período</h6>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge bg-secondary" id="total-ventas-badge">0 ventas</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="exportarHistorialCSV()"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0 table-detalle table-hover">
+                        <thead><tr><th>Fecha</th><th>Producto</th><th>Cliente</th><th class="text-end">Precio venta</th><th class="text-end">Costo</th><th class="text-end">Ganancia</th><th class="text-end">Margen</th><th>Tipo</th></tr></thead>
+                        <tbody id="tabla-historial"><tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /panel-perfumes -->
+
+
+    <!-- ══════════════════════════════════════════════════════
+         PANEL: DECANTS
+    ══════════════════════════════════════════════════════ -->
+    <div id="panel-decants" style="display:none">
+
+        <!-- KPIs DECANTS -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card-decant h-100 p-3" style="background:linear-gradient(135deg,#1a1030,#100820)">
+                    <div class="kpi-sub" style="color:#a78bfa">💵 INGRESOS DECANTS</div>
+                    <div class="kpi-main" style="color:#a78bfa" id="d-kpi-ingresos">$0</div>
+                    <small class="text-muted" id="d-kpi-ventas">0 ventas</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card-decant h-100 p-3" style="background:linear-gradient(135deg,#1a1a2a,#0d0d1f)">
+                    <div class="kpi-sub">💸 COSTO APROX.</div>
+                    <div class="kpi-main text-danger" id="d-kpi-costos">$0</div>
+                    <small class="text-muted">costo estimado de ml</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card-decant h-100 p-3" style="background:linear-gradient(135deg,#2a2a0d,#1f1f00)">
+                    <div class="kpi-sub">✅ GANANCIA BRUTA</div>
+                    <div class="kpi-main" style="color:#FFD700" id="d-kpi-bruta">$0</div>
+                    <small class="text-muted" id="d-kpi-margen">Margen: 0%</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card-decant h-100 p-3" style="background:linear-gradient(135deg,#0d2a1a,#001f0f)">
+                    <div class="kpi-sub">💧 ML VENDIDOS</div>
+                    <div class="kpi-main text-success" id="d-kpi-ml">0 ml</div>
+                    <small class="text-muted" id="d-kpi-fuentes">0 perfumes distintos</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card-decant h-100 p-3" style="background:linear-gradient(135deg,#0d2a2a,#001f1f)">
+                    <div class="kpi-sub">📦 VENTA PROMEDIO</div>
+                    <div class="kpi-main text-info" id="d-kpi-promedio">$0</div>
+                    <small class="text-muted">por decant</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card kpi-card-decant h-100 p-3" style="background:linear-gradient(135deg,#2a0d2a,#1f001f)">
+                    <div class="kpi-sub">📐 ML PROMEDIO</div>
+                    <div class="kpi-main" style="color:#f06fb5" id="d-kpi-ml-prom">0 ml</div>
+                    <small class="text-muted">por decant</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRÁFICAS DECANTS -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <div class="card border-0 shadow" style="background:#1a1a1a">
+                    <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">📊 Ingresos vs Ganancia — Decants</h6></div>
+                    <div class="card-body"><canvas id="chartDecants" height="160"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card border-0 shadow h-100" style="background:#1a1a1a">
+                    <div class="card-header border-0 pb-0" style="background:#1a1a1a"><h6 class="fw-bold mb-0">🏆 Top perfumes por ganancia</h6></div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height:280px;overflow-y:auto">
+                            <table class="table table-sm mb-0 table-detalle">
+                                <thead><tr><th>Perfume</th><th class="text-end">Ventas</th><th class="text-end">Ingresos</th><th class="text-end">Ganancia</th><th class="text-end">Margen</th></tr></thead>
+                                <tbody id="d-tabla-top"><tr><td colspan="5" class="text-center text-muted py-3">Sin datos</td></tr></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ANÁLISIS POR PERFUME -->
-    <div class="card border-0 shadow mb-4" style="background:#1a1a1a">
-        <div class="card-header border-0 pb-0 pt-4 px-4" style="background:#1a1a1a">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h6 class="fw-bold mb-0">🔍 Análisis por Perfume</h6>
-                <input type="text" id="search-perfume" placeholder="Buscar perfume..." class="form-control form-control-sm" style="max-width:220px" oninput="filtrarChips()">
+        <!-- HISTORIAL DECANTS -->
+        <div class="card border-0 shadow" style="background:#1a1a1a">
+            <div class="card-header border-0 pt-4 px-4 pb-2" style="background:#1a1a1a">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h6 class="fw-bold mb-0">💧 Historial de ventas — Decants</h6>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge" style="background:#3b1f6b;color:#a78bfa;border:1px solid #a78bfa" id="d-total-badge">0 ventas</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="exportarDecantsCSV()"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV</button>
+                    </div>
+                </div>
             </div>
-            <p class="text-muted mt-1 mb-3" style="font-size:0.82rem">Selecciona uno o varios perfumes para ver el detalle de sus ventas</p>
-            <div id="chips-perfumes" class="d-flex flex-wrap gap-2 pb-3"></div>
-        </div>
-        <div class="card-body" id="analisis-perfume-body">
-            <div class="empty-analysis"><i class="bi bi-search"></i><span>Selecciona un perfume arriba para ver su historial</span></div>
-        </div>
-    </div>
-
-    <!-- HISTORIAL -->
-    <div class="card border-0 shadow" style="background:#1a1a1a">
-        <div class="card-header border-0 pt-4 px-4 pb-2" style="background:#1a1a1a">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h6 class="fw-bold mb-0">📜 Todas las ventas del período</h6>
-                <div class="d-flex gap-2 align-items-center">
-                    <span class="badge bg-secondary" id="total-ventas-badge">0 ventas</span>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="exportarHistorialCSV()"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV</button>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0 table-detalle table-hover">
+                        <thead><tr><th>Fecha</th><th>Perfume</th><th>Cliente</th><th class="text-end">ml</th><th class="text-end">Precio venta</th><th class="text-end">Costo aprox.</th><th class="text-end">Ganancia</th><th class="text-end">Margen</th></tr></thead>
+                        <tbody id="d-tabla-historial"><tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr></tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0 table-detalle table-hover">
-                    <thead><tr><th>Fecha</th><th>Producto</th><th>Cliente</th><th class="text-end">Precio venta</th><th class="text-end">Costo</th><th class="text-end">Ganancia</th><th class="text-end">Margen</th><th>Tipo</th></tr></thead>
-                    <tbody id="tabla-historial"><tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+
+    </div><!-- /panel-decants -->
 
 </div>
 
@@ -282,8 +405,20 @@
 <script src="assets/js/inventory.js"></script>
 <script src="assets/js/sales.js"></script>
 <script src="assets/js/ganancias.js"></script>
+<script src="assets/js/ganancias-decants.js"></script>
 
 <script>
+// ── Switch de pestañas ──
+window._tabActiva = 'perfumes';
+window.switchTab = function(tab) {
+    window._tabActiva = tab;
+    document.getElementById('panel-perfumes').style.display = tab === 'perfumes' ? '' : 'none';
+    document.getElementById('panel-decants').style.display  = tab === 'decants'  ? '' : 'none';
+    document.getElementById('tab-perfumes-btn').classList.toggle('active', tab === 'perfumes');
+    document.getElementById('tab-decants-btn').classList.toggle('active', tab === 'decants');
+    if (tab === 'decants' && typeof window.renderDecants === 'function') window.renderDecants();
+};
+
 // ── Donut Chart ──
 let donutChart = null;
 window._actualizarDonut = function(ingresos, costos, gastosOp) {
@@ -331,37 +466,25 @@ window._actualizarTrend = function(elId, actual, anterior) {
 };
 
 // ── Mejor / Peor día ──
-// Recibe ventas con { ts: <timestamp ms>, ganancia, precio }
 window._actualizarDias = function(ventas) {
     if (!ventas || ventas.length === 0) return;
-
-    // Agrupar por día usando el timestamp numérico directamente
     const porDia = {};
     ventas.forEach(v => {
         if (!v.ts || v.ts <= 0) return;
         const d = new Date(v.ts);
-        // clave: año-mes-dia en local para no tener problemas de zona horaria
-        const clave = d.getFullYear() + '-'
-            + String(d.getMonth()+1).padStart(2,'0') + '-'
-            + String(d.getDate()).padStart(2,'0');
+        const clave = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
         if (!porDia[clave]) porDia[clave] = { ganancia: 0, ts: v.ts };
         porDia[clave].ganancia += (v.ganancia || 0);
     });
-
-    const entradas = Object.entries(porDia); // [[clave, {ganancia, ts}], ...]
+    const entradas = Object.entries(porDia);
     if (entradas.length === 0) return;
-
     const mejor = entradas.reduce((a,b) => b[1].ganancia > a[1].ganancia ? b : a);
     const peor  = entradas.reduce((a,b) => b[1].ganancia < a[1].ganancia ? b : a);
-
-    // Formatear fecha a partir del timestamp guardado en cada grupo
     const fmtTs = ts => new Date(ts).toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' });
-
     document.getElementById('mejor-dia-val').textContent   = '$' + mejor[1].ganancia.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
     document.getElementById('mejor-dia-fecha').textContent = fmtTs(mejor[1].ts);
     document.getElementById('peor-dia-val').textContent    = '$' + peor[1].ganancia.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
     document.getElementById('peor-dia-fecha').textContent  = fmtTs(peor[1].ts);
-
     const totalIngresos  = ventas.reduce((a,v) => a + (v.precio   || 0), 0);
     const totalGanancias = ventas.reduce((a,v) => a + (v.ganancia || 0), 0);
     document.getElementById('promedio-venta').textContent  = '$' + (ventas.length > 0 ? (totalIngresos / ventas.length) : 0).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -381,7 +504,7 @@ window.actualizarMeta = function() {
     window._metaGanancia = meta;
 };
 
-// ── Exportar CSV ──
+// ── Exportar CSV Perfumes ──
 window.exportarHistorialCSV = function() {
     const tbody = document.getElementById('tabla-historial');
     if (!tbody) return;
@@ -396,7 +519,26 @@ window.exportarHistorialCSV = function() {
     });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
-    a.download = 'ganancias-fitoscents.csv';
+    a.download = 'ganancias-perfumes.csv';
+    a.click();
+};
+
+// ── Exportar CSV Decants ──
+window.exportarDecantsCSV = function() {
+    const tbody = document.getElementById('d-tabla-historial');
+    if (!tbody) return;
+    const filas = tbody.querySelectorAll('tr');
+    if (filas.length === 0 || (filas.length === 1 && filas[0].querySelector('td[colspan]'))) { alert('No hay datos para exportar.'); return; }
+    const headers = ['Fecha','Perfume','Cliente','ml','Precio venta','Costo aprox.','Ganancia','Margen'];
+    let csv = headers.join(',') + '\n';
+    filas.forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length < 8) return;
+        csv += Array.from(tds).map(td => '"' + td.textContent.trim().replace(/"/g,'""') + '"').join(',') + '\n';
+    });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+    a.download = 'ganancias-decants.csv';
     a.click();
 };
 </script>
