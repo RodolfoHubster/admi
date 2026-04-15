@@ -164,8 +164,7 @@ function ocultarSpinner() {
 
 // =========================================================
 // INIT — Sincroniza Firebase → localStorage
-// FIX: Ya NO llama funciones de render aquí.
-//      Cada página las llama por su cuenta después del await.
+// FIX: Incluye decants_fuentes y decants_ventas en la sync
 // =========================================================
 async function initApp() {
     mostrarSpinner('Conectando con Firebase...');
@@ -184,7 +183,8 @@ async function initApp() {
 
     mostrarSpinner('Cargando datos...');
 
-    const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas'];
+    // FIX: Se agregan decants_fuentes y decants_ventas a la sincronización inicial
+    const claves = ['perfumes', 'ventas', 'pagos', 'gastos', 'plantillas', 'decants_fuentes', 'decants_ventas'];
     for (const key of claves) {
         try {
             const data = await getDataCloud(key);
