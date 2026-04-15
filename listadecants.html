@@ -15,17 +15,71 @@
     <link rel="stylesheet" href="assets/css/features.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
     <style>
-        /* ── CARD PREVIEW ── */
+        /* ── CARD ── */
         .decant-card-preview {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             border: 1px solid rgba(201,168,76,0.3);
             border-radius: 16px;
             transition: transform .15s, box-shadow .15s;
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 0;
+            overflow: hidden;
+            padding: 0 !important;
         }
         .decant-card-preview:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.5) !important; }
 
+        /* ── FOTO CUADRADA IZQUIERDA ── */
+        .card-img-col {
+            flex: 0 0 110px;
+            width: 110px;
+            min-height: 110px;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 14px 0 0 14px;
+        }
+        .card-img-col img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .card-img-placeholder {
+            color: #444;
+            font-size: 2rem;
+            text-align: center;
+            line-height: 1;
+            padding: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #555;
+            letter-spacing: .05em;
+        }
+
+        /* ── CONTENIDO DERECHO ── */
+        .card-body-col {
+            flex: 1 1 0;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        /* ── TAGS ROW ── */
+        .card-tags-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
         /* ── TAGS ── */
-        .tag-badge { display:inline-block; font-size:0.72rem; padding:3px 10px; border-radius:20px; font-weight:600; margin:2px; }
+        .tag-badge { display:inline-block; font-size:0.72rem; padding:3px 10px; border-radius:20px; font-weight:600; margin:0; }
         .tag-diario   { background:rgba(108,117,125,.25); color:#adb5bd; border:1px solid #6c757d; }
         .tag-oficina  { background:rgba(13,110,253,.2);  color:#6ea8fe; border:1px solid #0d6efd; }
         .tag-cita     { background:rgba(214,51,132,.2);  color:#f1afd0; border:1px solid #d63384; }
@@ -58,32 +112,21 @@
             font-size:0.78rem; font-weight:700; text-transform:uppercase;
             color:#adb5bd; padding:4px 10px; letter-spacing:.04em;
         }
-        .tallas-table tbody tr {
-            background:#1a1a2e;
-            border-radius:8px;
-        }
-        .tallas-table tbody td {
-            padding:6px 8px; vertical-align:middle;
-        }
+        .tallas-table tbody tr { background:#1a1a2e; border-radius:8px; }
+        .tallas-table tbody td { padding:6px 8px; vertical-align:middle; }
         .tallas-table tbody tr td:first-child { border-radius:8px 0 0 8px; }
         .tallas-table tbody tr td:last-child  { border-radius:0 8px 8px 0; }
         .talla-input {
             background:#0d0d1a; border:1px solid #333; color:#fff;
-            border-radius:6px; padding:5px 10px; width:100%;
-            font-size:0.88rem;
+            border-radius:6px; padding:5px 10px; width:100%; font-size:0.88rem;
         }
         .talla-input:focus { outline:none; border-color:#c9a84c; box-shadow:0 0 0 2px rgba(201,168,76,.25); }
         .talla-input::placeholder { color:#555; }
-        .precio-prefix {
-            display:flex; align-items:center; gap:4px;
-        }
-        .precio-prefix span {
-            color:#adb5bd; font-size:0.88rem; padding-left:6px;
-        }
+        .precio-prefix { display:flex; align-items:center; gap:4px; }
+        .precio-prefix span { color:#adb5bd; font-size:0.88rem; padding-left:6px; }
         .btn-del-talla {
             background:none; border:none; color:#c0392b;
-            font-size:1rem; cursor:pointer; padding:4px 6px;
-            opacity:.7; transition:opacity .15s;
+            font-size:1rem; cursor:pointer; padding:4px 6px; opacity:.7; transition:opacity .15s;
         }
         .btn-del-talla:hover { opacity:1; }
         .btn-add-talla {
@@ -93,42 +136,13 @@
         }
         .btn-add-talla:hover { background:rgba(201,168,76,.22); }
 
-        /* ── TALLA PILL (preview & cards) ── */
+        /* ── TALLA PILL ── */
         .talla-pill {
-            display:inline-block;
-            background:#c9a84c;
-            color:#1a1a2e;
-            font-weight:700;
-            font-size:0.82rem;
-            padding:5px 14px;
-            border-radius:30px;
-            margin:3px 3px 3px 0;
-            letter-spacing:.02em;
+            display:inline-block; background:#c9a84c; color:#1a1a2e;
+            font-weight:700; font-size:0.82rem; padding:5px 14px;
+            border-radius:30px; margin:3px 3px 3px 0; letter-spacing:.02em;
         }
         .talla-pill.inactiva { background:#333; color:#777; text-decoration:line-through; }
-
-        /* ── IMAGEN CUADRADA ── */
-        .img-preview-wrap {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #111;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .img-preview-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .img-placeholder {
-            color: #555;
-            font-size: 2.5rem;
-        }
 
         /* ── MISC ── */
         .intensidad-bar { height:8px; border-radius:4px; background:#222; overflow:hidden; }
@@ -176,14 +190,12 @@
 
                     <!-- IZQUIERDA -->
                     <div class="col-lg-7">
-
                         <div class="mb-3">
                             <label class="form-label small fw-bold">🔍 Selecciona perfume del inventario</label>
                             <select class="form-select" id="select-perfume" onchange="autocompletarDesdeInventario()">
                                 <option value="">-- Elige un perfume (o escribe abajo) --</option>
                             </select>
                         </div>
-
                         <div class="row g-3">
                             <div class="col-md-7">
                                 <label class="form-label small fw-bold">Nombre del Perfume *</label>
@@ -227,19 +239,16 @@
                             <label class="form-label small fw-bold">🎯 Ocasiones</label>
                             <div id="ocas-checklist" class="d-flex flex-wrap gap-1"></div>
                         </div>
-
                         <!-- TEMPORADA -->
                         <div class="mt-3">
                             <label class="form-label small fw-bold">🌤️ Temporada / Clima</label>
                             <div id="temp-checklist" class="d-flex flex-wrap gap-1"></div>
                         </div>
-
                         <!-- INTENSIDAD -->
                         <div class="mt-3">
                             <label class="form-label small fw-bold">💨 Intensidad de proyección</label>
                             <div id="intens-checklist" class="d-flex flex-wrap gap-1"></div>
                         </div>
-
                     </div>
 
                     <!-- DERECHA: PREVIEW -->
@@ -247,7 +256,6 @@
                         <label class="form-label small fw-bold d-block mb-2">👁️ Vista previa</label>
                         <div id="card-preview-container"></div>
                     </div>
-
                 </div>
             </div>
             <div class="modal-footer border-secondary">
@@ -292,34 +300,32 @@ const app = getApps().find(a => a.name === 'listadecants')
     || initializeApp(FIREBASE_CONFIG, 'listadecants');
 const db = getFirestore(app);
 
-// ── CONSTANTES ──
 const OCASIONES = [
-    { id:'diario',   emoji:'📅', label:'Firma / Diario',      cls:'tag-diario'   },
-    { id:'oficina',  emoji:'💼', label:'Oficina / Formal',     cls:'tag-oficina'  },
-    { id:'cita',     emoji:'🌹', label:'Cita Romántica',       cls:'tag-cita'     },
-    { id:'noche',    emoji:'🌙', label:'Noche',                cls:'tag-noche'    },
-    { id:'club',     emoji:'🎉', label:'Club / Fiesta',        cls:'tag-club'     },
-    { id:'casual',   emoji:'😊', label:'Casual / Salida',      cls:'tag-casual'   },
-    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',        cls:'tag-diario'   },
-    { id:'viaje',    emoji:'✈️', label:'Viaje',                cls:'tag-todo'     },
-    { id:'invierno', emoji:'❄️', label:'Invierno / Frío',      cls:'tag-invierno' },
-    { id:'verano',   emoji:'☀️', label:'Verano / Calor',       cls:'tag-verano'   },
+    { id:'diario',   emoji:'📅', label:'Firma / Diario',         cls:'tag-diario'   },
+    { id:'oficina',  emoji:'💼', label:'Oficina / Formal',        cls:'tag-oficina'  },
+    { id:'cita',     emoji:'🌹', label:'Cita Romántica',          cls:'tag-cita'     },
+    { id:'noche',    emoji:'🌙', label:'Noche',                   cls:'tag-noche'    },
+    { id:'club',     emoji:'🎉', label:'Club / Fiesta',           cls:'tag-club'     },
+    { id:'casual',   emoji:'😊', label:'Casual / Salida',         cls:'tag-casual'   },
+    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',           cls:'tag-diario'   },
+    { id:'viaje',    emoji:'✈️', label:'Viaje',                   cls:'tag-todo'     },
+    { id:'invierno', emoji:'❄️', label:'Invierno / Frío',         cls:'tag-invierno' },
+    { id:'verano',   emoji:'☀️', label:'Verano / Calor',          cls:'tag-verano'   },
 ];
 const TEMPORADAS = [
-    { id:'todo',      emoji:'🌀', label:'Todo el año'     },
-    { id:'primavera', emoji:'🌸', label:'Primavera'       },
-    { id:'verano',    emoji:'☀️', label:'Verano / Calor'  },
-    { id:'otono',     emoji:'🍂', label:'Otoño'           },
-    { id:'invierno',  emoji:'❄️', label:'Invierno / Frío' },
+    { id:'todo',      emoji:'🌀', label:'Todo el año'      },
+    { id:'primavera', emoji:'🌸', label:'Primavera'        },
+    { id:'verano',    emoji:'☀️', label:'Verano / Calor'   },
+    { id:'otono',     emoji:'🍂', label:'Otoño'            },
+    { id:'invierno',  emoji:'❄️', label:'Invierno / Frío'  },
 ];
 const INTENSIDADES = [
-    { id:'sutil',    emoji:'🌬️', label:'Sutil (cercana)',          pct:25,  color:'#6ea8fe' },
-    { id:'moderada', emoji:'💨', label:'Moderada',                 pct:50,  color:'#75c896' },
-    { id:'alta',     emoji:'🌊', label:'Alta',                     pct:75,  color:'#ffc107' },
+    { id:'sutil',    emoji:'🌬️', label:'Sutil (cercana)',             pct:25,  color:'#6ea8fe' },
+    { id:'moderada', emoji:'💨', label:'Moderada',                    pct:50,  color:'#75c896' },
+    { id:'alta',     emoji:'🌊', label:'Alta',                        pct:75,  color:'#ffc107' },
     { id:'bestia',   emoji:'🔥', label:'Bestia / Proyección extrema', pct:100, color:'#dc3545' },
 ];
 
-// ── CHECKLISTS ──
 function renderChecklist(cid, items, prefix) {
     document.getElementById(cid).innerHTML = items.map(it =>
         `<input type="checkbox" class="${prefix}-check" id="${prefix}-${it.id}" value="${it.id}" onchange="actualizarPreview()">
@@ -337,7 +343,7 @@ function setChecked(p, vals = []) {
     document.querySelectorAll(`.${p}-check`).forEach(c => c.checked = vals.includes(c.value));
 }
 
-// ── TALLAS TABLE ──
+// ── TALLAS ──
 let tallaCounter = 0;
 
 window.agregarFilaTalla = function(ml = '', precio = '', activa = true) {
@@ -346,30 +352,14 @@ window.agregarFilaTalla = function(ml = '', precio = '', activa = true) {
     const tr = document.createElement('tr');
     tr.id = `talla-row-${id}`;
     tr.innerHTML = `
-        <td>
-            <input type="number" class="talla-input" placeholder="ej: 5" value="${ml}"
-                   min="0" step="0.5" oninput="actualizarPreview()" data-ml>
-        </td>
-        <td>
-            <div class="precio-prefix">
-                <span>$</span>
-                <input type="number" class="talla-input" placeholder="0.00" value="${precio}"
-                       min="0" step="0.5" oninput="actualizarPreview()" data-precio>
-            </div>
-        </td>
+        <td><input type="number" class="talla-input" placeholder="ej: 5" value="${ml}" min="0" step="0.5" oninput="actualizarPreview()" data-ml></td>
+        <td><div class="precio-prefix"><span>$</span><input type="number" class="talla-input" placeholder="0.00" value="${precio}" min="0" step="0.5" oninput="actualizarPreview()" data-precio></div></td>
         <td style="text-align:center">
             <div class="form-check form-switch d-flex justify-content-center mb-0">
-                <input class="form-check-input" type="checkbox" role="switch"
-                       id="talla-activa-${id}" ${activa ? 'checked' : ''}
-                       style="width:2.4em;height:1.3em;cursor:pointer"
-                       onchange="actualizarPreview()">
+                <input class="form-check-input" type="checkbox" role="switch" id="talla-activa-${id}" ${activa ? 'checked' : ''} style="width:2.4em;height:1.3em;cursor:pointer" onchange="actualizarPreview()">
             </div>
         </td>
-        <td>
-            <button type="button" class="btn-del-talla" onclick="eliminarFilaTalla(${id})" title="Eliminar">
-                ×
-            </button>
-        </td>
+        <td><button type="button" class="btn-del-talla" onclick="eliminarFilaTalla(${id})" title="Eliminar">×</button></td>
     `;
     tbody.appendChild(tr);
     actualizarPreview();
@@ -381,40 +371,35 @@ window.eliminarFilaTalla = function(id) {
 };
 
 function getTallas() {
-    const rows = document.querySelectorAll('#tallas-tbody tr');
-    return [...rows].map(tr => ({
-        ml:     parseFloat(tr.querySelector('[data-ml]').value)    || 0,
+    return [...document.querySelectorAll('#tallas-tbody tr')].map(tr => ({
+        ml:     parseFloat(tr.querySelector('[data-ml]').value)     || 0,
         precio: parseFloat(tr.querySelector('[data-precio]').value) || 0,
         activa: tr.querySelector('input[type=checkbox]').checked,
     })).filter(r => r.ml > 0);
 }
-
 function setTallas(arr = []) {
     document.getElementById('tallas-tbody').innerHTML = '';
     tallaCounter = 0;
     if (!arr.length) { agregarFilaTalla(); return; }
     arr.forEach(r => agregarFilaTalla(r.ml, r.precio, r.activa !== false));
 }
-
-function tallasToHTML(tallas, soloActivas = false) {
-    return tallas
-        .filter(r => !soloActivas || r.activa)
-        .map(r => {
-            const cls = r.activa ? 'talla-pill' : 'talla-pill inactiva';
-            const label = r.precio > 0 ? `${r.ml}ML - $${r.precio}` : `${r.ml}ML`;
-            return `<span class="${cls}">${label}</span>`;
-        }).join('');
+function tallasToHTML(tallas) {
+    return tallas.map(r => {
+        const cls = r.activa ? 'talla-pill' : 'talla-pill inactiva';
+        const label = r.precio > 0 ? `${r.ml}ML - $${r.precio}` : `${r.ml}ML`;
+        return `<span class="${cls}">${label}</span>`;
+    }).join('');
 }
 
-// ── HELPER: bloque imagen cuadrada ──
-function imgBlock(src) {
+// ── FOTO BLOCK (cuadrado izquierda) ──
+function fotoCol(src) {
     if (src) {
-        return `<div class="img-preview-wrap">
-                    <img src="${src}" alt="perfume" loading="lazy"
-                         onerror="this.parentElement.innerHTML='<span class=\\'img-placeholder\\'>🧴</span>'">
-                </div>`;
+        return `<div class="card-img-col">
+            <img src="${src}" alt="perfume" loading="lazy"
+                 onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>FOTO</div>'">
+        </div>`;
     }
-    return `<div class="img-preview-wrap"><span class="img-placeholder">🧴</span></div>`;
+    return `<div class="card-img-col"><div class="card-img-placeholder">FOTO<br>PERFUME</div></div>`;
 }
 
 // ── AUTOCOMPLETAR ──
@@ -436,7 +421,6 @@ window.actualizarPreview = function() {
     const marca  = document.getElementById('t-marca').value  || 'Marca';
     const imagen = document.getElementById('t-imagen').value;
     const desc   = document.getElementById('t-descripcion').value;
-
     const ocas   = getChecked('ocas');
     const temps  = getChecked('temp');
     const intens = getChecked('intens');
@@ -461,17 +445,20 @@ window.actualizarPreview = function() {
         </div>` : '';
 
     const tallasHTML = tallasToHTML(tallas);
+    const tagsHTML = (tagsOcas || tagsTemp)
+        ? `<div class="card-tags-row">${tagsOcas}${tagsTemp}</div>` : '';
 
     document.getElementById('card-preview-container').innerHTML = `
-        <div class="decant-card-preview p-3 shadow">
-            ${imgBlock(imagen)}
-            <h6 class="fw-bold mb-0" style="color:#ffd966">${nombre}</h6>
-            <p class="small text-muted mb-2">${marca}</p>
-            ${desc       ? `<p class="small text-secondary mb-2" style="font-size:.75rem">${desc}</p>` : ''}
-            ${tallasHTML ? `<div class="mb-2">${tallasHTML}</div>` : ''}
-            ${tagsOcas   ? `<div class="mb-1">${tagsOcas}</div>`   : ''}
-            ${tagsTemp   ? `<div class="mb-1">${tagsTemp}</div>`   : ''}
-            ${intensHTML}
+        <div class="decant-card-preview shadow">
+            ${fotoCol(imagen)}
+            <div class="card-body-col">
+                <h6 class="fw-bold mb-0" style="color:#ffd966;font-size:.95rem">${nombre}</h6>
+                <p class="small text-muted mb-1" style="font-size:.78rem">${marca}</p>
+                ${desc ? `<p class="text-secondary mb-2" style="font-size:.75rem;line-height:1.35">${desc}</p>` : ''}
+                ${tallasHTML ? `<div class="mb-2">${tallasHTML}</div>` : ''}
+                ${tagsHTML}
+                ${intensHTML}
+            </div>
         </div>
     `;
 };
@@ -512,14 +499,14 @@ async function cargarTarjetas() {
 }
 
 function renderTarjetaGrid(id, t) {
-    const grid = document.getElementById('grid-tarjetas');
+    const grid   = document.getElementById('grid-tarjetas');
     const tallas = t.tallas || [];
 
-    const ocas = (t.ocasiones||[]).map(oid => {
+    const tagsOcas = (t.ocasiones||[]).map(oid => {
         const o = OCASIONES.find(x=>x.id===oid);
         return o ? `<span class="tag-badge ${o.cls}">${o.emoji} ${o.label}</span>` : '';
     }).join('');
-    const temps = (t.temporadas||[]).map(tid => {
+    const tagsTemp = (t.temporadas||[]).map(tid => {
         const te = TEMPORADAS.find(x=>x.id===tid);
         return te ? `<span class="tag-badge tag-todo">${te.emoji} ${te.label}</span>` : '';
     }).join('');
@@ -534,27 +521,30 @@ function renderTarjetaGrid(id, t) {
         </div>` : '';
 
     const tallasHTML = tallasToHTML(tallas);
+    const tagsHTML = (tagsOcas || tagsTemp)
+        ? `<div class="card-tags-row">${tagsOcas}${tagsTemp}</div>` : '';
 
     const col = document.createElement('div');
-    col.className = 'col-sm-6 col-md-4 col-lg-3';
+    col.className = 'col-12 col-md-6 col-xl-4';
     col.id = `tarjeta-col-${id}`;
     col.innerHTML = `
-        <div class="decant-card-preview p-3 h-100 shadow">
-            ${imgBlock(t.imagen)}
-            <h6 class="fw-bold mb-0" style="color:#ffd966">${t.nombre||'—'}</h6>
-            <p class="small text-muted mb-2">${t.marca||''}</p>
-            ${t.descripcion ? `<p class="small text-secondary mb-2" style="font-size:.75rem">${t.descripcion}</p>` : ''}
-            ${tallasHTML ? `<div class="mb-2">${tallasHTML}</div>` : ''}
-            ${ocas  ? `<div class="mb-1">${ocas}</div>`  : ''}
-            ${temps ? `<div class="mb-1">${temps}</div>` : ''}
-            ${intensHTML}
-            <div class="mt-3 d-flex gap-2">
-                <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="editarTarjeta('${id}')">
-                    <i class="bi bi-pencil"></i> Editar
-                </button>
-                <button class="btn btn-outline-danger btn-sm" onclick="eliminarTarjeta('${id}')">
-                    <i class="bi bi-trash"></i>
-                </button>
+        <div class="decant-card-preview shadow">
+            ${fotoCol(t.imagen)}
+            <div class="card-body-col">
+                <h6 class="fw-bold mb-0" style="color:#ffd966;font-size:.95rem">${t.nombre||'—'}</h6>
+                <p class="small text-muted mb-1" style="font-size:.78rem">${t.marca||''}</p>
+                ${t.descripcion ? `<p class="text-secondary mb-2" style="font-size:.75rem;line-height:1.35">${t.descripcion}</p>` : ''}
+                ${tallasHTML ? `<div class="mb-2">${tallasHTML}</div>` : ''}
+                ${tagsHTML}
+                ${intensHTML}
+                <div class="mt-2 d-flex gap-2">
+                    <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="editarTarjeta('${id}')">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="eliminarTarjeta('${id}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -565,7 +555,6 @@ function renderTarjetaGrid(id, t) {
 window.guardarTarjeta = async function() {
     const nombre = document.getElementById('t-nombre').value.trim();
     if (!nombre) { alert('El nombre del perfume es obligatorio.'); return; }
-
     const tallasData = getTallas();
     const intensArr  = getChecked('intens');
     const data = {
@@ -579,11 +568,9 @@ window.guardarTarjeta = async function() {
         intensidad:  intensArr[0] || '',
         updatedAt:   serverTimestamp(),
     };
-
     const editId = document.getElementById('tarjeta-edit-id').value;
     const docRef = editId ? doc(db,'listadecants',editId) : doc(collection(db,'listadecants'));
     if (!editId) data.createdAt = serverTimestamp();
-
     try {
         await setDoc(docRef, data, { merge: true });
         mostrarToast('✅ Tarjeta guardada');
@@ -601,28 +588,23 @@ window.editarTarjeta = async function(id) {
         const d    = snap.docs.find(x => x.id === id);
         if (!d) return;
         const t = d.data();
-
         document.getElementById('tarjeta-edit-id').value  = id;
         document.getElementById('t-nombre').value         = t.nombre      || '';
         document.getElementById('t-marca').value          = t.marca       || '';
         document.getElementById('t-imagen').value         = t.imagen      || '';
         document.getElementById('t-descripcion').value    = t.descripcion || '';
         document.getElementById('titulo-modal-tarjeta').textContent = '✏️ Editar Tarjeta';
-
         let tallasArr = t.tallas || [];
         if (typeof tallasArr === 'string') {
             tallasArr = tallasArr.split(',').map(ml => ({
                 ml: parseFloat(ml.trim()) || 0,
-                precio: t.precioMl ? parseFloat(t.precioMl) * (parseFloat(ml.trim()) || 0) : 0,
-                activa: true
+                precio: 0, activa: true
             })).filter(r => r.ml > 0);
         }
         setTallas(tallasArr);
-
         setChecked('ocas',   t.ocasiones  || []);
         setChecked('temp',   t.temporadas || []);
         setChecked('intens', t.intensidad ? [t.intensidad] : []);
-
         actualizarPreview();
         new bootstrap.Modal(document.getElementById('modalNuevaTarjeta')).show();
     } catch(e) { console.error(e); }
@@ -635,7 +617,7 @@ window.eliminarTarjeta = async function(id) {
         await deleteDoc(doc(db, 'listadecants', id));
         document.getElementById(`tarjeta-col-${id}`)?.remove();
         mostrarToast('🗑️ Tarjeta eliminada');
-        if (!document.querySelector('#grid-tarjetas .col-sm-6')) {
+        if (!document.querySelector('#grid-tarjetas [id^=tarjeta-col]')) {
             document.getElementById('grid-tarjetas').innerHTML =
                 '<div class="col-12 text-center text-muted py-5" id="empty-state"><i class="bi bi-card-list" style="font-size:3rem;"></i><p class="mt-2">No hay tarjetas aún.</p></div>';
         }
