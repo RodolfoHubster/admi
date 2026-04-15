@@ -9,18 +9,22 @@ const WHATSAPP_NUMERO = '526648162623';
 
 // =========================================================
 // CLASIFICAR PRODUCTO
-// Regla: pedido siempre gana, sin importar ubicacion
 // =========================================================
 function clasificarProducto(p) {
-    if (p.destino === 'pedido')         return 'pedido';    // pedido de cliente = siempre pedido
-    if (p.ubicacion === 'en_camino')    return 'camino';    // stock en tránsito
-    return 'disponible';                                    // stock en tienda
+    if (p.destino === 'pedido')         return 'pedido';
+    if (p.ubicacion === 'en_camino')    return 'camino';
+    return 'disponible';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    cargarCatalogo();
+// =========================================================
+// LISTENERS DE IMPRESIÓN
+// Se registran una sola vez cuando el catálogo ya está visible
+// =========================================================
+let _printListenersRegistrados = false;
+function registrarPrintListeners() {
+    if (_printListenersRegistrados) return;
+    _printListenersRegistrados = true;
 
-    // Al imprimir: disponibles + en camino (sin pedidos del cliente)
     window.addEventListener('beforeprint', () => {
         window._printCheckState = {
             disponible: document.getElementById('chk-disponible').checked,
@@ -39,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             delete window._printCheckState;
         }
     });
-});
+}
 
 function setChecks(disponible, camino, pedido) {
     const vals = { disponible, camino, pedido };
@@ -55,8 +59,8 @@ function setChecks(disponible, camino, pedido) {
 
 // =========================================================
 // CARGAR PRODUCTOS
+// Solo se llama desde iniciarCatalogo() — nunca al cargar la página
 // =========================================================
-
 async function cargarCatalogo() {
     if (typeof window.getDataCloud !== 'function') {
         setTimeout(cargarCatalogo, 50);
@@ -74,13 +78,12 @@ async function cargarCatalogo() {
 // =========================================================
 // FILTRAR
 // =========================================================
-
 function filtrarCatalogo() {
-    const busqueda  = document.getElementById('buscar-catalogo').value.toLowerCase();
-    const orden     = document.getElementById('filtro-orden').value;
-    const verDisp   = document.getElementById('chk-disponible')?.checked ?? true;
-    const verCamino = document.getElementById('chk-camino')?.checked    ?? false;
-    const verPedido = document.getElementById('chk-pedido')?.checked    ?? false;
+    const busqueda  = (document.getElementById('buscar-catalogo')?.value  || '').toLowerCase();
+    const orden     = document.getElementById('filtro-orden')?.value      || 'precio-desc';
+    const verDisp   = document.getElementById('chk-disponible')?.checked  ?? true;
+    const verCamino = document.getElementById('chk-camino')?.checked      ?? false;
+    const verPedido = document.getElementById('chk-pedido')?.checked      ?? false;
 
     let filtrados = productosDisponibles.filter(p => {
         const matchBusqueda = p.nombre.toLowerCase().includes(busqueda) ||
@@ -108,8 +111,8 @@ function filtrarCatalogo() {
 // =========================================================
 // AGRUPAR DUPLICADOS
 // =========================================================
-
 function agruparProductos(productos) {
+    if (!productos || !Array.isArray(productos)) return [];
     const mapa = new Map();
     productos.forEach(p => {
         const clave = `${p.nombre.trim().toLowerCase()}||${p.marca.trim().toLowerCase()}`;
@@ -130,21 +133,24 @@ function agruparProductos(productos) {
 // =========================================================
 // RENDERIZAR
 // =========================================================
-
 function renderCatalogo(productos) {
     const grid  = document.getElementById('catalogo-grid');
     const vacio = document.getElementById('catalogo-vacio');
+    if (!grid) return; // DOM aún no disponible (pantalla de PIN activa)
+
     const agrupados = agruparProductos(productos);
 
-    document.getElementById('total-productos').innerText = agrupados.length;
+    // total-productos es opcional (solo existe en algunos layouts)
+    const elTotal = document.getElementById('total-productos');
+    if (elTotal) elTotal.innerText = agrupados.length;
 
     if (agrupados.length === 0) {
         grid.innerHTML = '';
-        vacio.style.display = 'block';
+        if (vacio) vacio.style.display = 'block';
         return;
     }
 
-    vacio.style.display = 'none';
+    if (vacio) vacio.style.display = 'none';
     grid.innerHTML = '';
 
     agrupados.forEach(prod => {
@@ -152,7 +158,6 @@ function renderCatalogo(productos) {
         const cantidad  = prod._cantidad || 1;
         const tipo      = clasificarProducto(prod);
 
-        // Badge según tipo (usando la misma función — consistencia garantizada)
         let badge = '';
         if (tipo === 'pedido')      badge = '<div class="badge-pedido">📋 Pedido</div>';
         else if (tipo === 'camino') badge = '<div class="badge-camino">🚚 En Camino</div>';
@@ -191,7 +196,6 @@ function renderCatalogo(productos) {
 // =========================================================
 // DETALLE
 // =========================================================
-
 function verDetalleProducto(producto) {
     productoSeleccionado = producto;
     document.getElementById('modal-nombre').innerText = producto.nombre;
@@ -219,9 +223,7 @@ function consultarProducto() {
 // =========================================================
 // COMPARTIR
 // =========================================================
-
 function compartirCatalogo() {
-    // Compartir solo disponibles (stock en tienda, no en tránsito)
     const productos = productosDisponibles.filter(p => clasificarProducto(p) === 'disponible');
     if (productos.length === 0) { alert('No hay productos disponibles para compartir'); return; }
     const agrupados = agruparProductos(productos);
@@ -235,9 +237,8 @@ function compartirCatalogo() {
 }
 
 // =========================================================
-// UTILIDADES
+// LIMPIAR FILTROS
 // =========================================================
-
 function limpiarFiltros() {
     document.getElementById('buscar-catalogo').value = '';
     document.getElementById('filtro-orden').value = 'precio-desc';
