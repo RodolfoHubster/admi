@@ -423,14 +423,14 @@
 <script src="assets/js/catalogo.js"></script>
 <script>
 // ============================================================
-// ESTADO GLOBAL — declarar PRIMERO para evitar Temporal Dead Zone
+// ESTADO GLOBAL
 // ============================================================
 let _decants_data = [];
 let _tabActual    = 'perfumes';
 let _modalDecant  = null;
 
 // ============================================================
-// PIN AUTH — mismo sistema que login.html
+// PIN AUTH
 // ============================================================
 const CAT_PIN_HASH      = 'e0b08ad65f5b6f6b75d18c8642a041ca1160609af1b7dfc55ab7f2d293fd8758';
 const CAT_MAX_INTENTOS  = 3;
@@ -438,7 +438,6 @@ const CAT_BLOQUEO_MS    = 3 * 60 * 1000;
 
 let catPin = '';
 
-// Si ya está autenticado en la sesión actual, mostrar directo
 if (sessionStorage.getItem('fito_auth') === 'ok') {
     document.getElementById('pin-lock-screen').style.display = 'none';
     document.getElementById('catalogo-app').style.display    = 'block';
@@ -589,20 +588,37 @@ function imprimirCatalogo() {
 }
 
 // ============================================================
-// DECANTS
+// DECANTS — FIX: usa getData() de storage.js (key correcta)
+// y también intenta Firebase si está disponible
 // ============================================================
 async function cargarDecantsCatalogo() {
     try {
         let fuentes = [];
+
+        // Intentar Firebase primero
         if (typeof getDataCloud === 'function') {
-            fuentes = await getDataCloud('decants_fuentes') || [];
-        } else {
-            const raw = localStorage.getItem('fitoscents_decants_fuentes');
-            fuentes = raw ? JSON.parse(raw) : [];
+            try {
+                const cloudData = await getDataCloud('decants_fuentes');
+                if (Array.isArray(cloudData) && cloudData.length > 0) {
+                    // Guardar en localStorage con la key correcta para futuras cargas
+                    localStorage.setItem('fitoscents_decants_fuentes_v1', JSON.stringify(cloudData));
+                    fuentes = cloudData;
+                }
+            } catch(cloudErr) {
+                console.warn('⚠️ Firebase no respondió para decants, usando localStorage');
+            }
         }
-        _decants_data = fuentes.filter(f => ((f.mlTotal||0) - (f.mlUsados||0)) > 0);
+
+        // Si Firebase no devolvió nada, leer localStorage con la key CORRECTA (_v1)
+        if (!fuentes.length && typeof getData === 'function') {
+            fuentes = getData('decants_fuentes') || [];
+        }
+
+        // Filtrar solo los que tienen ml disponibles
+        _decants_data = fuentes.filter(f => ((f.mlTotal || 0) - (f.mlUsados || 0)) > 0);
         filtrarDecants();
     } catch(e) {
+        console.error('❌ Error cargando decants:', e);
         _decants_data = [];
         filtrarDecants();
     }
