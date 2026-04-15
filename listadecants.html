@@ -107,8 +107,30 @@
         }
         .talla-pill.inactiva { background:#333; color:#777; text-decoration:line-through; }
 
+        /* ── IMAGEN CUADRADA ── */
+        .img-preview-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #111;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .img-preview-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .img-placeholder {
+            color: #555;
+            font-size: 2.5rem;
+        }
+
         /* ── MISC ── */
-        .img-preview { width:100%; max-height:160px; object-fit:cover; border-radius:12px; }
         .intensidad-bar { height:8px; border-radius:4px; background:#222; overflow:hidden; }
         .intensidad-fill { height:100%; border-radius:4px; transition:width .4s; }
         #toast-lista { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; min-width:260px; }
@@ -384,6 +406,17 @@ function tallasToHTML(tallas, soloActivas = false) {
         }).join('');
 }
 
+// ── HELPER: bloque imagen cuadrada ──
+function imgBlock(src) {
+    if (src) {
+        return `<div class="img-preview-wrap">
+                    <img src="${src}" alt="perfume" loading="lazy"
+                         onerror="this.parentElement.innerHTML='<span class=\\'img-placeholder\\'>🧴</span>'">
+                </div>`;
+    }
+    return `<div class="img-preview-wrap"><span class="img-placeholder">🧴</span></div>`;
+}
+
 // ── AUTOCOMPLETAR ──
 window.autocompletarDesdeInventario = function() {
     const sel = document.getElementById('select-perfume');
@@ -428,13 +461,10 @@ window.actualizarPreview = function() {
         </div>` : '';
 
     const tallasHTML = tallasToHTML(tallas);
-    const imgHTML = imagen
-        ? `<img src="${imagen}" class="img-preview mb-3" onerror="this.style.display='none'" loading="lazy">`
-        : `<div class="rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height:120px;background:#111;color:#555;font-size:2rem;">🧴</div>`;
 
     document.getElementById('card-preview-container').innerHTML = `
         <div class="decant-card-preview p-3 shadow">
-            ${imgHTML}
+            ${imgBlock(imagen)}
             <h6 class="fw-bold mb-0" style="color:#ffd966">${nombre}</h6>
             <p class="small text-muted mb-2">${marca}</p>
             ${desc       ? `<p class="small text-secondary mb-2" style="font-size:.75rem">${desc}</p>` : ''}
@@ -504,16 +534,13 @@ function renderTarjetaGrid(id, t) {
         </div>` : '';
 
     const tallasHTML = tallasToHTML(tallas);
-    const imgHTML = t.imagen
-        ? `<img src="${t.imagen}" class="img-preview mb-3" onerror="this.style.display='none'" loading="lazy">`
-        : `<div class="rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height:100px;background:#111;color:#555;font-size:2rem;">🧴</div>`;
 
     const col = document.createElement('div');
     col.className = 'col-sm-6 col-md-4 col-lg-3';
     col.id = `tarjeta-col-${id}`;
     col.innerHTML = `
         <div class="decant-card-preview p-3 h-100 shadow">
-            ${imgHTML}
+            ${imgBlock(t.imagen)}
             <h6 class="fw-bold mb-0" style="color:#ffd966">${t.nombre||'—'}</h6>
             <p class="small text-muted mb-2">${t.marca||''}</p>
             ${t.descripcion ? `<p class="small text-secondary mb-2" style="font-size:.75rem">${t.descripcion}</p>` : ''}
@@ -582,7 +609,6 @@ window.editarTarjeta = async function(id) {
         document.getElementById('t-descripcion').value    = t.descripcion || '';
         document.getElementById('titulo-modal-tarjeta').textContent = '✏️ Editar Tarjeta';
 
-        // Compatibilidad: si tallas es string viejo, convertir
         let tallasArr = t.tallas || [];
         if (typeof tallasArr === 'string') {
             tallasArr = tallasArr.split(',').map(ml => ({
