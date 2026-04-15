@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="assets/js/auth.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitoscents - Lista de Decants</title>
+    <script src="assets/js/config.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/ui.css">
+    <link rel="stylesheet" href="assets/css/features.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+    <script type="module" src="assets/js/firebase.js"></script>
+    <style>
+        .decant-card-preview {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 1px solid rgba(201,168,76,0.3);
+            border-radius: 16px;
+            transition: transform .15s, box-shadow .15s;
+        }
+        .decant-card-preview:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.5) !important; }
+        .tag-badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 2px;
+        }
+        .tag-diario   { background: rgba(108,117,125,.25); color: #adb5bd; border: 1px solid #6c757d; }
+        .tag-oficina  { background: rgba(13,110,253,.2);  color: #6ea8fe; border: 1px solid #0d6efd; }
+        .tag-cita     { background: rgba(214,51,132,.2);  color: #f1afd0; border: 1px solid #d63384; }
+        .tag-noche    { background: rgba(111,66,193,.25); color: #d0b4fe; border: 1px solid #6f42c1; }
+        .tag-club     { background: rgba(220,53,69,.2);   color: #f5a1a8; border: 1px solid #dc3545; }
+        .tag-casual   { background: rgba(25,135,84,.2);   color: #75c896; border: 1px solid #198754; }
+        .tag-deporte  { background: rgba(13,202,240,.2);  color: #6edff6; border: 1px solid #0dcaf0; }
+        .tag-todo     { background: rgba(255,193,7,.2);   color: #ffda6a; border: 1px solid #ffc107; }
+        .tag-invierno { background: rgba(13,110,253,.2);  color: #9ec5fe; border: 1px solid #0d6efd; }
+        .tag-verano   { background: rgba(255,193,7,.2);   color: #ffe69c; border: 1px solid #ffc107; }
+        .tag-primavera{ background: rgba(25,135,84,.2);   color: #75c896; border: 1px solid #198754; }
+        .tag-otono    { background: rgba(253,126,20,.2);  color: #feb272; border: 1px solid #fd7e14; }
+
+        .ocas-check, .temp-check, .intens-check { display: none; }
+        .ocas-label, .temp-label, .intens-label {
+            cursor: pointer;
+            border: 1px solid #444;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+            user-select: none;
+            transition: all .15s;
+            margin: 2px;
+            display: inline-block;
+        }
+        .ocas-check:checked + .ocas-label,
+        .temp-check:checked + .temp-label,
+        .intens-check:checked + .intens-label {
+            background: rgba(201,168,76,.3);
+            border-color: #c9a84c;
+            color: #ffd966;
+            font-weight: 700;
+        }
+        .img-preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; }
+        .perfume-thumb { width: 54px; height: 54px; object-fit: cover; border-radius: 10px; border: 1px solid #444; }
+        .intensidad-bar { height: 8px; border-radius: 4px; background: #222; overflow: hidden; }
+        .intensidad-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+        #toast-lista { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; min-width: 260px; }
+    </style>
+</head>
+<body>
+
+<div class="container my-4">
+
+    <!-- HEADER -->
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold mb-0">🃏 Lista de Decants</h2>
+            <p class="text-muted mb-0 small">Personaliza y guarda las tarjetas de tu catálogo de decants</p>
+        </div>
+        <div class="col-auto d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.location.href='decants.html'">
+                <i class="bi bi-arrow-left"></i> Decants
+            </button>
+            <button class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaTarjeta">
+                <i class="bi bi-plus-circle"></i> Nueva Tarjeta
+            </button>
+        </div>
+    </div>
+
+    <!-- GRID DE TARJETAS -->
+    <div class="row g-3" id="grid-tarjetas">
+        <div class="col-12 text-center text-muted py-5" id="empty-state">
+            <i class="bi bi-card-list" style="font-size:3rem;"></i>
+            <p class="mt-2">No hay tarjetas aún. Crea la primera.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL NUEVA / EDITAR TARJETA ===== -->
+<div class="modal fade" id="modalNuevaTarjeta" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" id="titulo-modal-tarjeta">🃏 Nueva Tarjeta de Decant</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="tarjeta-edit-id">
+                <div class="row g-4">
+
+                    <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+                    <div class="col-lg-7">
+
+                        <!-- Perfume desde inventario -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">🔍 Selecciona perfume del inventario</label>
+                            <select class="form-select" id="select-perfume" onchange="autocompletarDesdeInventario()">
+                                <option value="">-- Elige un perfume (o escribe abajo) --</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold">Nombre del Perfume *</label>
+                                <input type="text" class="form-control" id="t-nombre" placeholder="Ej: Sauvage">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold">Marca</label>
+                                <input type="text" class="form-control" id="t-marca" placeholder="Ej: Dior">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">URL Imagen</label>
+                                <input type="url" class="form-control" id="t-imagen" placeholder="https://..." oninput="actualizarPreview()">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Tallas disponibles (ml)</label>
+                                <input type="text" class="form-control" id="t-tallas" placeholder="Ej: 5, 10, 20" oninput="actualizarPreview()">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Precio por ml ($MXN)</label>
+                                <input type="number" class="form-control" id="t-precio-ml" placeholder="Ej: 12.50" min="0" oninput="actualizarPreview()">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Descripción / Notas</label>
+                                <textarea class="form-control" id="t-descripcion" rows="2" placeholder="Describe el perfume, sus notas..." oninput="actualizarPreview()"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- OCASIONES -->
+                        <div class="mt-3">
+                            <label class="form-label small fw-bold">🎯 Ocasiones (checklist)</label>
+                            <div id="ocas-checklist" class="d-flex flex-wrap gap-1"></div>
+                        </div>
+
+                        <!-- TEMPORADA -->
+                        <div class="mt-3">
+                            <label class="form-label small fw-bold">🌤️ Temporada / Clima</label>
+                            <div id="temp-checklist" class="d-flex flex-wrap gap-1"></div>
+                        </div>
+
+                        <!-- INTENSIDAD -->
+                        <div class="mt-3">
+                            <label class="form-label small fw-bold">💨 Intensidad de proyección</label>
+                            <div id="intens-checklist" class="d-flex flex-wrap gap-1"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- COLUMNA DERECHA: PREVIEW -->
+                    <div class="col-lg-5">
+                        <label class="form-label small fw-bold d-block mb-2">👁️ Vista previa</label>
+                        <div id="card-preview-container"></div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-gold fw-bold" onclick="guardarTarjeta()">
+                    <i class="bi bi-save"></i> Guardar Tarjeta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-lista" class="toast align-items-center text-white border-0" role="alert">
+    <div class="d-flex">
+        <div class="toast-body fw-bold" id="toast-body-lista">✅ Listo</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="components/header.js"></script>
+<script src="assets/js/utils.js"></script>
+
+<script type="module">
+import { db } from './assets/js/firebase.js';
+import {
+    collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// ── CONSTANTES ──────────────────────────────────────────────────────────────
+const OCASIONES = [
+    { id:'diario',   emoji:'📅', label:'Firma / Diario',      cls:'tag-diario'   },
+    { id:'oficina',  emoji:'💼', label:'Oficina / Formal',     cls:'tag-oficina'  },
+    { id:'cita',     emoji:'🌹', label:'Cita Romántica',       cls:'tag-cita'     },
+    { id:'noche',    emoji:'🌙', label:'Noche',                cls:'tag-noche'    },
+    { id:'club',     emoji:'🎉', label:'Club / Fiesta',        cls:'tag-club'     },
+    { id:'casual',   emoji:'😊', label:'Casual / Salida',      cls:'tag-casual'   },
+    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',        cls:'tag-diario'   },
+    { id:'viaje',    emoji:'✈️', label:'Viaje',                cls:'tag-todo'     },
+    { id:'invierno', emoji:'❄️', label:'Invierno / Frío',      cls:'tag-invierno' },
+    { id:'verano',   emoji:'☀️', label:'Verano / Calor',       cls:'tag-verano'   },
+];
+
+const TEMPORADAS = [
+    { id:'todo',       emoji:'🌀', label:'Todo el año'     },
+    { id:'primavera',  emoji:'🌸', label:'Primavera'       },
+    { id:'verano',     emoji:'☀️', label:'Verano / Calor' },
+    { id:'otono',      emoji:'🍂', label:'Otoño'           },
+    { id:'invierno',   emoji:'❄️', label:'Invierno / Frío' },
+];
+
+const INTENSIDADES = [
+    { id:'sutil',    emoji:'🌬️', label:'Sutil (cercana)',         pct: 25,  color:'#6ea8fe' },
+    { id:'moderada', emoji:'💨', label:'Moderada',                pct: 50,  color:'#75c896' },
+    { id:'alta',     emoji:'🌊', label:'Alta',                    pct: 75,  color:'#ffc107' },
+    { id:'bestia',   emoji:'🔥', label:'Bestia / Proyección extrema', pct:100, color:'#dc3545' },
+];
+
+// ── RENDER CHECKLISTS ────────────────────────────────────────────────────────
+function renderChecklist(containerId, items, prefix, labelCls) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = items.map(it => `
+        <input type="checkbox" class="${prefix}-check" id="${prefix}-${it.id}" value="${it.id}" onchange="actualizarPreview()">
+        <label class="${prefix}-label" for="${prefix}-${it.id}">${it.emoji} ${it.label}</label>
+    `).join('');
+}
+
+renderChecklist('ocas-checklist',  OCASIONES,   'ocas',   'ocas-label');
+renderChecklist('temp-checklist',  TEMPORADAS,  'temp',   'temp-label');
+renderChecklist('intens-checklist', INTENSIDADES, 'intens', 'intens-label');
+
+// ── UTILS CHECKLIST ─────────────────────────────────────────────────────────
+function getChecked(prefix) {
+    return [...document.querySelectorAll(`.${prefix}-check:checked`)].map(c => c.value);
+}
+function setChecked(prefix, values = []) {
+    document.querySelectorAll(`.${prefix}-check`).forEach(c => {
+        c.checked = values.includes(c.value);
+    });
+}
+
+// ── AUTOCOMPLETAR DESDE INVENTARIO ──────────────────────────────────────────
+window.autocompletarDesdeInventario = function() {
+    const sel = document.getElementById('select-perfume');
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt || !opt.value) return;
+    const d = JSON.parse(opt.dataset.info || '{}');
+    document.getElementById('t-nombre').value       = d.nombre || '';
+    document.getElementById('t-marca').value        = d.marca  || '';
+    document.getElementById('t-imagen').value       = d.imagen || '';
+    document.getElementById('t-descripcion').value  = d.descripcion || '';
+    actualizarPreview();
+};
+
+// ── PREVIEW ──────────────────────────────────────────────────────────────────
+window.actualizarPreview = function() {
+    const nombre  = document.getElementById('t-nombre').value      || 'Nombre del perfume';
+    const marca   = document.getElementById('t-marca').value       || 'Marca';
+    const imagen  = document.getElementById('t-imagen').value;
+    const tallas  = document.getElementById('t-tallas').value;
+    const precioMl= parseFloat(document.getElementById('t-precio-ml').value) || 0;
+    const desc    = document.getElementById('t-descripcion').value;
+
+    const ocas    = getChecked('ocas');
+    const temps   = getChecked('temp');
+    const intens  = getChecked('intens');
+
+    const tagsOcas = ocas.map(id => {
+        const o = OCASIONES.find(x => x.id === id);
+        return o ? `<span class="tag-badge ${o.cls}">${o.emoji} ${o.label}</span>` : '';
+    }).join('');
+
+    const tagsTemp = temps.map(id => {
+        const t = TEMPORADAS.find(x => x.id === id);
+        return t ? `<span class="tag-badge tag-todo">${t.emoji} ${t.label}</span>` : '';
+    }).join('');
+
+    const intensObj = INTENSIDADES.find(x => intens.includes(x.id));
+    const intensHTML = intensObj ? `
+        <div class="mt-2">
+            <div class="d-flex justify-content-between small mb-1">
+                <span class="text-muted">💨 Proyección</span>
+                <span style="color:${intensObj.color}">${intensObj.emoji} ${intensObj.label}</span>
+            </div>
+            <div class="intensidad-bar">
+                <div class="intensidad-fill" style="width:${intensObj.pct}%;background:${intensObj.color}"></div>
+            </div>
+        </div>` : '';
+
+    const tallasArr = tallas.split(',').map(t => t.trim()).filter(Boolean);
+    const tallasHTML = tallasArr.map(ml => {
+        const precio = precioMl > 0 ? ` · $${(precioMl * parseFloat(ml)).toFixed(0)}` : '';
+        return `<span class="badge bg-secondary me-1">${ml}ml${precio}</span>`;
+    }).join('');
+
+    const imgHTML = imagen
+        ? `<img src="${imagen}" class="img-preview mb-3" onerror="this.style.display='none'">`
+        : `<div class="rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height:120px;background:#111;color:#555;font-size:2rem;">🧴</div>`;
+
+    document.getElementById('card-preview-container').innerHTML = `
+        <div class="decant-card-preview p-3 shadow">
+            ${imgHTML}
+            <h6 class="fw-bold mb-0" style="color:#ffd966">${nombre}</h6>
+            <p class="small text-muted mb-2">${marca}</p>
+            ${desc ? `<p class="small text-secondary mb-2" style="font-size:.75rem">${desc}</p>` : ''}
+            ${tallasHTML ? `<div class="mb-2">${tallasHTML}</div>` : ''}
+            ${tagsOcas   ? `<div class="mb-1">${tagsOcas}</div>` : ''}
+            ${tagsTemp   ? `<div class="mb-1">${tagsTemp}</div>` : ''}
+            ${intensHTML}
+        </div>
+    `;
+};
+
+// ── CARGAR PERFUMES DEL INVENTARIO ──────────────────────────────────────────
+async function cargarPerfumesInventario() {
+    try {
+        const snap = await getDocs(collection(db, 'products'));
+        const sel  = document.getElementById('select-perfume');
+        snap.forEach(d => {
+            const p    = d.data();
+            const opt  = document.createElement('option');
+            opt.value  = d.id;
+            opt.text   = `${p.nombre || p.name || ''} — ${p.marca || p.brand || ''}`;
+            opt.dataset.info = JSON.stringify({
+                nombre:      p.nombre || p.name || '',
+                marca:       p.marca  || p.brand || '',
+                imagen:      p.imagen || p.imageUrl || '',
+                descripcion: p.descripcion || p.description || '',
+            });
+            sel.appendChild(opt);
+        });
+    } catch (e) { console.warn('No se pudo cargar inventario:', e); }
+}
+
+// ── CARGAR TARJETAS DESDE FIRESTORE ─────────────────────────────────────────
+async function cargarTarjetas() {
+    try {
+        const snap = await getDocs(collection(db, 'listadecants'));
+        const grid = document.getElementById('grid-tarjetas');
+        const empty = document.getElementById('empty-state');
+
+        if (snap.empty) { empty.style.display = ''; return; }
+        empty.style.display = 'none';
+        grid.innerHTML = '';
+
+        snap.forEach(d => {
+            const t = d.data();
+            renderTarjetaGrid(d.id, t);
+        });
+    } catch (e) { console.error(e); }
+}
+
+function renderTarjetaGrid(id, t) {
+    const grid = document.getElementById('grid-tarjetas');
+
+    const ocas   = (t.ocasiones  || []).map(oid => {
+        const o = OCASIONES.find(x => x.id === oid);
+        return o ? `<span class="tag-badge ${o.cls}">${o.emoji} ${o.label}</span>` : '';
+    }).join('');
+
+    const temps  = (t.temporadas || []).map(tid => {
+        const te = TEMPORADAS.find(x => x.id === tid);
+        return te ? `<span class="tag-badge tag-todo">${te.emoji} ${te.label}</span>` : '';
+    }).join('');
+
+    const intensObj = INTENSIDADES.find(x => x.id === t.intensidad);
+    const intensHTML = intensObj ? `
+        <div class="mt-2">
+            <div class="d-flex justify-content-between small mb-1">
+                <span class="text-muted">💨 Proyección</span>
+                <span style="color:${intensObj.color}">${intensObj.emoji} ${intensObj.label}</span>
+            </div>
+            <div class="intensidad-bar">
+                <div class="intensidad-fill" style="width:${intensObj.pct}%;background:${intensObj.color}"></div>
+            </div>
+        </div>` : '';
+
+    const tallasArr = (t.tallas || '').split(',').map(x => x.trim()).filter(Boolean);
+    const tallasHTML = tallasArr.map(ml => {
+        const precio = t.precioMl > 0 ? ` · $${(t.precioMl * parseFloat(ml)).toFixed(0)}` : '';
+        return `<span class="badge bg-secondary me-1">${ml}ml${precio}</span>`;
+    }).join('');
+
+    const imgHTML = t.imagen
+        ? `<img src="${t.imagen}" class="img-preview mb-3" onerror="this.style.display='none'">`
+        : `<div class="rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height:100px;background:#111;color:#555;font-size:2rem;">🧴</div>`;
+
+    const col = document.createElement('div');
+    col.className = 'col-sm-6 col-md-4 col-lg-3';
+    col.id = `tarjeta-col-${id}`;
+    col.innerHTML = `
+        <div class="decant-card-preview p-3 h-100 shadow">
+            ${imgHTML}
+            <h6 class="fw-bold mb-0" style="color:#ffd966">${t.nombre || '—'}</h6>
+            <p class="small text-muted mb-2">${t.marca || ''}</p>
+            ${t.descripcion ? `<p class="small text-secondary mb-2" style="font-size:.75rem">${t.descripcion}</p>` : ''}
+            ${tallasHTML ? `<div class="mb-2">${tallasHTML}</div>` : ''}
+            ${ocas   ? `<div class="mb-1">${ocas}</div>`   : ''}
+            ${temps  ? `<div class="mb-1">${temps}</div>`  : ''}
+            ${intensHTML}
+            <div class="mt-3 d-flex gap-2">
+                <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="editarTarjeta('${id}')">
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="eliminarTarjeta('${id}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    grid.appendChild(col);
+}
+
+// ── GUARDAR / EDITAR ─────────────────────────────────────────────────────────
+window.guardarTarjeta = async function() {
+    const nombre = document.getElementById('t-nombre').value.trim();
+    if (!nombre) { alert('El nombre del perfume es obligatorio.'); return; }
+
+    const intensArr = getChecked('intens');
+    const data = {
+        nombre,
+        marca:       document.getElementById('t-marca').value.trim(),
+        imagen:      document.getElementById('t-imagen').value.trim(),
+        tallas:      document.getElementById('t-tallas').value.trim(),
+        precioMl:    parseFloat(document.getElementById('t-precio-ml').value) || 0,
+        descripcion: document.getElementById('t-descripcion').value.trim(),
+        ocasiones:   getChecked('ocas'),
+        temporadas:  getChecked('temp'),
+        intensidad:  intensArr[0] || '',
+        updatedAt:   serverTimestamp(),
+    };
+
+    const editId = document.getElementById('tarjeta-edit-id').value;
+    const docRef = editId
+        ? doc(db, 'listadecants', editId)
+        : doc(collection(db, 'listadecants'));
+
+    if (!editId) data.createdAt = serverTimestamp();
+
+    try {
+        await setDoc(docRef, data, { merge: true });
+        mostrarToast('✅ Tarjeta guardada');
+        bootstrap.Modal.getInstance(document.getElementById('modalNuevaTarjeta')).hide();
+        // Refrescar grid
+        document.getElementById('grid-tarjetas').innerHTML = '<div class="col-12 text-center text-muted py-5" id="empty-state"><i class="bi bi-card-list" style="font-size:3rem;"></i><p class="mt-2">Cargando...</p></div>';
+        await cargarTarjetas();
+    } catch (e) {
+        console.error(e);
+        alert('Error al guardar: ' + e.message);
+    }
+};
+
+// ── EDITAR ────────────────────────────────────────────────────────────────────
+window.editarTarjeta = async function(id) {
+    try {
+        const snap = await getDocs(collection(db, 'listadecants'));
+        const d    = snap.docs.find(x => x.id === id);
+        if (!d) return;
+        const t    = d.data();
+
+        document.getElementById('tarjeta-edit-id').value   = id;
+        document.getElementById('t-nombre').value          = t.nombre      || '';
+        document.getElementById('t-marca').value           = t.marca       || '';
+        document.getElementById('t-imagen').value          = t.imagen      || '';
+        document.getElementById('t-tallas').value          = t.tallas      || '';
+        document.getElementById('t-precio-ml').value       = t.precioMl    || '';
+        document.getElementById('t-descripcion').value     = t.descripcion || '';
+        document.getElementById('titulo-modal-tarjeta').textContent = '✏️ Editar Tarjeta';
+
+        setChecked('ocas',  t.ocasiones  || []);
+        setChecked('temp',  t.temporadas || []);
+        setChecked('intens', t.intensidad ? [t.intensidad] : []);
+
+        actualizarPreview();
+        new bootstrap.Modal(document.getElementById('modalNuevaTarjeta')).show();
+    } catch (e) { console.error(e); }
+};
+
+// ── ELIMINAR ──────────────────────────────────────────────────────────────────
+window.eliminarTarjeta = async function(id) {
+    if (!confirm('¿Eliminar esta tarjeta?')) return;
+    try {
+        await deleteDoc(doc(db, 'listadecants', id));
+        document.getElementById(`tarjeta-col-${id}`)?.remove();
+        mostrarToast('🗑️ Tarjeta eliminada');
+        if (!document.querySelector('#grid-tarjetas .col-sm-6')) {
+            document.getElementById('grid-tarjetas').innerHTML = '<div class="col-12 text-center text-muted py-5" id="empty-state"><i class="bi bi-card-list" style="font-size:3rem;"></i><p class="mt-2">No hay tarjetas aún.</p></div>';
+        }
+    } catch (e) { alert('Error: ' + e.message); }
+};
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function mostrarToast(msg) {
+    document.getElementById('toast-body-lista').textContent = msg;
+    const t = new bootstrap.Toast(document.getElementById('toast-lista'), { delay: 2500 });
+    t.show();
+}
+
+// ── LIMPIAR MODAL AL ABRIR ───────────────────────────────────────────────────
+document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', e => {
+    // Solo limpiar si no viene de editar
+    if (!document.getElementById('tarjeta-edit-id').value) {
+        ['t-nombre','t-marca','t-imagen','t-tallas','t-precio-ml','t-descripcion'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        setChecked('ocas',   []);
+        setChecked('temp',   []);
+        setChecked('intens', []);
+        document.getElementById('titulo-modal-tarjeta').textContent = '🃏 Nueva Tarjeta de Decant';
+        document.getElementById('select-perfume').value = '';
+        actualizarPreview();
+    }
+    document.getElementById('tarjeta-edit-id').value = '';
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+cargarPerfumesInventario();
+cargarTarjetas();
+actualizarPreview();
+</script>
+</body>
+</html>

@@ -26,6 +26,9 @@ function cargarHeader() {
                         <a href="decants.html" class="nav-link" data-page="decants">
                             🧪 Decants
                         </a>
+                        <a href="listadecants.html" class="nav-link" data-page="listadecants">
+                            🃏 Lista Decants
+                        </a>
                         <a href="ventas.html" class="nav-link" data-page="ventas">
                             💰 Ventas
                         </a>
