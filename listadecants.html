@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="assets/css/features.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
     <style>
+        /* ── CARD PREVIEW ── */
         .decant-card-preview {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             border: 1px solid rgba(201,168,76,0.3);
@@ -22,58 +23,100 @@
             transition: transform .15s, box-shadow .15s;
         }
         .decant-card-preview:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.5) !important; }
-        .tag-badge {
-            display: inline-block;
-            font-size: 0.72rem;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-            margin: 2px;
-        }
-        .tag-diario   { background: rgba(108,117,125,.25); color: #adb5bd; border: 1px solid #6c757d; }
-        .tag-oficina  { background: rgba(13,110,253,.2);  color: #6ea8fe; border: 1px solid #0d6efd; }
-        .tag-cita     { background: rgba(214,51,132,.2);  color: #f1afd0; border: 1px solid #d63384; }
-        .tag-noche    { background: rgba(111,66,193,.25); color: #d0b4fe; border: 1px solid #6f42c1; }
-        .tag-club     { background: rgba(220,53,69,.2);   color: #f5a1a8; border: 1px solid #dc3545; }
-        .tag-casual   { background: rgba(25,135,84,.2);   color: #75c896; border: 1px solid #198754; }
-        .tag-deporte  { background: rgba(13,202,240,.2);  color: #6edff6; border: 1px solid #0dcaf0; }
-        .tag-todo     { background: rgba(255,193,7,.2);   color: #ffda6a; border: 1px solid #ffc107; }
-        .tag-invierno { background: rgba(13,110,253,.2);  color: #9ec5fe; border: 1px solid #0d6efd; }
-        .tag-verano   { background: rgba(255,193,7,.2);   color: #ffe69c; border: 1px solid #ffc107; }
-        .tag-primavera{ background: rgba(25,135,84,.2);   color: #75c896; border: 1px solid #198754; }
-        .tag-otono    { background: rgba(253,126,20,.2);  color: #feb272; border: 1px solid #fd7e14; }
 
-        .ocas-check, .temp-check, .intens-check { display: none; }
-        .ocas-label, .temp-label, .intens-label {
-            cursor: pointer;
-            border: 1px solid #444;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 0.78rem;
-            user-select: none;
-            transition: all .15s;
-            margin: 2px;
-            display: inline-block;
+        /* ── TAGS ── */
+        .tag-badge { display:inline-block; font-size:0.72rem; padding:3px 10px; border-radius:20px; font-weight:600; margin:2px; }
+        .tag-diario   { background:rgba(108,117,125,.25); color:#adb5bd; border:1px solid #6c757d; }
+        .tag-oficina  { background:rgba(13,110,253,.2);  color:#6ea8fe; border:1px solid #0d6efd; }
+        .tag-cita     { background:rgba(214,51,132,.2);  color:#f1afd0; border:1px solid #d63384; }
+        .tag-noche    { background:rgba(111,66,193,.25); color:#d0b4fe; border:1px solid #6f42c1; }
+        .tag-club     { background:rgba(220,53,69,.2);   color:#f5a1a8; border:1px solid #dc3545; }
+        .tag-casual   { background:rgba(25,135,84,.2);   color:#75c896; border:1px solid #198754; }
+        .tag-deporte  { background:rgba(13,202,240,.2);  color:#6edff6; border:1px solid #0dcaf0; }
+        .tag-todo     { background:rgba(255,193,7,.2);   color:#ffda6a; border:1px solid #ffc107; }
+        .tag-invierno { background:rgba(13,110,253,.2);  color:#9ec5fe; border:1px solid #0d6efd; }
+        .tag-verano   { background:rgba(255,193,7,.2);   color:#ffe69c; border:1px solid #ffc107; }
+        .tag-primavera{ background:rgba(25,135,84,.2);   color:#75c896; border:1px solid #198754; }
+        .tag-otono    { background:rgba(253,126,20,.2);  color:#feb272; border:1px solid #fd7e14; }
+
+        /* ── CHECKLIST PILL BUTTONS ── */
+        .ocas-check,.temp-check,.intens-check { display:none; }
+        .ocas-label,.temp-label,.intens-label {
+            cursor:pointer; border:1px solid #444; border-radius:20px;
+            padding:4px 12px; font-size:0.78rem; user-select:none;
+            transition:all .15s; margin:2px; display:inline-block;
         }
         .ocas-check:checked + .ocas-label,
         .temp-check:checked + .temp-label,
         .intens-check:checked + .intens-label {
-            background: rgba(201,168,76,.3);
-            border-color: #c9a84c;
-            color: #ffd966;
-            font-weight: 700;
+            background:rgba(201,168,76,.3); border-color:#c9a84c; color:#ffd966; font-weight:700;
         }
-        .img-preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; }
-        .intensidad-bar { height: 8px; border-radius: 4px; background: #222; overflow: hidden; }
-        .intensidad-fill { height: 100%; border-radius: 4px; transition: width .4s; }
-        #toast-lista { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; min-width: 260px; }
+
+        /* ── TALLAS TABLE ── */
+        .tallas-table { width:100%; border-collapse:separate; border-spacing:0 6px; }
+        .tallas-table thead th {
+            font-size:0.78rem; font-weight:700; text-transform:uppercase;
+            color:#adb5bd; padding:4px 10px; letter-spacing:.04em;
+        }
+        .tallas-table tbody tr {
+            background:#1a1a2e;
+            border-radius:8px;
+        }
+        .tallas-table tbody td {
+            padding:6px 8px; vertical-align:middle;
+        }
+        .tallas-table tbody tr td:first-child { border-radius:8px 0 0 8px; }
+        .tallas-table tbody tr td:last-child  { border-radius:0 8px 8px 0; }
+        .talla-input {
+            background:#0d0d1a; border:1px solid #333; color:#fff;
+            border-radius:6px; padding:5px 10px; width:100%;
+            font-size:0.88rem;
+        }
+        .talla-input:focus { outline:none; border-color:#c9a84c; box-shadow:0 0 0 2px rgba(201,168,76,.25); }
+        .talla-input::placeholder { color:#555; }
+        .precio-prefix {
+            display:flex; align-items:center; gap:4px;
+        }
+        .precio-prefix span {
+            color:#adb5bd; font-size:0.88rem; padding-left:6px;
+        }
+        .btn-del-talla {
+            background:none; border:none; color:#c0392b;
+            font-size:1rem; cursor:pointer; padding:4px 6px;
+            opacity:.7; transition:opacity .15s;
+        }
+        .btn-del-talla:hover { opacity:1; }
+        .btn-add-talla {
+            background:rgba(201,168,76,.12); border:1px dashed #c9a84c;
+            color:#ffd966; border-radius:8px; padding:6px 16px;
+            font-size:0.82rem; cursor:pointer; transition:all .15s; width:100%; margin-top:4px;
+        }
+        .btn-add-talla:hover { background:rgba(201,168,76,.22); }
+
+        /* ── TALLA PILL (preview & cards) ── */
+        .talla-pill {
+            display:inline-block;
+            background:#c9a84c;
+            color:#1a1a2e;
+            font-weight:700;
+            font-size:0.82rem;
+            padding:5px 14px;
+            border-radius:30px;
+            margin:3px 3px 3px 0;
+            letter-spacing:.02em;
+        }
+        .talla-pill.inactiva { background:#333; color:#777; text-decoration:line-through; }
+
+        /* ── MISC ── */
+        .img-preview { width:100%; max-height:160px; object-fit:cover; border-radius:12px; }
+        .intensidad-bar { height:8px; border-radius:4px; background:#222; overflow:hidden; }
+        .intensidad-fill { height:100%; border-radius:4px; transition:width .4s; }
+        #toast-lista { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; min-width:260px; }
     </style>
 </head>
 <body>
 
 <div class="container my-4">
-
-    <!-- HEADER -->
     <div class="row mb-3 align-items-center">
         <div class="col">
             <h2 class="fw-bold mb-0">🃏 Lista de Decants</h2>
@@ -89,7 +132,6 @@
         </div>
     </div>
 
-    <!-- GRID DE TARJETAS -->
     <div class="row g-3" id="grid-tarjetas">
         <div class="col-12 text-center text-muted py-5" id="empty-state">
             <i class="bi bi-card-list" style="font-size:3rem;"></i>
@@ -98,7 +140,7 @@
     </div>
 </div>
 
-<!-- ===== MODAL NUEVA / EDITAR TARJETA ===== -->
+<!-- ===== MODAL ===== -->
 <div class="modal fade" id="modalNuevaTarjeta" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content bg-dark text-white">
@@ -110,10 +152,9 @@
                 <input type="hidden" id="tarjeta-edit-id">
                 <div class="row g-4">
 
-                    <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+                    <!-- IZQUIERDA -->
                     <div class="col-lg-7">
 
-                        <!-- Perfume desde inventario -->
                         <div class="mb-3">
                             <label class="form-label small fw-bold">🔍 Selecciona perfume del inventario</label>
                             <select class="form-select" id="select-perfume" onchange="autocompletarDesdeInventario()">
@@ -124,23 +165,15 @@
                         <div class="row g-3">
                             <div class="col-md-7">
                                 <label class="form-label small fw-bold">Nombre del Perfume *</label>
-                                <input type="text" class="form-control" id="t-nombre" placeholder="Ej: Sauvage">
+                                <input type="text" class="form-control" id="t-nombre" placeholder="Ej: Sauvage" oninput="actualizarPreview()">
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold">Marca</label>
-                                <input type="text" class="form-control" id="t-marca" placeholder="Ej: Dior">
+                                <input type="text" class="form-control" id="t-marca" placeholder="Ej: Dior" oninput="actualizarPreview()">
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold">URL Imagen</label>
                                 <input type="url" class="form-control" id="t-imagen" placeholder="https://..." oninput="actualizarPreview()">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Tallas disponibles (ml)</label>
-                                <input type="text" class="form-control" id="t-tallas" placeholder="Ej: 5, 10, 20" oninput="actualizarPreview()">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Precio por ml ($MXN)</label>
-                                <input type="number" class="form-control" id="t-precio-ml" placeholder="Ej: 12.50" min="0" oninput="actualizarPreview()">
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold">Descripción / Notas</label>
@@ -148,9 +181,28 @@
                             </div>
                         </div>
 
+                        <!-- TALLAS TABLE -->
+                        <div class="mt-3">
+                            <label class="form-label small fw-bold mb-2">&#128200; Tallas disponibles y precio de venta</label>
+                            <table class="tallas-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:110px">Talla (ml)</th>
+                                        <th>Precio Venta ($)</th>
+                                        <th style="width:70px">Activa</th>
+                                        <th style="width:36px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tallas-tbody"></tbody>
+                            </table>
+                            <button type="button" class="btn-add-talla" onclick="agregarFilaTalla()">
+                                <i class="bi bi-plus-circle"></i> Agregar talla
+                            </button>
+                        </div>
+
                         <!-- OCASIONES -->
                         <div class="mt-3">
-                            <label class="form-label small fw-bold">🎯 Ocasiones (checklist)</label>
+                            <label class="form-label small fw-bold">🎯 Ocasiones</label>
                             <div id="ocas-checklist" class="d-flex flex-wrap gap-1"></div>
                         </div>
 
@@ -168,7 +220,7 @@
 
                     </div>
 
-                    <!-- COLUMNA DERECHA: PREVIEW -->
+                    <!-- DERECHA: PREVIEW -->
                     <div class="col-lg-5">
                         <label class="form-label small fw-bold d-block mb-2">👁️ Vista previa</label>
                         <div id="card-preview-container"></div>
@@ -200,7 +252,6 @@
 <script src="assets/js/utils.js"></script>
 
 <script type="module">
-// ── FIREBASE (instancia propia, no depende de firebase.js) ───────────────────
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import {
     getFirestore, collection, getDocs,
@@ -215,26 +266,23 @@ const FIREBASE_CONFIG = {
     messagingSenderId: "1031164903960",
     appId:             "1:1031164903960:web:1a414c4fb0a12b26c2796d"
 };
-
-// Reutilizar app si ya fue inicializada (evita "duplicate app" en recarga parcial)
 const app = getApps().find(a => a.name === 'listadecants')
     || initializeApp(FIREBASE_CONFIG, 'listadecants');
 const db = getFirestore(app);
 
-// ── CONSTANTES ───────────────────────────────────────────────────────────────
+// ── CONSTANTES ──
 const OCASIONES = [
-    { id:'diario',   emoji:'📅', label:'Firma / Diario',           cls:'tag-diario'   },
-    { id:'oficina',  emoji:'💼', label:'Oficina / Formal',          cls:'tag-oficina'  },
-    { id:'cita',     emoji:'🌹', label:'Cita Romántica',            cls:'tag-cita'     },
-    { id:'noche',    emoji:'🌙', label:'Noche',                     cls:'tag-noche'    },
-    { id:'club',     emoji:'🎉', label:'Club / Fiesta',             cls:'tag-club'     },
-    { id:'casual',   emoji:'😊', label:'Casual / Salida',           cls:'tag-casual'   },
-    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',             cls:'tag-diario'   },
-    { id:'viaje',    emoji:'✈️', label:'Viaje',                     cls:'tag-todo'     },
-    { id:'invierno', emoji:'❄️', label:'Invierno / Frío',           cls:'tag-invierno' },
-    { id:'verano',   emoji:'☀️', label:'Verano / Calor',            cls:'tag-verano'   },
+    { id:'diario',   emoji:'📅', label:'Firma / Diario',      cls:'tag-diario'   },
+    { id:'oficina',  emoji:'💼', label:'Oficina / Formal',     cls:'tag-oficina'  },
+    { id:'cita',     emoji:'🌹', label:'Cita Romántica',       cls:'tag-cita'     },
+    { id:'noche',    emoji:'🌙', label:'Noche',                cls:'tag-noche'    },
+    { id:'club',     emoji:'🎉', label:'Club / Fiesta',        cls:'tag-club'     },
+    { id:'casual',   emoji:'😊', label:'Casual / Salida',      cls:'tag-casual'   },
+    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',        cls:'tag-diario'   },
+    { id:'viaje',    emoji:'✈️', label:'Viaje',                cls:'tag-todo'     },
+    { id:'invierno', emoji:'❄️', label:'Invierno / Frío',      cls:'tag-invierno' },
+    { id:'verano',   emoji:'☀️', label:'Verano / Calor',       cls:'tag-verano'   },
 ];
-
 const TEMPORADAS = [
     { id:'todo',      emoji:'🌀', label:'Todo el año'     },
     { id:'primavera', emoji:'🌸', label:'Primavera'       },
@@ -242,38 +290,101 @@ const TEMPORADAS = [
     { id:'otono',     emoji:'🍂', label:'Otoño'           },
     { id:'invierno',  emoji:'❄️', label:'Invierno / Frío' },
 ];
-
 const INTENSIDADES = [
-    { id:'sutil',    emoji:'🌬️', label:'Sutil (cercana)',              pct: 25,  color:'#6ea8fe' },
-    { id:'moderada', emoji:'💨', label:'Moderada',                     pct: 50,  color:'#75c896' },
-    { id:'alta',     emoji:'🌊', label:'Alta',                         pct: 75,  color:'#ffc107' },
-    { id:'bestia',   emoji:'🔥', label:'Bestia / Proyección extrema',  pct:100,  color:'#dc3545' },
+    { id:'sutil',    emoji:'🌬️', label:'Sutil (cercana)',          pct:25,  color:'#6ea8fe' },
+    { id:'moderada', emoji:'💨', label:'Moderada',                 pct:50,  color:'#75c896' },
+    { id:'alta',     emoji:'🌊', label:'Alta',                     pct:75,  color:'#ffc107' },
+    { id:'bestia',   emoji:'🔥', label:'Bestia / Proyección extrema', pct:100, color:'#dc3545' },
 ];
 
-// ── RENDER CHECKLISTS ────────────────────────────────────────────────────────
-function renderChecklist(containerId, items, prefix) {
-    const el = document.getElementById(containerId);
-    el.innerHTML = items.map(it => `
-        <input type="checkbox" class="${prefix}-check" id="${prefix}-${it.id}" value="${it.id}" onchange="actualizarPreview()">
-        <label class="${prefix}-label" for="${prefix}-${it.id}">${it.emoji} ${it.label}</label>
-    `).join('');
+// ── CHECKLISTS ──
+function renderChecklist(cid, items, prefix) {
+    document.getElementById(cid).innerHTML = items.map(it =>
+        `<input type="checkbox" class="${prefix}-check" id="${prefix}-${it.id}" value="${it.id}" onchange="actualizarPreview()">
+         <label class="${prefix}-label" for="${prefix}-${it.id}">${it.emoji} ${it.label}</label>`
+    ).join('');
 }
-
 renderChecklist('ocas-checklist',   OCASIONES,    'ocas');
 renderChecklist('temp-checklist',   TEMPORADAS,   'temp');
 renderChecklist('intens-checklist', INTENSIDADES, 'intens');
 
-// ── UTILS CHECKLIST ──────────────────────────────────────────────────────────
-function getChecked(prefix) {
-    return [...document.querySelectorAll(`.${prefix}-check:checked`)].map(c => c.value);
+function getChecked(p) {
+    return [...document.querySelectorAll(`.${p}-check:checked`)].map(c => c.value);
 }
-function setChecked(prefix, values = []) {
-    document.querySelectorAll(`.${prefix}-check`).forEach(c => {
-        c.checked = values.includes(c.value);
-    });
+function setChecked(p, vals = []) {
+    document.querySelectorAll(`.${p}-check`).forEach(c => c.checked = vals.includes(c.value));
 }
 
-// ── AUTOCOMPLETAR DESDE INVENTARIO ──────────────────────────────────────────
+// ── TALLAS TABLE ──
+let tallaCounter = 0;
+
+window.agregarFilaTalla = function(ml = '', precio = '', activa = true) {
+    const id = ++tallaCounter;
+    const tbody = document.getElementById('tallas-tbody');
+    const tr = document.createElement('tr');
+    tr.id = `talla-row-${id}`;
+    tr.innerHTML = `
+        <td>
+            <input type="number" class="talla-input" placeholder="ej: 5" value="${ml}"
+                   min="0" step="0.5" oninput="actualizarPreview()" data-ml>
+        </td>
+        <td>
+            <div class="precio-prefix">
+                <span>$</span>
+                <input type="number" class="talla-input" placeholder="0.00" value="${precio}"
+                       min="0" step="0.5" oninput="actualizarPreview()" data-precio>
+            </div>
+        </td>
+        <td style="text-align:center">
+            <div class="form-check form-switch d-flex justify-content-center mb-0">
+                <input class="form-check-input" type="checkbox" role="switch"
+                       id="talla-activa-${id}" ${activa ? 'checked' : ''}
+                       style="width:2.4em;height:1.3em;cursor:pointer"
+                       onchange="actualizarPreview()">
+            </div>
+        </td>
+        <td>
+            <button type="button" class="btn-del-talla" onclick="eliminarFilaTalla(${id})" title="Eliminar">
+                ×
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+    actualizarPreview();
+};
+
+window.eliminarFilaTalla = function(id) {
+    document.getElementById(`talla-row-${id}`)?.remove();
+    actualizarPreview();
+};
+
+function getTallas() {
+    const rows = document.querySelectorAll('#tallas-tbody tr');
+    return [...rows].map(tr => ({
+        ml:     parseFloat(tr.querySelector('[data-ml]').value)    || 0,
+        precio: parseFloat(tr.querySelector('[data-precio]').value) || 0,
+        activa: tr.querySelector('input[type=checkbox]').checked,
+    })).filter(r => r.ml > 0);
+}
+
+function setTallas(arr = []) {
+    document.getElementById('tallas-tbody').innerHTML = '';
+    tallaCounter = 0;
+    if (!arr.length) { agregarFilaTalla(); return; }
+    arr.forEach(r => agregarFilaTalla(r.ml, r.precio, r.activa !== false));
+}
+
+function tallasToHTML(tallas, soloActivas = false) {
+    return tallas
+        .filter(r => !soloActivas || r.activa)
+        .map(r => {
+            const cls = r.activa ? 'talla-pill' : 'talla-pill inactiva';
+            const label = r.precio > 0 ? `${r.ml}ML - $${r.precio}` : `${r.ml}ML`;
+            return `<span class="${cls}">${label}</span>`;
+        }).join('');
+}
+
+// ── AUTOCOMPLETAR ──
 window.autocompletarDesdeInventario = function() {
     const sel = document.getElementById('select-perfume');
     const opt = sel.options[sel.selectedIndex];
@@ -286,49 +397,39 @@ window.autocompletarDesdeInventario = function() {
     actualizarPreview();
 };
 
-// ── PREVIEW ──────────────────────────────────────────────────────────────────
+// ── PREVIEW ──
 window.actualizarPreview = function() {
-    const nombre   = document.getElementById('t-nombre').value   || 'Nombre del perfume';
-    const marca    = document.getElementById('t-marca').value    || 'Marca';
-    const imagen   = document.getElementById('t-imagen').value;
-    const tallas   = document.getElementById('t-tallas').value;
-    const precioMl = parseFloat(document.getElementById('t-precio-ml').value) || 0;
-    const desc     = document.getElementById('t-descripcion').value;
+    const nombre = document.getElementById('t-nombre').value || 'Nombre del perfume';
+    const marca  = document.getElementById('t-marca').value  || 'Marca';
+    const imagen = document.getElementById('t-imagen').value;
+    const desc   = document.getElementById('t-descripcion').value;
 
     const ocas   = getChecked('ocas');
     const temps  = getChecked('temp');
     const intens = getChecked('intens');
+    const tallas = getTallas();
 
     const tagsOcas = ocas.map(id => {
         const o = OCASIONES.find(x => x.id === id);
         return o ? `<span class="tag-badge ${o.cls}">${o.emoji} ${o.label}</span>` : '';
     }).join('');
-
     const tagsTemp = temps.map(id => {
         const t = TEMPORADAS.find(x => x.id === id);
         return t ? `<span class="tag-badge tag-todo">${t.emoji} ${t.label}</span>` : '';
     }).join('');
-
-    const intensObj  = INTENSIDADES.find(x => intens.includes(x.id));
+    const intensObj = INTENSIDADES.find(x => intens.includes(x.id));
     const intensHTML = intensObj ? `
         <div class="mt-2">
             <div class="d-flex justify-content-between small mb-1">
                 <span class="text-muted">💨 Proyección</span>
                 <span style="color:${intensObj.color}">${intensObj.emoji} ${intensObj.label}</span>
             </div>
-            <div class="intensidad-bar">
-                <div class="intensidad-fill" style="width:${intensObj.pct}%;background:${intensObj.color}"></div>
-            </div>
+            <div class="intensidad-bar"><div class="intensidad-fill" style="width:${intensObj.pct}%;background:${intensObj.color}"></div></div>
         </div>` : '';
 
-    const tallasArr  = tallas.split(',').map(t => t.trim()).filter(Boolean);
-    const tallasHTML = tallasArr.map(ml => {
-        const precio = precioMl > 0 ? ` · $${(precioMl * parseFloat(ml)).toFixed(0)}` : '';
-        return `<span class="badge bg-secondary me-1">${ml}ml${precio}</span>`;
-    }).join('');
-
+    const tallasHTML = tallasToHTML(tallas);
     const imgHTML = imagen
-        ? `<img src="${imagen}" class="img-preview mb-3" onerror="this.style.display='none'">`
+        ? `<img src="${imagen}" class="img-preview mb-3" onerror="this.style.display='none'" loading="lazy">`
         : `<div class="rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height:120px;background:#111;color:#555;font-size:2rem;">🧴</div>`;
 
     document.getElementById('card-preview-container').innerHTML = `
@@ -345,76 +446,66 @@ window.actualizarPreview = function() {
     `;
 };
 
-// ── CARGAR PERFUMES DEL INVENTARIO ──────────────────────────────────────────
+// ── CARGAR INVENTARIO ──
 async function cargarPerfumesInventario() {
     try {
-        // Intenta con 'inventario' (colección real según firebase.js) y fallback a 'products'
         let snap = await getDocs(collection(db, 'inventario'));
         if (snap.empty) snap = await getDocs(collection(db, 'products'));
         const sel = document.getElementById('select-perfume');
         snap.forEach(d => {
-            const p   = d.data();
+            const p = d.data();
             const opt = document.createElement('option');
             opt.value = d.id;
-            opt.text  = `${p.nombre || p.name || ''} — ${p.marca || p.brand || ''}`;
+            opt.text  = `${p.nombre||p.name||''} — ${p.marca||p.brand||''}`;
             opt.dataset.info = JSON.stringify({
-                nombre:      p.nombre      || p.name        || '',
-                marca:       p.marca       || p.brand       || '',
-                imagen:      p.imagen      || p.imageUrl    || '',
-                descripcion: p.descripcion || p.description || '',
+                nombre:      p.nombre||p.name||'',
+                marca:       p.marca||p.brand||'',
+                imagen:      p.imagen||p.imageUrl||'',
+                descripcion: p.descripcion||p.description||'',
             });
             sel.appendChild(opt);
         });
-    } catch (e) { console.warn('No se pudo cargar inventario:', e); }
+    } catch(e) { console.warn('No se pudo cargar inventario:', e); }
 }
 
-// ── CARGAR TARJETAS DESDE FIRESTORE ─────────────────────────────────────────
+// ── CARGAR TARJETAS ──
 async function cargarTarjetas() {
     try {
         const snap  = await getDocs(collection(db, 'listadecants'));
         const grid  = document.getElementById('grid-tarjetas');
         const empty = document.getElementById('empty-state');
-
         if (snap.empty) { empty.style.display = ''; return; }
         empty.style.display = 'none';
         grid.innerHTML = '';
         snap.forEach(d => renderTarjetaGrid(d.id, d.data()));
-    } catch (e) { console.error('Error cargando tarjetas:', e); }
+    } catch(e) { console.error('Error cargando tarjetas:', e); }
 }
 
 function renderTarjetaGrid(id, t) {
     const grid = document.getElementById('grid-tarjetas');
+    const tallas = t.tallas || [];
 
-    const ocas = (t.ocasiones || []).map(oid => {
-        const o = OCASIONES.find(x => x.id === oid);
+    const ocas = (t.ocasiones||[]).map(oid => {
+        const o = OCASIONES.find(x=>x.id===oid);
         return o ? `<span class="tag-badge ${o.cls}">${o.emoji} ${o.label}</span>` : '';
     }).join('');
-
-    const temps = (t.temporadas || []).map(tid => {
-        const te = TEMPORADAS.find(x => x.id === tid);
+    const temps = (t.temporadas||[]).map(tid => {
+        const te = TEMPORADAS.find(x=>x.id===tid);
         return te ? `<span class="tag-badge tag-todo">${te.emoji} ${te.label}</span>` : '';
     }).join('');
-
-    const intensObj  = INTENSIDADES.find(x => x.id === t.intensidad);
+    const intensObj = INTENSIDADES.find(x=>x.id===t.intensidad);
     const intensHTML = intensObj ? `
         <div class="mt-2">
             <div class="d-flex justify-content-between small mb-1">
                 <span class="text-muted">💨 Proyección</span>
                 <span style="color:${intensObj.color}">${intensObj.emoji} ${intensObj.label}</span>
             </div>
-            <div class="intensidad-bar">
-                <div class="intensidad-fill" style="width:${intensObj.pct}%;background:${intensObj.color}"></div>
-            </div>
+            <div class="intensidad-bar"><div class="intensidad-fill" style="width:${intensObj.pct}%;background:${intensObj.color}"></div></div>
         </div>` : '';
 
-    const tallasArr  = (t.tallas || '').split(',').map(x => x.trim()).filter(Boolean);
-    const tallasHTML = tallasArr.map(ml => {
-        const precio = t.precioMl > 0 ? ` · $${(t.precioMl * parseFloat(ml)).toFixed(0)}` : '';
-        return `<span class="badge bg-secondary me-1">${ml}ml${precio}</span>`;
-    }).join('');
-
+    const tallasHTML = tallasToHTML(tallas);
     const imgHTML = t.imagen
-        ? `<img src="${t.imagen}" class="img-preview mb-3" onerror="this.style.display='none'">`
+        ? `<img src="${t.imagen}" class="img-preview mb-3" onerror="this.style.display='none'" loading="lazy">`
         : `<div class="rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height:100px;background:#111;color:#555;font-size:2rem;">🧴</div>`;
 
     const col = document.createElement('div');
@@ -423,8 +514,8 @@ function renderTarjetaGrid(id, t) {
     col.innerHTML = `
         <div class="decant-card-preview p-3 h-100 shadow">
             ${imgHTML}
-            <h6 class="fw-bold mb-0" style="color:#ffd966">${t.nombre || '—'}</h6>
-            <p class="small text-muted mb-2">${t.marca || ''}</p>
+            <h6 class="fw-bold mb-0" style="color:#ffd966">${t.nombre||'—'}</h6>
+            <p class="small text-muted mb-2">${t.marca||''}</p>
             ${t.descripcion ? `<p class="small text-secondary mb-2" style="font-size:.75rem">${t.descripcion}</p>` : ''}
             ${tallasHTML ? `<div class="mb-2">${tallasHTML}</div>` : ''}
             ${ocas  ? `<div class="mb-1">${ocas}</div>`  : ''}
@@ -443,19 +534,19 @@ function renderTarjetaGrid(id, t) {
     grid.appendChild(col);
 }
 
-// ── GUARDAR ──────────────────────────────────────────────────────────────────
+// ── GUARDAR ──
 window.guardarTarjeta = async function() {
     const nombre = document.getElementById('t-nombre').value.trim();
     if (!nombre) { alert('El nombre del perfume es obligatorio.'); return; }
 
-    const intensArr = getChecked('intens');
+    const tallasData = getTallas();
+    const intensArr  = getChecked('intens');
     const data = {
         nombre,
         marca:       document.getElementById('t-marca').value.trim(),
         imagen:      document.getElementById('t-imagen').value.trim(),
-        tallas:      document.getElementById('t-tallas').value.trim(),
-        precioMl:    parseFloat(document.getElementById('t-precio-ml').value) || 0,
         descripcion: document.getElementById('t-descripcion').value.trim(),
+        tallas:      tallasData,
         ocasiones:   getChecked('ocas'),
         temporadas:  getChecked('temp'),
         intensidad:  intensArr[0] || '',
@@ -463,10 +554,7 @@ window.guardarTarjeta = async function() {
     };
 
     const editId = document.getElementById('tarjeta-edit-id').value;
-    const docRef = editId
-        ? doc(db, 'listadecants', editId)
-        : doc(collection(db, 'listadecants'));
-
+    const docRef = editId ? doc(db,'listadecants',editId) : doc(collection(db,'listadecants'));
     if (!editId) data.createdAt = serverTimestamp();
 
     try {
@@ -476,28 +564,34 @@ window.guardarTarjeta = async function() {
         document.getElementById('grid-tarjetas').innerHTML =
             '<div class="col-12 text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
         await cargarTarjetas();
-    } catch (e) {
-        console.error(e);
-        alert('Error al guardar: ' + e.message);
-    }
+    } catch(e) { console.error(e); alert('Error al guardar: '+e.message); }
 };
 
-// ── EDITAR ───────────────────────────────────────────────────────────────────
+// ── EDITAR ──
 window.editarTarjeta = async function(id) {
     try {
         const snap = await getDocs(collection(db, 'listadecants'));
         const d    = snap.docs.find(x => x.id === id);
         if (!d) return;
-        const t    = d.data();
+        const t = d.data();
 
         document.getElementById('tarjeta-edit-id').value  = id;
         document.getElementById('t-nombre').value         = t.nombre      || '';
         document.getElementById('t-marca').value          = t.marca       || '';
         document.getElementById('t-imagen').value         = t.imagen      || '';
-        document.getElementById('t-tallas').value         = t.tallas      || '';
-        document.getElementById('t-precio-ml').value      = t.precioMl    || '';
         document.getElementById('t-descripcion').value    = t.descripcion || '';
         document.getElementById('titulo-modal-tarjeta').textContent = '✏️ Editar Tarjeta';
+
+        // Compatibilidad: si tallas es string viejo, convertir
+        let tallasArr = t.tallas || [];
+        if (typeof tallasArr === 'string') {
+            tallasArr = tallasArr.split(',').map(ml => ({
+                ml: parseFloat(ml.trim()) || 0,
+                precio: t.precioMl ? parseFloat(t.precioMl) * (parseFloat(ml.trim()) || 0) : 0,
+                activa: true
+            })).filter(r => r.ml > 0);
+        }
+        setTallas(tallasArr);
 
         setChecked('ocas',   t.ocasiones  || []);
         setChecked('temp',   t.temporadas || []);
@@ -505,10 +599,10 @@ window.editarTarjeta = async function(id) {
 
         actualizarPreview();
         new bootstrap.Modal(document.getElementById('modalNuevaTarjeta')).show();
-    } catch (e) { console.error(e); }
+    } catch(e) { console.error(e); }
 };
 
-// ── ELIMINAR ─────────────────────────────────────────────────────────────────
+// ── ELIMINAR ──
 window.eliminarTarjeta = async function(id) {
     if (!confirm('¿Eliminar esta tarjeta?')) return;
     try {
@@ -519,21 +613,22 @@ window.eliminarTarjeta = async function(id) {
             document.getElementById('grid-tarjetas').innerHTML =
                 '<div class="col-12 text-center text-muted py-5" id="empty-state"><i class="bi bi-card-list" style="font-size:3rem;"></i><p class="mt-2">No hay tarjetas aún.</p></div>';
         }
-    } catch (e) { alert('Error: ' + e.message); }
+    } catch(e) { alert('Error: '+e.message); }
 };
 
-// ── TOAST ────────────────────────────────────────────────────────────────────
+// ── TOAST ──
 function mostrarToast(msg) {
     document.getElementById('toast-body-lista').textContent = msg;
-    const t = new bootstrap.Toast(document.getElementById('toast-lista'), { delay: 2500 });
-    t.show();
+    new bootstrap.Toast(document.getElementById('toast-lista'), { delay:2500 }).show();
 }
 
-// ── LIMPIAR MODAL AL ABRIR ───────────────────────────────────────────────────
+// ── LIMPIAR MODAL ──
 document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', () => {
     if (!document.getElementById('tarjeta-edit-id').value) {
-        ['t-nombre','t-marca','t-imagen','t-tallas','t-precio-ml','t-descripcion']
-            .forEach(id => { document.getElementById(id).value = ''; });
+        ['t-nombre','t-marca','t-imagen','t-descripcion'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        setTallas([]);
         setChecked('ocas',   []);
         setChecked('temp',   []);
         setChecked('intens', []);
@@ -544,9 +639,10 @@ document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', (
     document.getElementById('tarjeta-edit-id').value = '';
 });
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
+// ── INIT ──
 cargarPerfumesInventario();
 cargarTarjetas();
+setTallas([]);
 actualizarPreview();
 </script>
 </body>
