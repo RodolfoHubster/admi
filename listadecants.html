@@ -27,14 +27,18 @@
             align-items: stretch;
             overflow: hidden;
             padding: 0 !important;
-            /* Ancho fijo para screenshot consistente */
             width: 100%;
+            /* Evita que la tarjeta se expanda más allá de su contenedor */
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Foto: cuadrado fijo 120x120, NO crece */
         .card-img-col {
             flex: 0 0 120px;
             width: 120px;
+            min-width: 120px;
+            max-width: 120px;
             height: 120px;
             background: #111;
             display: flex;
@@ -42,7 +46,7 @@
             justify-content: center;
             overflow: hidden;
             border-radius: 14px 0 0 14px;
-            align-self: flex-start; /* clave: no estira con el contenido */
+            align-self: flex-start;
         }
         .card-img-col img {
             width: 120px;
@@ -61,19 +65,21 @@
             padding: 8px;
         }
 
-        /* Contenido derecho */
+        /* Contenido derecho — CLAVE: overflow hidden + min-width 0 */
         .card-body-col {
             flex: 1 1 0;
-            min-width: 0;          /* evita overflow */
+            min-width: 0;
+            max-width: calc(100% - 120px);
             padding: 10px 13px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             gap: 4px;
             overflow: hidden;
+            box-sizing: border-box;
         }
 
-        /* Nombre — una sola línea */
+        /* Nombre — una sola línea con ellipsis */
         .card-nombre {
             font-weight: 700;
             color: #ffd966;
@@ -83,8 +89,9 @@
             text-overflow: ellipsis;
             line-height: 1.2;
             margin: 0;
+            max-width: 100%;
         }
-        /* Marca */
+        /* Marca — una sola línea con ellipsis */
         .card-marca {
             font-size: .75rem;
             color: #8d9bb5;
@@ -92,8 +99,9 @@
             overflow: hidden;
             text-overflow: ellipsis;
             margin: 0;
+            max-width: 100%;
         }
-        /* Descripción — máx 2 líneas */
+        /* Descripción — máx 2 líneas, SIN desborde */
         .card-desc {
             font-size: .72rem;
             color: #9aa3b2;
@@ -102,11 +110,20 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            word-break: break-all;      /* corta palabras largas sin espacios */
+            overflow-wrap: break-word;
+            max-width: 100%;
             margin: 0;
         }
 
         /* Tallas pills */
-        .card-tallas { display: flex; flex-wrap: wrap; gap: 4px; }
+        .card-tallas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            overflow: hidden;
+            max-width: 100%;
+        }
         .talla-pill {
             display: inline-block;
             background: #c9a84c;
@@ -121,7 +138,13 @@
         .talla-pill.inactiva { background: #333; color: #777; text-decoration: line-through; }
 
         /* Tags row */
-        .card-tags-row { display: flex; flex-wrap: wrap; gap: 3px; }
+        .card-tags-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            overflow: hidden;
+            max-width: 100%;
+        }
         .tag-badge {
             display: inline-block;
             font-size: 0.68rem;
@@ -149,16 +172,18 @@
             align-items: center;
             gap: 6px;
             font-size: .7rem;
+            overflow: hidden;
+            max-width: 100%;
         }
-        .card-intens .lbl { color: #8d9bb5; flex-shrink: 0; }
-        .card-intens .val { margin-left: auto; flex-shrink: 0; font-weight: 600; }
+        .card-intens .lbl { color: #8d9bb5; flex-shrink: 0; white-space: nowrap; }
+        .card-intens .val { margin-left: auto; flex-shrink: 0; font-weight: 600; white-space: nowrap; }
         .intensidad-bar {
             flex: 1;
             height: 6px;
             border-radius: 4px;
             background: #222;
             overflow: hidden;
-            min-width: 30px;
+            min-width: 20px;
         }
         .intensidad-fill { height: 100%; border-radius: 4px; }
 
@@ -451,7 +476,9 @@ function fotoCol(src) {
 function buildCard(d) {
     const nombre = d.nombre || 'Nombre del perfume';
     const marca  = d.marca  || '';
-    const desc   = d.descripcion ? `<p class="card-desc">${d.descripcion}</p>` : '';
+    // Truncar descripción a 120 caracteres para evitar desborde extremo
+    const descRaw = d.descripcion || '';
+    const desc   = descRaw ? `<p class="card-desc">${descRaw}</p>` : '';
     const tallas = tallasHTML(d.tallas || []);
     const tags   = tagsHTML(d.ocasiones || [], d.temporadas || []);
     const intens = intensHTML(d.intensidad || '');
