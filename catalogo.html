@@ -423,12 +423,18 @@
 <script src="assets/js/catalogo.js"></script>
 <script>
 // ============================================================
-// PIN AUTH — mismo sistema que login.html
-// Hash SHA-256 del PIN (mismo que en login.html)
+// ESTADO GLOBAL — declarar PRIMERO para evitar Temporal Dead Zone
 // ============================================================
-const CAT_PIN_HASH = 'e0b08ad65f5b6f6b75d18c8642a041ca1160609af1b7dfc55ab7f2d293fd8758';
-const CAT_MAX_INTENTOS   = 3;
-const CAT_BLOQUEO_MS     = 3 * 60 * 1000;
+let _decants_data = [];
+let _tabActual    = 'perfumes';
+let _modalDecant  = null;
+
+// ============================================================
+// PIN AUTH — mismo sistema que login.html
+// ============================================================
+const CAT_PIN_HASH      = 'e0b08ad65f5b6f6b75d18c8642a041ca1160609af1b7dfc55ab7f2d293fd8758';
+const CAT_MAX_INTENTOS  = 3;
+const CAT_BLOQUEO_MS    = 3 * 60 * 1000;
 
 let catPin = '';
 
@@ -541,7 +547,6 @@ catComprobarBloqueo();
 // ============================================================
 // TABS
 // ============================================================
-let _tabActual = 'perfumes';
 function cambiarTab(tab) {
     _tabActual = tab;
     document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
@@ -550,8 +555,10 @@ function cambiarTab(tab) {
     document.getElementById('panel-' + tab).classList.add('active');
     actualizarContador();
 }
+
 function actualizarContador() {
     const el = document.getElementById('label-contador');
+    if (!el) return;
     if (_tabActual === 'perfumes') {
         el.textContent = document.querySelectorAll('#catalogo-grid [class*="col"]').length + ' perfumes';
     } else {
@@ -567,7 +574,7 @@ document.querySelectorAll('#print-fecha, #print-fecha-footer').forEach(el => el.
 
 function imprimirCatalogo() {
     const ocultar = _tabActual === 'perfumes' ? 'panel-decants' : 'panel-perfumes';
-    const mostrar = _tabActual === 'perfumes' ? 'panel-perfumes' : 'panel-decants';
+    const mostrar  = _tabActual === 'perfumes' ? 'panel-perfumes' : 'panel-decants';
     document.getElementById(ocultar).setAttribute('data-print-hide', 'true');
     document.getElementById(mostrar).removeAttribute('data-print-hide');
     const tipo = _tabActual === 'perfumes' ? 'Catálogo de Perfumes' : 'Catálogo de Decants';
@@ -584,8 +591,6 @@ function imprimirCatalogo() {
 // ============================================================
 // DECANTS
 // ============================================================
-let _decants_data = [];
-
 async function cargarDecantsCatalogo() {
     try {
         let fuentes = [];
@@ -598,7 +603,8 @@ async function cargarDecantsCatalogo() {
         _decants_data = fuentes.filter(f => ((f.mlTotal||0) - (f.mlUsados||0)) > 0);
         filtrarDecants();
     } catch(e) {
-        _decants_data = []; filtrarDecants();
+        _decants_data = [];
+        filtrarDecants();
     }
 }
 
@@ -624,8 +630,8 @@ function renderDecants(lista) {
     if (!lista.length) { grid.innerHTML = ''; vacio.style.display = 'block'; return; }
     vacio.style.display = 'none';
     grid.innerHTML = lista.map(f => {
-        const mlDisp    = (f.mlTotal||0) - (f.mlUsados||0);
-        const img       = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+        const mlDisp     = (f.mlTotal||0) - (f.mlUsados||0);
+        const img        = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
         const tallasHTML = (f.tallas||[]).filter(t => t.precio > 0).map(t =>
             `<span class="decant-talla-badge">${t.ml}ml — $${t.precio}</span>`).join('');
         return `
@@ -646,7 +652,6 @@ function renderDecants(lista) {
     }).join('');
 }
 
-let _modalDecant = null;
 function verDetalleDecant(id) {
     const f = _decants_data.find(x => x.id === id);
     if (!f) return;
@@ -674,8 +679,8 @@ function consultarDecant() {
 // INICIAR (al autenticar)
 // ============================================================
 function iniciarCatalogo() {
-    if (typeof renderCatalogo === 'function') renderCatalogo();
-    else if (typeof cargarCatalogo === 'function') cargarCatalogo();
+    if (typeof cargarCatalogo === 'function') cargarCatalogo();
+    else if (typeof renderCatalogo === 'function') renderCatalogo();
     cargarDecantsCatalogo();
 }
 
