@@ -16,6 +16,99 @@
     <script type="module" src="assets/js/firebase.js"></script>
     <script src="components/header.js"></script>
     <style>
+        /* ============================
+           LOCK SCREEN
+        ============================= */
+        #lock-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #0a0a0a;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #lock-screen .lock-box {
+            background: #141414;
+            border: 1px solid rgba(255,215,0,0.25);
+            border-radius: 20px;
+            padding: 48px 40px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+        }
+        #lock-screen .lock-icon {
+            font-size: 3rem; margin-bottom: 16px;
+            color: rgba(255,215,0,0.7);
+        }
+        #lock-screen h2 {
+            font-weight: 700; font-size: 1.3rem;
+            color: #f0f0f0; margin-bottom: 6px;
+        }
+        #lock-screen p {
+            font-size: 0.85rem; color: #777;
+            margin-bottom: 24px;
+        }
+        #lock-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,215,0,0.3);
+            color: #fff; border-radius: 10px;
+            padding: 12px 16px; font-size: 1rem;
+            width: 100%; text-align: center;
+            letter-spacing: 6px;
+            margin-bottom: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #lock-input:focus { border-color: #FFD700; }
+        #lock-input.error { border-color: #e74c3c; animation: shake 0.35s; }
+        @keyframes shake {
+            0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)}
+        }
+        #btn-unlock {
+            width: 100%; padding: 12px;
+            background: linear-gradient(135deg,#b8860b,#FFD700);
+            border: none; border-radius: 10px;
+            font-weight: 700; font-size: 1rem;
+            color: #000; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        #btn-unlock:hover { opacity: 0.88; }
+        #lock-error {
+            font-size: 0.8rem; color: #e74c3c;
+            margin-top: 10px; min-height: 18px;
+        }
+
+        /* ============================
+           TABS CATALOGO / DECANTS
+        ============================= */
+        .cat-tabs {
+            display: flex; gap: 8px;
+            margin-bottom: 24px;
+        }
+        .cat-tab-btn {
+            padding: 10px 26px;
+            border-radius: 30px;
+            border: 2px solid rgba(255,215,0,0.3);
+            background: transparent;
+            color: #888;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.22s;
+        }
+        .cat-tab-btn.active {
+            background: rgba(255,215,0,0.12);
+            border-color: #FFD700;
+            color: #FFD700;
+        }
+        .cat-tab-btn:hover:not(.active) {
+            border-color: rgba(255,215,0,0.5);
+            color: #ccc;
+        }
+        .cat-panel { display: none; }
+        .cat-panel.active { display: block; }
+
+        /* ============================
+           PRODUCT CARDS (perfumes)
+        ============================= */
         .product-card {
             background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,215,0,0.03) 100%);
             border: 1px solid rgba(255,215,0,0.2);
@@ -36,80 +129,141 @@
         .badge-pedido { position: absolute; top: 12px; right: 12px; background: rgba(30,30,40,0.92); color: var(--gold-flat); padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; border: 1px solid rgba(255,215,0,0.4); }
         .badge-camino { position: absolute; top: 12px; right: 12px; background: rgba(30,100,200,0.92); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
 
-        /* Checkboxes de filtro personalizados */
-        .filtro-checks { display: flex; flex-wrap: wrap; gap: 10px; }
-        .filtro-check-item {
+        /* ============================
+           DECANT CARDS
+        ============================= */
+        .decant-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(100,180,255,0.04) 100%);
+            border: 1px solid rgba(100,180,255,0.2);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            height: 100%;
             display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 30px;
-            border: 2px solid transparent;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            user-select: none;
+            flex-direction: column;
         }
+        .decant-card:hover { transform: translateY(-5px); box-shadow: 0 10px 28px rgba(100,180,255,0.18); border-color: rgba(100,180,255,0.5); }
+        .decant-image { width: 100%; height: 220px; object-fit: cover; }
+        .decant-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
+        .decant-name { font-size: 0.95rem; font-weight: 700; color: #7aafff; margin-bottom: 2px; line-height: 1.3; }
+        .decant-brand { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .decant-desc { font-size: 0.78rem; color: #888; line-height: 1.5; flex-grow: 1; margin-bottom: 10px; }
+        .decant-tallas { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .decant-talla-badge {
+            background: rgba(100,180,255,0.1);
+            border: 1px solid rgba(100,180,255,0.35);
+            color: #7aafff;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .decant-notas {
+            font-size: 0.72rem;
+            color: #666;
+            font-style: italic;
+            margin-top: auto;
+        }
+
+        /* Filtros */
+        .filtro-checks { display: flex; flex-wrap: wrap; gap: 10px; }
+        .filtro-check-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; border: 2px solid transparent; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s ease; user-select: none; }
         .filtro-check-item input[type=checkbox] { display: none; }
-        /* Disponibles */
         .filtro-check-item.tipo-disponible { background: rgba(255,215,0,0.08); border-color: rgba(255,215,0,0.3); color: var(--gold-flat, #FFD700); }
         .filtro-check-item.tipo-disponible.activo { background: rgba(255,215,0,0.2); border-color: #FFD700; }
-        /* En camino */
         .filtro-check-item.tipo-camino { background: rgba(30,100,220,0.08); border-color: rgba(30,100,220,0.3); color: #7aafff; }
         .filtro-check-item.tipo-camino.activo { background: rgba(30,100,220,0.2); border-color: #5588ff; }
-        /* Pedidos */
         .filtro-check-item.tipo-pedido { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15); color: var(--text-secondary, #aaa); }
         .filtro-check-item.tipo-pedido.activo { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); color: #fff; }
-        /* Icono de palomita */
         .filtro-check-item .check-icon { font-size: 1rem; }
         .filtro-check-item:not(.activo) .check-icon { opacity: 0.35; }
-
         .filtros-catalogo .form-control,
         .filtros-catalogo .form-select { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,215,0,0.25); color: var(--text-primary); }
         .filtros-catalogo .form-control::placeholder { color: var(--text-secondary); }
         .filtros-catalogo .form-select option { background: #111; color: #fff; }
         .btn-whatsapp { background: #25D366; color: #fff; border: none; padding: 10px 22px; border-radius: 30px; font-weight: 600; transition: all 0.3s; }
         .btn-whatsapp:hover { background: #128C7E; color: #fff; transform: scale(1.04); box-shadow: 0 4px 12px rgba(37,211,102,0.4); }
-
         .print-only { display: none !important; }
 
+        /* ============================
+           PRINT — PERFUMES
+        ============================= */
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
             @page { size: A4 portrait; margin: 0; }
             html { background: #0d0d0d !important; }
-            body { background: #0d0d0d !important; background-color: #0d0d0d !important; color: #f0f0f0 !important; font-family: 'Poppins', sans-serif !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
-            .no-print, .filtros-catalogo, header, nav, .modal, #catalogo-vacio, .print-tip { display: none !important; }
+            body { background: #0d0d0d !important; color: #f0f0f0 !important; font-family: 'Poppins', sans-serif !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            #lock-screen { display: none !important; }
+            .no-print, .filtros-catalogo, header, nav, .modal, #catalogo-vacio, #decants-vacio, .print-tip, .cat-tabs { display: none !important; }
             .container-xl { max-width: 100% !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
             .print-wrapper { display: block !important; padding: 14mm 13mm 12mm 13mm !important; background: #0d0d0d !important; min-height: 100vh !important; }
             .print-only { display: block !important; }
+            .cat-panel { display: block !important; }
+
+            /* Ocultar panel no activo al imprimir */
+            .cat-panel[data-print-hide="true"] { display: none !important; }
+
+            /* Header */
             .print-header { display: flex !important; justify-content: space-between; align-items: center; padding-bottom: 9px; margin-bottom: 12px; border-bottom: 2px solid #FFD700; }
             .print-header-logo { font-size: 1.35rem; font-weight: 700; color: #FFD700 !important; letter-spacing: 3px; text-transform: uppercase; }
             .print-header-sub { font-size: 0.73rem; color: #999 !important; text-align: right; line-height: 1.5; }
+
+            /* Grid perfumes print */
             #catalogo-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 7px !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
             #catalogo-grid > [class*="col"] { width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; }
-            .product-card { background: #1c1c1c !important; background-color: #1c1c1c !important; border: 1.5px solid #FFD700 !important; border-radius: 7px !important; overflow: hidden !important; break-inside: avoid !important; page-break-inside: avoid !important; display: flex !important; flex-direction: column !important; height: auto !important; box-shadow: none !important; transform: none !important; }
+            .product-card { background: #1c1c1c !important; border: 1.5px solid #FFD700 !important; border-radius: 7px !important; overflow: hidden !important; break-inside: avoid !important; page-break-inside: avoid !important; display: flex !important; flex-direction: column !important; height: auto !important; box-shadow: none !important; transform: none !important; }
             .product-image { width: 100% !important; height: 150px !important; object-fit: cover !important; display: block !important; }
-            .product-info { padding: 7px 9px 9px !important; background: #1c1c1c !important; background-color: #1c1c1c !important; }
-            .product-name { color: #FFD700 !important; font-size: 0.78rem !important; font-weight: 700 !important; margin-bottom: 1px !important; text-shadow: none !important; line-height: 1.2 !important; }
+            .product-info { padding: 7px 9px 9px !important; background: #1c1c1c !important; }
+            .product-name { color: #FFD700 !important; font-size: 0.78rem !important; font-weight: 700 !important; margin-bottom: 1px !important; line-height: 1.2 !important; }
             .product-brand { color: #888 !important; font-size: 0.66rem !important; margin-bottom: 4px !important; }
-            .product-price { color: #FFD700 !important; font-size: 1.1rem !important; font-weight: 800 !important; text-shadow: none !important; margin-top: 2px !important; }
+            .product-price { color: #FFD700 !important; font-size: 1.1rem !important; font-weight: 800 !important; margin-top: 2px !important; }
             .badge-disponible { background: #FFD700 !important; color: #000 !important; font-size: 0.56rem !important; padding: 2px 6px !important; border-radius: 9px !important; font-weight: 700 !important; top: 6px !important; right: 6px !important; }
             .badge-pedido { background: #111 !important; color: #FFD700 !important; border: 1px solid #FFD700 !important; font-size: 0.56rem !important; padding: 2px 6px !important; border-radius: 9px !important; top: 6px !important; right: 6px !important; }
             .badge-camino { background: #1a40a0 !important; color: #fff !important; font-size: 0.56rem !important; padding: 2px 6px !important; border-radius: 9px !important; top: 6px !important; right: 6px !important; }
+
+            /* Grid decants print */
+            #decants-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 7px !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+            #decants-grid > [class*="col"] { width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; }
+            .decant-card { background: #1a1e26 !important; border: 1.5px solid #5588ff !important; border-radius: 7px !important; break-inside: avoid !important; page-break-inside: avoid !important; display: flex !important; flex-direction: column !important; height: auto !important; box-shadow: none !important; transform: none !important; }
+            .decant-image { width: 100% !important; height: 130px !important; object-fit: cover !important; display: block !important; }
+            .decant-info { padding: 7px 9px 9px !important; background: #1a1e26 !important; }
+            .decant-name { color: #7aafff !important; font-size: 0.78rem !important; font-weight: 700 !important; margin-bottom: 1px !important; }
+            .decant-brand { color: #666 !important; font-size: 0.64rem !important; margin-bottom: 3px !important; }
+            .decant-desc { color: #888 !important; font-size: 0.65rem !important; margin-bottom: 5px !important; }
+            .decant-tallas { gap: 3px !important; margin-bottom: 4px !important; }
+            .decant-talla-badge { border: 1px solid #5588ff !important; color: #7aafff !important; font-size: 0.6rem !important; padding: 1px 7px !important; }
+            .decant-notas { color: #555 !important; font-size: 0.6rem !important; }
+
             .print-footer { display: block !important; text-align: center; margin-top: 12px; padding-top: 7px; border-top: 1px solid #2a2a2a; font-size: 0.63rem; color: #444 !important; letter-spacing: 0.8px; }
         }
     </style>
 </head>
 <body>
 
+<!-- ============================================================
+     LOCK SCREEN — solo tú ves el catálogo
+     Contraseña: cambia CATALOG_PASS abajo en el JS
+============================================================ -->
+<div id="lock-screen">
+    <div class="lock-box">
+        <div class="lock-icon">🔒</div>
+        <h2>Catálogo Privado</h2>
+        <p>Solo disponible para el administrador.<br>Descarga el PDF para compartirlo con clientes.</p>
+        <input type="password" id="lock-input" placeholder="Contraseña" maxlength="20"
+               onkeydown="if(event.key==='Enter')desbloquear()">
+        <button id="btn-unlock" onclick="desbloquear()">Entrar 🔓</button>
+        <div id="lock-error"></div>
+    </div>
+</div>
+
+<div id="catalogo-app" style="display:none;">
 <div class="container-xl my-4">
     <div class="print-wrapper">
 
         <!-- Header impreso -->
         <div class="print-only print-header">
-            <div class="print-header-logo">&#128081; FITOSCENTS</div>
-            <div class="print-header-sub">Cat&aacute;logo de Perfumes<br><span id="print-fecha"></span></div>
+            <div class="print-header-logo">👑 FITOSCENTS</div>
+            <div class="print-header-sub" id="print-header-tipo">Catálogo<br><span id="print-fecha"></span></div>
         </div>
 
         <!-- Header pantalla -->
@@ -117,101 +271,138 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div>
-                        <h2 class="fw-bold mb-1"><i class="bi bi-gem text-gold"></i> Cat&aacute;logo de Perfumes</h2>
-                        <p class="text-muted mb-0"><span id="total-productos">0</span> productos</p>
+                        <h2 class="fw-bold mb-1"><i class="bi bi-gem text-gold"></i> Catálogo Fitoscents</h2>
+                        <p class="text-muted mb-0" id="label-contador">Cargando...</p>
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
                         <button class="btn btn-outline-secondary" onclick="window.location.href='index.html'">
                             <i class="bi bi-arrow-left"></i> Volver
                         </button>
-                        <button class="btn btn-whatsapp" onclick="compartirCatalogo()">
-                            <i class="bi bi-whatsapp"></i> Compartir
-                        </button>
                         <button class="btn btn-outline-secondary" onclick="imprimirCatalogo()">
-                            <i class="bi bi-printer"></i> Imprimir / PDF
+                            <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="cerrarSesion()" title="Bloquear catálogo">
+                            <i class="bi bi-lock"></i>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Filtros con checkboxes -->
-        <div class="card shadow-sm mb-4 no-print filtros-catalogo">
-            <div class="card-body">
-                <div class="row g-3 align-items-end">
+        <!-- PESTAÑAS -->
+        <div class="cat-tabs no-print">
+            <button class="cat-tab-btn active" id="tab-perfumes" onclick="cambiarTab('perfumes')">
+                🧴 Perfumes
+            </button>
+            <button class="cat-tab-btn" id="tab-decants" onclick="cambiarTab('decants')">
+                💧 Decants
+            </button>
+        </div>
 
-                    <!-- Buscar -->
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold small"><i class="bi bi-search"></i> Buscar</label>
-                        <input type="text" class="form-control" id="buscar-catalogo" placeholder="Nombre, marca..." onkeyup="filtrarCatalogo()">
-                    </div>
+        <!-- ===== PANEL PERFUMES ===== -->
+        <div class="cat-panel active" id="panel-perfumes">
 
-                    <!-- Checkboxes de categoría -->
-                    <div class="col-md-5">
-                        <label class="form-label fw-bold small"><i class="bi bi-funnel"></i> Mostrar</label>
-                        <div class="filtro-checks">
-                            <label class="filtro-check-item tipo-disponible activo" id="lbl-disponible">
-                                <input type="checkbox" id="chk-disponible" checked onchange="toggleFiltroCheck('disponible')">
-                                <span class="check-icon">&#10003;</span>
-                                Disponibles
-                            </label>
-                            <label class="filtro-check-item tipo-camino" id="lbl-camino">
-                                <input type="checkbox" id="chk-camino" onchange="toggleFiltroCheck('camino')">
-                                <span class="check-icon">&#10003;</span>
-                                En Camino
-                            </label>
-                            <label class="filtro-check-item tipo-pedido" id="lbl-pedido">
-                                <input type="checkbox" id="chk-pedido" onchange="toggleFiltroCheck('pedido')">
-                                <span class="check-icon">&#10003;</span>
-                                Pedidos
-                            </label>
+            <!-- Filtros perfumes -->
+            <div class="card shadow-sm mb-4 no-print filtros-catalogo">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small"><i class="bi bi-search"></i> Buscar</label>
+                            <input type="text" class="form-control" id="buscar-catalogo" placeholder="Nombre, marca..." onkeyup="filtrarCatalogo()">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small"><i class="bi bi-funnel"></i> Mostrar</label>
+                            <div class="filtro-checks">
+                                <label class="filtro-check-item tipo-disponible activo" id="lbl-disponible">
+                                    <input type="checkbox" id="chk-disponible" checked onchange="toggleFiltroCheck('disponible')">
+                                    <span class="check-icon">&#10003;</span> Disponibles
+                                </label>
+                                <label class="filtro-check-item tipo-camino" id="lbl-camino">
+                                    <input type="checkbox" id="chk-camino" onchange="toggleFiltroCheck('camino')">
+                                    <span class="check-icon">&#10003;</span> En Camino
+                                </label>
+                                <label class="filtro-check-item tipo-pedido" id="lbl-pedido">
+                                    <input type="checkbox" id="chk-pedido" onchange="toggleFiltroCheck('pedido')">
+                                    <span class="check-icon">&#10003;</span> Pedidos
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold small"><i class="bi bi-sort-down"></i> Orden</label>
+                            <select class="form-select" id="filtro-orden" onchange="filtrarCatalogo()">
+                                <option value="precio-desc">Mayor precio</option>
+                                <option value="precio-asc">Menor precio</option>
+                                <option value="nombre">Nombre A-Z</option>
+                                <option value="reciente">Recientes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()" title="Limpiar">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Ordenar -->
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold small"><i class="bi bi-sort-down"></i> Orden</label>
-                        <select class="form-select" id="filtro-orden" onchange="filtrarCatalogo()">
-                            <option value="precio-desc">Mayor precio</option>
-                            <option value="precio-asc">Menor precio</option>
-                            <option value="nombre">Nombre A-Z</option>
-                            <option value="reciente">Recientes</option>
-                        </select>
-                    </div>
-
-                    <!-- Limpiar -->
-                    <div class="col-md-1">
-                        <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()" title="Limpiar filtros">
-                            <i class="bi bi-x-circle"></i>
-                        </button>
-                    </div>
-
+            <div class="row g-4" id="catalogo-grid"></div>
+            <div id="catalogo-vacio" class="text-center py-5" style="display:none;">
+                <div class="card p-5 shadow">
+                    <i class="bi bi-inbox text-muted" style="font-size:4rem;"></i>
+                    <h3 class="mt-3">No hay perfumes para mostrar</h3>
+                    <p class="text-muted">Ajusta los filtros o agrega productos al inventario</p>
                 </div>
             </div>
         </div>
 
-        <!-- Grid de productos -->
-        <div class="row g-4" id="catalogo-grid"></div>
+        <!-- ===== PANEL DECANTS ===== -->
+        <div class="cat-panel" id="panel-decants">
 
-        <!-- Estado vacio -->
-        <div id="catalogo-vacio" class="text-center py-5" style="display:none;">
-            <div class="card p-5 shadow">
-                <i class="bi bi-inbox text-muted" style="font-size:4rem;"></i>
-                <h3 class="mt-3">No hay productos para mostrar</h3>
-                <p class="text-muted">Ajusta los filtros o agrega productos al inventario</p>
-                <a href="products.html" class="btn btn-gold mt-3"><i class="bi bi-plus-circle"></i> Agregar Productos</a>
+            <!-- Filtros decants -->
+            <div class="card shadow-sm mb-4 no-print filtros-catalogo">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small"><i class="bi bi-search"></i> Buscar decant</label>
+                            <input type="text" class="form-control" id="buscar-decants" placeholder="Nombre, marca..." onkeyup="filtrarDecants()">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small"><i class="bi bi-sort-down"></i> Ordenar por</label>
+                            <select class="form-select" id="orden-decants" onchange="filtrarDecants()">
+                                <option value="nombre">Nombre A-Z</option>
+                                <option value="precio-asc">Menor precio</option>
+                                <option value="precio-desc">Mayor precio</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('buscar-decants').value='';filtrarDecants();">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4" id="decants-grid"></div>
+            <div id="decants-vacio" class="text-center py-5" style="display:none;">
+                <div class="card p-5 shadow">
+                    <i class="bi bi-droplet text-muted" style="font-size:4rem;"></i>
+                    <h3 class="mt-3">No hay decants para mostrar</h3>
+                    <p class="text-muted">Agrega fuentes de decants en la sección Decants</p>
+                </div>
             </div>
         </div>
 
         <!-- Footer impreso -->
         <div class="print-only print-footer">
-            Fitoscents &mdash; Cat&aacute;logo de Perfumes &mdash; Tijuana, B.C. &mdash; <span id="print-fecha-footer"></span>
+            Fitoscents &mdash; <span id="print-tipo-footer">Catálogo</span> &mdash; Tijuana, B.C. &mdash; <span id="print-fecha-footer"></span>
         </div>
 
     </div><!-- /print-wrapper -->
 </div>
+</div><!-- /catalogo-app -->
 
-<!-- Modal Detalle -->
+<!-- Modal Detalle Perfume -->
 <div class="modal fade" id="modalDetalleProducto" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -234,34 +425,257 @@
     </div>
 </div>
 
+<!-- Modal Detalle Decant -->
+<div class="modal fade" id="modalDetalleDecant" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#141a24;border:1px solid rgba(100,180,255,0.3);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" style="color:#7aafff;" id="modal-decant-nombre"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <img id="modal-decant-img" src="" class="img-fluid rounded-3 mb-3 w-100" style="max-height:260px;object-fit:cover;" alt="">
+                <p class="text-muted small mb-3" id="modal-decant-marca"></p>
+                <p class="mb-3" style="font-size:0.88rem;color:#ccc;" id="modal-decant-desc"></p>
+                <div class="mb-3" id="modal-decant-tallas"></div>
+                <p class="text-muted" style="font-size:0.78rem;font-style:italic;" id="modal-decant-notas"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-whatsapp px-4" onclick="consultarDecant()">
+                    <i class="bi bi-whatsapp"></i> Consultar por WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="assets/js/storage.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/catalogo.js"></script>
 <script>
-    const fechaHoy = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
-    document.querySelectorAll('#print-fecha, #print-fecha-footer').forEach(el => el.textContent = fechaHoy);
+// ============================================================
+// CONTRASEÑA — Cambia este valor por la que quieras
+// ============================================================
+const CATALOG_PASS = 'fito2025';
 
-    // Activar/desactivar checkbox visualmente
-    function toggleFiltroCheck(tipo) {
-        const lbl = document.getElementById('lbl-' + tipo);
-        const chk = document.getElementById('chk-' + tipo);
-        lbl.classList.toggle('activo', chk.checked);
-        filtrarCatalogo();
-    }
+// Sesión en memoria (se resetea al cerrar/recargar la pestaña)
+let _sesionActiva = false;
 
-    function imprimirCatalogo() {
-        const tip = document.createElement('div');
-        tip.className = 'print-tip';
-        tip.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFD700;color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-size:0.85rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;';
-        tip.innerHTML = '&#128161; Chrome: <b>M&aacute;s opciones</b> &rarr; activa <b>"Gr&aacute;ficos de fondo"</b> para el fondo oscuro';
-        document.body.appendChild(tip);
-        setTimeout(() => {
-            window.print();
-            setTimeout(() => tip.remove(), 2000);
-        }, 350);
+function desbloquear() {
+    const input = document.getElementById('lock-input');
+    const err   = document.getElementById('lock-error');
+    if (input.value === CATALOG_PASS) {
+        _sesionActiva = true;
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('catalogo-app').style.display = 'block';
+        iniciarCatalogo();
+    } else {
+        input.classList.remove('error');
+        void input.offsetWidth; // reflow para reiniciar animación
+        input.classList.add('error');
+        err.textContent = 'Contraseña incorrecta. Intenta de nuevo.';
+        input.value = '';
+        setTimeout(() => { input.classList.remove('error'); err.textContent = ''; }, 2000);
     }
+}
+
+function cerrarSesion() {
+    _sesionActiva = false;
+    document.getElementById('catalogo-app').style.display = 'none';
+    document.getElementById('lock-screen').style.display  = 'flex';
+    document.getElementById('lock-input').value = '';
+}
+
+// ============================================================
+// TABS
+// ============================================================
+let _tabActual = 'perfumes';
+function cambiarTab(tab) {
+    _tabActual = tab;
+    document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.cat-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    actualizarContador();
+}
+
+function actualizarContador() {
+    const el = document.getElementById('label-contador');
+    if (_tabActual === 'perfumes') {
+        const n = document.querySelectorAll('#catalogo-grid [class*="col"]').length;
+        el.textContent = n + ' perfumes';
+    } else {
+        const n = document.querySelectorAll('#decants-grid [class*="col"]').length;
+        el.textContent = n + ' decants';
+    }
+}
+
+// ============================================================
+// PRINT / PDF — solo imprime la pestaña activa
+// ============================================================
+const fechaHoy = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+document.querySelectorAll('#print-fecha, #print-fecha-footer').forEach(el => el.textContent = fechaHoy);
+
+function imprimirCatalogo() {
+    // Marcar cuál panel no imprimir
+    const panelOcultar = _tabActual === 'perfumes' ? 'panel-decants' : 'panel-perfumes';
+    const panelMostrar = _tabActual === 'perfumes' ? 'panel-perfumes' : 'panel-decants';
+    document.getElementById(panelOcultar).setAttribute('data-print-hide', 'true');
+    document.getElementById(panelMostrar).removeAttribute('data-print-hide');
+
+    // Actualizar encabezado del PDF
+    const tipo = _tabActual === 'perfumes' ? 'Catálogo de Perfumes' : 'Catálogo de Decants';
+    document.getElementById('print-header-tipo').innerHTML = tipo + '<br>' + fechaHoy;
+    document.getElementById('print-tipo-footer').textContent = tipo;
+
+    const tip = document.createElement('div');
+    tip.className = 'print-tip';
+    tip.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFD700;color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-size:0.85rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;';
+    tip.innerHTML = '&#128161; Chrome: <b>Más opciones</b> &rarr; activa <b>"Gráficos de fondo"</b>';
+    document.body.appendChild(tip);
+    setTimeout(() => {
+        window.print();
+        setTimeout(() => tip.remove(), 2000);
+    }, 350);
+}
+
+// ============================================================
+// DECANTS — cargar y renderizar desde Firebase
+// ============================================================
+let _decants_data = [];
+let _decants_filtrados = [];
+
+async function cargarDecantsCatalogo() {
+    try {
+        let fuentes = [];
+        if (typeof getDataCloud === 'function') {
+            fuentes = await getDataCloud('decants_fuentes') || [];
+        } else {
+            const raw = localStorage.getItem('fitoscents_decants_fuentes');
+            fuentes = raw ? JSON.parse(raw) : [];
+        }
+        // Solo mostrar fuentes con ml disponibles
+        _decants_data = fuentes.filter(f => ((f.mlTotal||0) - (f.mlUsados||0)) > 0);
+        filtrarDecants();
+    } catch(e) {
+        console.warn('Error cargando decants:', e);
+        _decants_data = [];
+        filtrarDecants();
+    }
+}
+
+function filtrarDecants() {
+    const busq  = (document.getElementById('buscar-decants')?.value || '').toLowerCase();
+    const orden = document.getElementById('orden-decants')?.value || 'nombre';
+
+    let lista = _decants_data.filter(f =>
+        (f.nombre + ' ' + (f.marca||'')).toLowerCase().includes(busq)
+    );
+
+    if (orden === 'nombre')      lista.sort((a,b) => a.nombre.localeCompare(b.nombre));
+    else if (orden === 'precio-asc')  lista.sort((a,b) => precioMinDecant(a) - precioMinDecant(b));
+    else if (orden === 'precio-desc') lista.sort((a,b) => precioMinDecant(b) - precioMinDecant(a));
+
+    _decants_filtrados = lista;
+    renderDecants(lista);
+    actualizarContador();
+}
+
+function precioMinDecant(f) {
+    if (!f.tallas || !f.tallas.length) return 0;
+    const precios = f.tallas.filter(t => t.precio > 0).map(t => t.precio);
+    return precios.length ? Math.min(...precios) : 0;
+}
+
+function renderDecants(lista) {
+    const grid  = document.getElementById('decants-grid');
+    const vacio = document.getElementById('decants-vacio');
+    if (!lista.length) {
+        grid.innerHTML = '';
+        vacio.style.display = 'block';
+        return;
+    }
+    vacio.style.display = 'none';
+    grid.innerHTML = lista.map(f => {
+        const mlDisp = (f.mlTotal||0) - (f.mlUsados||0);
+        const img = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+        const tallasHTML = (f.tallas||[]).filter(t => t.precio > 0).map(t =>
+            `<span class="decant-talla-badge">${t.ml}ml — $${t.precio}</span>`
+        ).join('');
+        const desc = f.notas || '';
+        return `
+        <div class="col-6 col-sm-4 col-lg-3">
+            <div class="decant-card" onclick="verDetalleDecant('${f.id}')" style="cursor:pointer;">
+                <div class="position-relative">
+                    <img src="${img}" class="decant-image" alt="${f.nombre}" loading="lazy">
+                    <span class="badge-disponible" style="background:rgba(100,180,255,0.9);color:#000;">💧 ${mlDisp}ml disp.</span>
+                </div>
+                <div class="decant-info">
+                    <div class="decant-name">${f.nombre}</div>
+                    <div class="decant-brand">${f.marca||''}</div>
+                    ${desc ? `<div class="decant-desc">${desc}</div>` : ''}
+                    <div class="decant-tallas">${tallasHTML || '<span class="text-muted" style="font-size:0.75rem;">Consultar precio</span>'}</div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+let _modalDecant = null;
+function verDetalleDecant(id) {
+    const f = _decants_data.find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('modal-decant-nombre').textContent = f.nombre;
+    document.getElementById('modal-decant-marca').textContent  = f.marca || '';
+    document.getElementById('modal-decant-desc').textContent   = f.notas || 'Sin descripción disponible.';
+    document.getElementById('modal-decant-img').src            = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+    const tallasEl = document.getElementById('modal-decant-tallas');
+    tallasEl.innerHTML = (f.tallas||[]).filter(t => t.precio > 0).map(t =>
+        `<span class="decant-talla-badge me-1" style="font-size:0.82rem;padding:5px 14px;">${t.ml}ml — $${t.precio}</span>`
+    ).join('') || '<span class="text-muted small">Consultar precio por WhatsApp</span>';
+    document.getElementById('modal-decant-notas').textContent = '';
+    _modalDecant = f;
+    new bootstrap.Modal(document.getElementById('modalDetalleDecant')).show();
+}
+
+function consultarDecant() {
+    if (!_modalDecant) return;
+    const tallas = (_modalDecant.tallas||[]).filter(t=>t.precio>0).map(t=>`${t.ml}ml $${t.precio}`).join(' | ');
+    const msg = `Hola! Me interesa un decant de *${_modalDecant.nombre}*${_modalDecant.marca?' ('+_modalDecant.marca+')':''}${tallas?' — '+tallas:''} 💧`;
+    window.open('https://wa.me/526641234567?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ============================================================
+// INICIAR (se llama al desbloquear)
+// ============================================================
+function iniciarCatalogo() {
+    // Cargar catalogo.js (perfumes)
+    if (typeof renderCatalogo === 'function') renderCatalogo();
+    else if (typeof cargarCatalogo === 'function') cargarCatalogo();
+    // Cargar decants
+    cargarDecantsCatalogo();
+}
+
+// Activar/desactivar checkbox perfumes
+function toggleFiltroCheck(tipo) {
+    const lbl = document.getElementById('lbl-' + tipo);
+    const chk = document.getElementById('chk-' + tipo);
+    lbl.classList.toggle('activo', chk.checked);
+    filtrarCatalogo();
+}
+
+function limpiarFiltros() {
+    document.getElementById('buscar-catalogo').value = '';
+    ['disponible','camino','pedido'].forEach(t => {
+        const chk = document.getElementById('chk-'+t);
+        chk.checked = t === 'disponible';
+        document.getElementById('lbl-'+t).classList.toggle('activo', chk.checked);
+    });
+    document.getElementById('filtro-orden').value = 'precio-desc';
+    filtrarCatalogo();
+}
 </script>
 </body>
 </html>
