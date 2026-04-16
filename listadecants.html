@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="assets/css/responsive.css">
     <style>
         /* ══════════════════════════════════
-           TARJETA DECANT — solo la foto
+           TARJETA DECANT
         ══════════════════════════════════ */
         .decant-card-preview {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -28,29 +28,30 @@
             overflow: hidden;
             padding: 0 !important;
             width: 100%;
-            /* Evita que la tarjeta se expanda más allá de su contenedor */
             max-width: 100%;
             box-sizing: border-box;
+            min-height: 150px;
         }
 
-        /* Foto: cuadrado fijo 120x120, NO crece */
+        /* Foto: 140x140 fijo */
         .card-img-col {
-            flex: 0 0 120px;
-            width: 120px;
-            min-width: 120px;
-            max-width: 120px;
-            height: 120px;
+            flex: 0 0 140px;
+            width: 140px;
+            min-width: 140px;
+            max-width: 140px;
+            min-height: 150px;
             background: #111;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             border-radius: 14px 0 0 14px;
-            align-self: flex-start;
+            align-self: stretch;
         }
         .card-img-col img {
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 100%;
+            min-height: 150px;
             object-fit: cover;
             display: block;
             flex-shrink: 0;
@@ -65,25 +66,25 @@
             padding: 8px;
         }
 
-        /* Contenido derecho — CLAVE: overflow hidden + min-width 0 */
+        /* Contenido derecho */
         .card-body-col {
             flex: 1 1 0;
             min-width: 0;
-            max-width: calc(100% - 120px);
-            padding: 10px 13px;
+            max-width: calc(100% - 140px);
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 4px;
+            gap: 5px;
             overflow: hidden;
             box-sizing: border-box;
         }
 
-        /* Nombre — una sola línea con ellipsis */
+        /* Nombre */
         .card-nombre {
             font-weight: 700;
             color: #ffd966;
-            font-size: .93rem;
+            font-size: 1rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -91,9 +92,9 @@
             margin: 0;
             max-width: 100%;
         }
-        /* Marca — una sola línea con ellipsis */
+        /* Marca */
         .card-marca {
-            font-size: .75rem;
+            font-size: .78rem;
             color: #8d9bb5;
             white-space: nowrap;
             overflow: hidden;
@@ -101,16 +102,16 @@
             margin: 0;
             max-width: 100%;
         }
-        /* Descripción — máx 2 líneas, SIN desborde */
+        /* Descripción — máx 2 líneas */
         .card-desc {
-            font-size: .72rem;
+            font-size: .74rem;
             color: #9aa3b2;
-            line-height: 1.35;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            word-break: break-all;      /* corta palabras largas sin espacios */
+            word-break: break-word;
             overflow-wrap: break-word;
             max-width: 100%;
             margin: 0;
@@ -129,8 +130,8 @@
             background: #c9a84c;
             color: #1a1a2e;
             font-weight: 700;
-            font-size: 0.75rem;
-            padding: 4px 11px;
+            font-size: 0.76rem;
+            padding: 4px 12px;
             border-radius: 30px;
             letter-spacing: .02em;
             white-space: nowrap;
@@ -141,14 +142,13 @@
         .card-tags-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 3px;
-            overflow: hidden;
+            gap: 4px;
             max-width: 100%;
         }
         .tag-badge {
             display: inline-block;
-            font-size: 0.68rem;
-            padding: 2px 8px;
+            font-size: 0.7rem;
+            padding: 2px 9px;
             border-radius: 20px;
             font-weight: 600;
             white-space: nowrap;
@@ -166,48 +166,68 @@
         .tag-primavera{ background:rgba(25,135,84,.2);   color:#75c896; border:1px solid #198754; }
         .tag-otono    { background:rgba(253,126,20,.2);  color:#feb272; border:1px solid #fd7e14; }
 
-        /* Barra intensidad */
+        /* ── Intensidad: 2 filas, NUNCA se corta ── */
         .card-intens {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: .7rem;
-            overflow: hidden;
+            flex-direction: column;
+            gap: 3px;
             max-width: 100%;
         }
-        .card-intens .lbl { color: #8d9bb5; flex-shrink: 0; white-space: nowrap; }
-        .card-intens .val { margin-left: auto; flex-shrink: 0; font-weight: 600; white-space: nowrap; }
+        .card-intens-label {
+            font-size: .7rem;
+            color: #8d9bb5;
+            white-space: nowrap;
+        }
+        .card-intens-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            max-width: 100%;
+        }
         .intensidad-bar {
             flex: 1;
             height: 6px;
             border-radius: 4px;
             background: #222;
             overflow: hidden;
-            min-width: 20px;
+            min-width: 30px;
         }
         .intensidad-fill { height: 100%; border-radius: 4px; }
+        .card-intens-val {
+            font-size: .72rem;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
 
         /* ══════════════════════════════════
            WRAPPER: tarjeta + botones debajo
         ══════════════════════════════════ */
         .tarjeta-wrapper { display: flex; flex-direction: column; gap: 6px; }
-        .tarjeta-acciones {
-            display: flex;
-            gap: 6px;
-        }
+        .tarjeta-acciones { display: flex; gap: 6px; }
 
         /* ══════════════════════════════════
-           CHECKLIST (modal)
+           CHECKLIST (modal) — ocasiones y temporadas
         ══════════════════════════════════ */
-        .ocas-check,.temp-check,.intens-check { display:none; }
-        .ocas-label,.temp-label,.intens-label {
+        .ocas-check,.temp-check { display:none; }
+        .ocas-label,.temp-label {
             cursor:pointer; border:1px solid #444; border-radius:20px;
             padding:4px 12px; font-size:0.78rem; user-select:none;
             transition:all .15s; margin:2px; display:inline-block;
         }
         .ocas-check:checked + .ocas-label,
-        .temp-check:checked + .temp-label,
-        .intens-check:checked + .intens-label {
+        .temp-check:checked + .temp-label {
+            background:rgba(201,168,76,.3); border-color:#c9a84c; color:#ffd966; font-weight:700;
+        }
+
+        /* ── INTENSIDAD: radio buttons (solo 1) ── */
+        .intens-radio { display:none; }
+        .intens-label {
+            cursor:pointer; border:1px solid #444; border-radius:20px;
+            padding:4px 12px; font-size:0.78rem; user-select:none;
+            transition:all .15s; margin:2px; display:inline-block;
+        }
+        .intens-radio:checked + .intens-label {
             background:rgba(201,168,76,.3); border-color:#c9a84c; color:#ffd966; font-weight:700;
         }
 
@@ -320,7 +340,7 @@
                             <div id="temp-checklist" class="d-flex flex-wrap gap-1"></div>
                         </div>
                         <div class="mt-3">
-                            <label class="form-label small fw-bold">💨 Intensidad de proyección</label>
+                            <label class="form-label small fw-bold">💨 Intensidad de proyección <span class="text-muted" style="font-weight:400;font-size:.75rem">(elige una)</span></label>
                             <div id="intens-checklist" class="d-flex flex-wrap gap-1"></div>
                         </div>
                     </div>
@@ -389,10 +409,10 @@ const TEMPORADAS = [
     { id:'invierno',  emoji:'❄️', label:'Invierno / Frío' },
 ];
 const INTENSIDADES = [
-    { id:'sutil',    emoji:'🌬️', label:'Sutil (cercana)',          pct:25,  color:'#6ea8fe' },
-    { id:'moderada', emoji:'💨', label:'Moderada',                 pct:50,  color:'#75c896' },
-    { id:'alta',     emoji:'🌊', label:'Alta',                     pct:75,  color:'#ffc107' },
-    { id:'bestia',   emoji:'🔥', label:'Bestia / Proyección extrema', pct:100, color:'#dc3545' },
+    { id:'sutil',    emoji:'🌬️', label:'Sutil',    sublabel:'proyección cercana',    pct:25,  color:'#6ea8fe' },
+    { id:'moderada', emoji:'💨', label:'Moderada', sublabel:'proyección media',        pct:50,  color:'#75c896' },
+    { id:'alta',     emoji:'🌊', label:'Alta',     sublabel:'buena proyección',       pct:75,  color:'#ffc107' },
+    { id:'bestia',   emoji:'🔥', label:'Bestia',   sublabel:'proyección extrema',     pct:100, color:'#dc3545' },
 ];
 
 function renderChecklist(cid, items, prefix) {
@@ -401,12 +421,25 @@ function renderChecklist(cid, items, prefix) {
          <label class="${prefix}-label" for="${prefix}-${it.id}">${it.emoji} ${it.label}</label>`
     ).join('');
 }
-renderChecklist('ocas-checklist',   OCASIONES,    'ocas');
-renderChecklist('temp-checklist',   TEMPORADAS,   'temp');
-renderChecklist('intens-checklist', INTENSIDADES, 'intens');
+// Ocasiones y temporadas siguen siendo checkbox
+renderChecklist('ocas-checklist', OCASIONES,  'ocas');
+renderChecklist('temp-checklist', TEMPORADAS, 'temp');
 
-function getChecked(p)       { return [...document.querySelectorAll(`.${p}-check:checked`)].map(c => c.value); }
+// Intensidad: radio buttons (solo 1 opción)
+function renderIntensRadio() {
+    document.getElementById('intens-checklist').innerHTML = INTENSIDADES.map(it =>
+        `<input type="radio" class="intens-radio" name="intens-group" id="intens-${it.id}" value="${it.id}" onchange="actualizarPreview()">
+         <label class="intens-label" for="intens-${it.id}">${it.emoji} ${it.label}</label>`
+    ).join('');
+}
+renderIntensRadio();
+
+function getChecked(p) { return [...document.querySelectorAll(`.${p}-check:checked`)].map(c => c.value); }
 function setChecked(p, vals) { document.querySelectorAll(`.${p}-check`).forEach(c => c.checked = vals.includes(c.value)); }
+function getIntens() { const r = document.querySelector('.intens-radio:checked'); return r ? r.value : ''; }
+function setIntens(val) {
+    document.querySelectorAll('.intens-radio').forEach(r => r.checked = (r.value === val));
+}
 
 // ── TALLAS ──
 let tallaCounter = 0;
@@ -459,10 +492,13 @@ function tagsHTML(ocas, temps) {
 function intensHTML(id) {
     const x = INTENSIDADES.find(i=>i.id===id);
     if (!x) return '';
+    // 2 filas: etiqueta arriba, barra + valor abajo
     return `<div class="card-intens">
-        <span class="lbl">💨 Proyección</span>
-        <div class="intensidad-bar"><div class="intensidad-fill" style="width:${x.pct}%;background:${x.color}"></div></div>
-        <span class="val" style="color:${x.color}">${x.emoji} ${x.label}</span>
+        <span class="card-intens-label">💨 Proyección</span>
+        <div class="card-intens-row">
+            <div class="intensidad-bar"><div class="intensidad-fill" style="width:${x.pct}%;background:${x.color}"></div></div>
+            <span class="card-intens-val" style="color:${x.color}">${x.emoji} ${x.label} &mdash; ${x.sublabel}</span>
+        </div>
     </div>`;
 }
 function fotoCol(src) {
@@ -472,16 +508,14 @@ function fotoCol(src) {
     return `<div class="card-img-col">${inner}</div>`;
 }
 
-// Construye solo la tarjeta (sin botones) — para screenshot
 function buildCard(d) {
-    const nombre = d.nombre || 'Nombre del perfume';
-    const marca  = d.marca  || '';
-    // Truncar descripción a 120 caracteres para evitar desborde extremo
+    const nombre  = d.nombre || 'Nombre del perfume';
+    const marca   = d.marca  || '';
     const descRaw = d.descripcion || '';
-    const desc   = descRaw ? `<p class="card-desc">${descRaw}</p>` : '';
-    const tallas = tallasHTML(d.tallas || []);
-    const tags   = tagsHTML(d.ocasiones || [], d.temporadas || []);
-    const intens = intensHTML(d.intensidad || '');
+    const desc    = descRaw ? `<p class="card-desc">${descRaw}</p>` : '';
+    const tallas  = tallasHTML(d.tallas || []);
+    const tags    = tagsHTML(d.ocasiones || [], d.temporadas || []);
+    const intens  = intensHTML(d.intensidad || '');
     return `
         <div class="decant-card-preview shadow">
             ${fotoCol(d.imagen)}
@@ -510,7 +544,6 @@ window.autocompletarDesdeInventario = function() {
 
 // ── PREVIEW ──
 window.actualizarPreview = function() {
-    const intens = getChecked('intens');
     document.getElementById('card-preview-container').innerHTML = buildCard({
         nombre:      document.getElementById('t-nombre').value,
         marca:       document.getElementById('t-marca').value,
@@ -519,7 +552,7 @@ window.actualizarPreview = function() {
         tallas:      getTallas(),
         ocasiones:   getChecked('ocas'),
         temporadas:  getChecked('temp'),
-        intensidad:  intens[0] || '',
+        intensidad:  getIntens(),
     });
 };
 
@@ -562,9 +595,7 @@ function renderTarjetaGrid(id, t) {
     col.id = `tarjeta-col-${id}`;
     col.innerHTML = `
         <div class="tarjeta-wrapper">
-            <!-- TARJETA LIMPIA (solo esta parte para screenshot) -->
             <div id="card-snap-${id}">${buildCard(t)}</div>
-            <!-- BOTONES FUERA de la tarjeta -->
             <div class="tarjeta-acciones">
                 <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="editarTarjeta('${id}')">
                     <i class="bi bi-pencil"></i> Editar
@@ -581,13 +612,12 @@ function renderTarjetaGrid(id, t) {
 window.guardarTarjeta = async function() {
     const nombre = document.getElementById('t-nombre').value.trim();
     if (!nombre) { alert('El nombre del perfume es obligatorio.'); return; }
-    const intens = getChecked('intens');
     const data = {
         nombre, marca: document.getElementById('t-marca').value.trim(),
         imagen: document.getElementById('t-imagen').value.trim(),
         descripcion: document.getElementById('t-descripcion').value.trim(),
         tallas: getTallas(), ocasiones: getChecked('ocas'),
-        temporadas: getChecked('temp'), intensidad: intens[0]||'',
+        temporadas: getChecked('temp'), intensidad: getIntens(),
         updatedAt: serverTimestamp(),
     };
     const editId = document.getElementById('tarjeta-edit-id').value;
@@ -621,7 +651,7 @@ window.editarTarjeta = async function(id) {
         setTallas(ta);
         setChecked('ocas',   t.ocasiones  || []);
         setChecked('temp',   t.temporadas || []);
-        setChecked('intens', t.intensidad ? [t.intensidad] : []);
+        setIntens(t.intensidad || '');
         actualizarPreview();
         new bootstrap.Modal(document.getElementById('modalNuevaTarjeta')).show();
     } catch(e) { console.error(e); }
@@ -649,7 +679,7 @@ document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', (
     if (!document.getElementById('tarjeta-edit-id').value) {
         ['t-nombre','t-marca','t-imagen','t-descripcion'].forEach(id => document.getElementById(id).value='');
         setTallas([]);
-        setChecked('ocas',[]); setChecked('temp',[]); setChecked('intens',[]);
+        setChecked('ocas',[]); setChecked('temp',[]); setIntens('');
         document.getElementById('titulo-modal-tarjeta').textContent = '🃏 Nueva Tarjeta de Decant';
         document.getElementById('select-perfume').value = '';
         actualizarPreview();
