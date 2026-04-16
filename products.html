@@ -273,6 +273,31 @@
                             <input type="text" class="form-control" id="inputSku" placeholder="Generar auto si vacío">
                         </div>
                     </div>
+
+                    <!-- ── NUEVOS CAMPOS FITO SCENTS ── -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Tipo</label>
+                            <select class="form-select" id="inputTipo">
+                                <option value="designer">🏛️ Diseñador</option>
+                                <option value="arabe">🕌 Árabe / Oud</option>
+                                <option value="nicho">💎 Nicho</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label fw-bold">Notas Olfativas</label>
+                            <input type="text" class="form-control" id="inputNotas"
+                                placeholder="Ej: Bergamota, Cedro, Almizcle...">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Código de Lote (Batch Code)</label>
+                        <input type="text" class="form-control" id="inputBatch"
+                            placeholder="Ej: 3C01, A5N2 — para autenticidad y trazabilidad">
+                        <div class="form-text">Encuéntralo grabado en la base o caja del frasco.</div>
+                    </div>
+                    <!-- ── FIN NUEVOS CAMPOS ── -->
+
                     <div class="mb-3">
                         <label class="form-label fw-bold">Cantidad en Stock (Unidades)</label>
                         <input type="number" class="form-control" id="inputCantidad" placeholder="Ej: 1" value="1" min="1">
