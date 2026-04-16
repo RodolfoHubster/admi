@@ -20,7 +20,7 @@
         ══════════════════════════════════════════════ */
 
         /* Estructura principal */
-        .card {
+        .decant-card {
             background-color: #1e1e1e;
             border-radius: 12px;
             border-left: 4px solid #d4af37;
@@ -34,7 +34,7 @@
         }
 
         /* Imagen del perfume — se adapta al marco */
-        .card-image {
+        .decant-card .card-image {
             width: 100px;
             height: 100px;
             background-color: #2a2a2a;
@@ -48,7 +48,7 @@
             text-align: center;
             overflow: hidden;
         }
-        .card-image img {
+        .decant-card .card-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -478,7 +478,7 @@ function buildCard(d) {
     }
 
     return `
-        <div class="card">
+        <div class="decant-card">
             <div class="card-image">${imgHTML}</div>
             <div class="card-content">
                 <div class="card-header">
