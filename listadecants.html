@@ -22,16 +22,16 @@
             --dc-padding:     15px;
             --dc-gap:         15px;
             --dc-content-gap: 3px;
+            --dc-radius:      14px;
+            --dc-outer-gap:   12px;
             --dc-img-minw:    66px;
             --dc-img-maxw:    160px;
             --dc-font-title:  24px;
-            --dc-font-desc:   15px;
             --dc-font-brand:  16px;
+            --dc-font-desc:   15px;
             --dc-font-price:  15px;
-            --dc-tag-font:    12px;
-            --dc-tag-maxw:    55%;
-            --dc-radius:      14px;
-            --dc-outer-gap:   12px;
+            --dc-tag-font:    11px;
+            --dc-tag-maxw:    33%;
         }
 
         /* Grid de tarjetas — separación manual, sin columnas Bootstrap */
@@ -50,17 +50,17 @@
             border-radius: var(--dc-radius);
             border-left: 4px solid #d4af37;
             padding: var(--dc-padding);
-            display: flex;
+            display: block !important;
             gap: var(--dc-gap);
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-            align-items: flex-start;
             box-sizing: border-box;
         }
 
         .decant-card .card-image {
             width: clamp(var(--dc-img-minw), 20%, var(--dc-img-maxw));
-            flex-shrink: 0;
-            flex-grow: 0;
+            float: left;
+            margin-right: var(--dc-gap);
+            margin-bottom: 8px;
             min-height: var(--dc-img-minw);
             background-color: #2a2a2a;
             border-radius: 8px;
@@ -80,9 +80,13 @@
             display: block;
             border-radius: 8px;
         }
+        .decant-card::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
 
         .card-content {
-            flex-grow: 1;
             display: flex;
             flex-direction: column;
             gap: var(--dc-content-gap);
@@ -418,13 +422,13 @@
                oninput="ajustar('--dc-font-price', this.value+'px', 'lbl-fprice', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>🏷️ Tags (px)</span><span id="lbl-ftag">12px</span></div>
-        <input class="aj-slider" type="range" min="6" max="18" value="12" step="1"
+        <div class="aj-label"><span>🏷️ Tags (px)</span><span id="lbl-ftag">11px</span></div>
+        <input class="aj-slider" type="range" min="6" max="18" value="11" step="1"
                oninput="ajustar('--dc-tag-font', this.value+'px', 'lbl-ftag', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>🏷️ Ancho máx. tags (%)</span><span id="lbl-tagw">55%</span></div>
-        <input class="aj-slider" type="range" min="20" max="75" value="55" step="1"
+        <div class="aj-label"><span>🏷️ Ancho máx. tags (%)</span><span id="lbl-tagw">33%</span></div>
+        <input class="aj-slider" type="range" min="10" max="75" value="33" step="1"
                oninput="ajustar('--dc-tag-maxw', this.value+'%', 'lbl-tagw', this.value+'%')">
     </div>
 
@@ -537,19 +541,19 @@ function ajustar(varName, value, labelId, display) {
 
 function resetAjustes() {
     const defaults = [
-        ['--dc-padding',     '15px', 'lbl-padding',    15],
-        ['--dc-gap',         '15px', 'lbl-gap',         15],
-        ['--dc-content-gap', '3px',  'lbl-cgap',         3],
-        ['--dc-radius',      '14px', 'lbl-radius',      14],
-        ['--dc-outer-gap',   '12px', 'lbl-outer-gap',   12],
-        ['--dc-img-minw',    '66px', 'lbl-img-minw',    66],
-        ['--dc-img-maxw',   '160px', 'lbl-img-maxw',   160],
-        ['--dc-font-title',  '24px', 'lbl-ftitle',      24],
-        ['--dc-font-brand',  '16px', 'lbl-fbrand',      16],
-        ['--dc-font-desc',   '15px', 'lbl-fdesc',       15],
-        ['--dc-font-price',  '15px', 'lbl-fprice',      15],
-        ['--dc-tag-font',    '12px', 'lbl-ftag',        12],
-        ['--dc-tag-maxw',    '55%',  'lbl-tagw',        55],
+        ['--dc-padding',     '15px', 'lbl-padding',   15],
+        ['--dc-gap',         '15px', 'lbl-gap',        15],
+        ['--dc-content-gap', '3px',  'lbl-cgap',        3],
+        ['--dc-radius',      '14px', 'lbl-radius',     14],
+        ['--dc-outer-gap',   '12px', 'lbl-outer-gap',  12],
+        ['--dc-img-minw',    '66px', 'lbl-img-minw',   66],
+        ['--dc-img-maxw',   '160px', 'lbl-img-maxw',  160],
+        ['--dc-font-title',  '24px', 'lbl-ftitle',     24],
+        ['--dc-font-brand',  '16px', 'lbl-fbrand',     16],
+        ['--dc-font-desc',   '15px', 'lbl-fdesc',      15],
+        ['--dc-font-price',  '15px', 'lbl-fprice',     15],
+        ['--dc-tag-font',    '11px', 'lbl-ftag',       11],
+        ['--dc-tag-maxw',    '33%',  'lbl-tagw',       33],
     ];
     defaults.forEach(([v, val, lbl, num]) => {
         ajustar(v, val, lbl, val);
@@ -836,7 +840,6 @@ window.editarTarjeta = async function(id) {
         const d    = snap.docs.find(x => x.id===id);
         if (!d) return;
         const t = d.data();
-        // Primero llenamos los datos ANTES de abrir el modal
         document.getElementById('tarjeta-edit-id').value  = id;
         document.getElementById('t-nombre').value         = t.nombre      || '';
         document.getElementById('t-marca').value          = t.marca       || '';
@@ -872,7 +875,6 @@ function mostrarToast(msg) {
 }
 
 // ── MODAL EVENTS ──
-// show.bs.modal: solo limpiar si es NUEVA tarjeta (editId ya vacío)
 document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', () => {
     const editId = document.getElementById('tarjeta-edit-id').value;
     if (!editId) {
@@ -885,7 +887,6 @@ document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', (
     }
 });
 
-// hidden.bs.modal: limpiar el ID de edición DESPUÉS de que el modal cierra del todo
 document.getElementById('modalNuevaTarjeta').addEventListener('hidden.bs.modal', () => {
     document.getElementById('tarjeta-edit-id').value = '';
 });
