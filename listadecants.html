@@ -19,17 +19,19 @@
            VARIABLES DE DISEÑO — controladas por sliders
         ═══════════════════════════════════════ */
         :root {
-            --dc-padding:    14px;
-            --dc-gap:        14px;
+            --dc-padding:     14px;
+            --dc-gap:         14px;
             --dc-content-gap: 5px;
-            --dc-img-size:   80px;
-            --dc-font-title: 15px;
-            --dc-font-desc:  11px;
-            --dc-font-brand: 11px;
-            --dc-font-price: 11px;
-            --dc-tag-font:   8px;
-            --dc-tag-maxw:   48%;
-            --dc-radius:     12px;
+            --dc-img-ratio:   1;      /* relación ancho:alto de la imagen (1 = cuadrada) */
+            --dc-img-minw:    60px;   /* ancho mínimo de la imagen */
+            --dc-img-maxw:    160px;  /* ancho máximo de la imagen */
+            --dc-font-title:  15px;
+            --dc-font-desc:   11px;
+            --dc-font-brand:  11px;
+            --dc-font-price:  11px;
+            --dc-tag-font:    8px;
+            --dc-tag-maxw:    48%;
+            --dc-radius:      12px;
         }
 
         /* ═══════════════════════════════════════
@@ -43,40 +45,36 @@
             display: flex;
             gap: var(--dc-gap);
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-            align-items: flex-start;
+            align-items: stretch;   /* imagen toma todo el alto */
             width: 100%;
             box-sizing: border-box;
         }
 
-        /* Imagen FIJA — tamaño controlado por variable, nunca se distorsiona */
+        /* Imagen FLUIDA — ocupa todo el alto de la tarjeta respetando los márgenes */
         .decant-card .card-image {
-            width:      var(--dc-img-size);
-            min-width:  var(--dc-img-size);
-            max-width:  var(--dc-img-size);
-            height:     var(--dc-img-size);
-            min-height: var(--dc-img-size);
-            max-height: var(--dc-img-size);
+            /* ancho fluido entre min y max */
+            width: clamp(var(--dc-img-minw), 20%, var(--dc-img-maxw));
+            flex-shrink: 0;
+            flex-grow: 0;
+            /* alto = lo que marque el contenido (align-items:stretch lo estira) */
+            min-height: var(--dc-img-minw);
             background-color: #2a2a2a;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            flex-grow: 0;
-            align-self: flex-start;
+            overflow: hidden;
             font-size: 10px;
             color: #666;
             text-align: center;
-            overflow: hidden;
         }
         .decant-card .card-image img {
-            width:  var(--dc-img-size);
-            height: var(--dc-img-size);
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             object-position: center;
             display: block;
             border-radius: 8px;
-            flex-shrink: 0;
         }
 
         .card-content {
@@ -263,16 +261,8 @@
             justify-content: space-between;
             align-items: center;
         }
-        .aj-sep {
-            border: none;
-            border-top: 1px solid #2a2a3e;
-            margin: 2px 0;
-        }
-        .aj-row {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
+        .aj-sep { border: none; border-top: 1px solid #2a2a3e; margin: 2px 0; }
+        .aj-row { display: flex; flex-direction: column; gap: 2px; }
         .aj-label {
             display: flex;
             justify-content: space-between;
@@ -297,35 +287,24 @@
         }
         .aj-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
+            width: 14px; height: 14px;
             border-radius: 50%;
             background: #d4af37;
             cursor: pointer;
             box-shadow: 0 0 4px rgba(0,0,0,0.5);
         }
         .aj-slider::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
+            width: 14px; height: 14px;
             border-radius: 50%;
             background: #d4af37;
             border: none;
             cursor: pointer;
         }
-        .aj-btns {
-            display: flex;
-            gap: 6px;
-            margin-top: 4px;
-        }
+        .aj-btns { display: flex; gap: 6px; margin-top: 4px; }
         .aj-btn {
-            flex: 1;
-            padding: 6px 0;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            border: none;
-            transition: opacity .15s;
+            flex: 1; padding: 6px 0; border-radius: 8px;
+            font-size: 11px; font-weight: 700; cursor: pointer;
+            border: none; transition: opacity .15s;
         }
         .aj-btn:hover { opacity: .85; }
         .aj-btn-copy  { background: #d4af37; color: #121212; }
@@ -393,11 +372,16 @@
 
     <hr class="aj-sep">
 
-    <!-- IMAGEN -->
+    <!-- IMAGEN FLUIDA -->
     <div class="aj-row">
-        <div class="aj-label"><span>🖼️ Tamaño imagen (px)</span><span id="lbl-img">80px</span></div>
-        <input class="aj-slider" type="range" min="40" max="160" value="80" step="4"
-               oninput="ajustarImagen(this.value)">
+        <div class="aj-label"><span>🖼️ Ancho mín. imagen (px)</span><span id="lbl-img-minw">60px</span></div>
+        <input class="aj-slider" type="range" min="30" max="120" value="60" step="2"
+               oninput="ajustar('--dc-img-minw', this.value+'px', 'lbl-img-minw', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>🖼️ Ancho máx. imagen (px)</span><span id="lbl-img-maxw">160px</span></div>
+        <input class="aj-slider" type="range" min="60" max="260" value="160" step="4"
+               oninput="ajustar('--dc-img-maxw', this.value+'px', 'lbl-img-maxw', this.value+'px')">
     </div>
 
     <hr class="aj-sep">
@@ -534,54 +518,43 @@
 <script src="components/header.js"></script>
 <script src="assets/js/utils.js"></script>
 
-<!-- ===== PANEL DE AJUSTES (script normal, no module) ===== -->
+<!-- ===== PANEL DE AJUSTES ===== -->
 <script>
-// Aplica variable CSS en :root y actualiza label
 function ajustar(varName, value, labelId, display) {
     document.documentElement.style.setProperty(varName, value);
     if (labelId) document.getElementById(labelId).textContent = display || value;
 }
 
-// Imagen: cambia width + height + img width + height al mismo tiempo
-function ajustarImagen(px) {
-    const v = px + 'px';
-    ajustar('--dc-img-size', v, 'lbl-img', v);
-}
-
 function resetAjustes() {
     const defaults = [
-        ['--dc-padding',    '14px', 'lbl-padding'],
-        ['--dc-gap',        '14px', 'lbl-gap'],
-        ['--dc-content-gap','5px',  'lbl-cgap'],
-        ['--dc-radius',     '12px', 'lbl-radius'],
-        ['--dc-img-size',   '80px', 'lbl-img'],
-        ['--dc-font-title', '15px', 'lbl-ftitle'],
-        ['--dc-font-brand', '11px', 'lbl-fbrand'],
-        ['--dc-font-desc',  '11px', 'lbl-fdesc'],
-        ['--dc-font-price', '11px', 'lbl-fprice'],
-        ['--dc-tag-font',   '8px',  'lbl-ftag'],
-        ['--dc-tag-maxw',   '48%',  'lbl-tagw'],
+        ['--dc-padding',     '14px', 'lbl-padding',  14],
+        ['--dc-gap',         '14px', 'lbl-gap',       14],
+        ['--dc-content-gap', '5px',  'lbl-cgap',       5],
+        ['--dc-radius',      '12px', 'lbl-radius',    12],
+        ['--dc-img-minw',    '60px', 'lbl-img-minw',  60],
+        ['--dc-img-maxw',   '160px', 'lbl-img-maxw', 160],
+        ['--dc-font-title',  '15px', 'lbl-ftitle',    15],
+        ['--dc-font-brand',  '11px', 'lbl-fbrand',    11],
+        ['--dc-font-desc',   '11px', 'lbl-fdesc',     11],
+        ['--dc-font-price',  '11px', 'lbl-fprice',    11],
+        ['--dc-tag-font',     '8px', 'lbl-ftag',       8],
+        ['--dc-tag-maxw',    '48%',  'lbl-tagw',      48],
     ];
-    const sliderDefaults = {
-        'lbl-padding': 14, 'lbl-gap': 14, 'lbl-cgap': 5, 'lbl-radius': 12,
-        'lbl-img': 80, 'lbl-ftitle': 15, 'lbl-fbrand': 11,
-        'lbl-fdesc': 11, 'lbl-fprice': 11, 'lbl-ftag': 8, 'lbl-tagw': 48,
-    };
-    defaults.forEach(([v, val, lbl]) => ajustar(v, val, lbl, val));
-    // Restablecer sliders visualmente
-    document.querySelectorAll('.aj-slider').forEach(s => {
-        const lbl = s.previousElementSibling?.querySelector('span:last-child')?.id;
-        if (lbl && sliderDefaults[lbl] !== undefined) s.value = sliderDefaults[lbl];
+    defaults.forEach(([v, val, lbl, num]) => {
+        ajustar(v, val, lbl, val);
+        const row = document.getElementById(lbl)?.closest('.aj-row');
+        if (row) { const s = row.querySelector('.aj-slider'); if (s) s.value = num; }
     });
 }
 
 function copiarCSS() {
     const vars = [
-        '--dc-padding', '--dc-gap', '--dc-content-gap', '--dc-radius',
-        '--dc-img-size', '--dc-font-title', '--dc-font-brand',
-        '--dc-font-desc', '--dc-font-price', '--dc-tag-font', '--dc-tag-maxw',
+        '--dc-padding','--dc-gap','--dc-content-gap','--dc-radius',
+        '--dc-img-minw','--dc-img-maxw',
+        '--dc-font-title','--dc-font-brand','--dc-font-desc',
+        '--dc-font-price','--dc-tag-font','--dc-tag-maxw',
     ];
-    const st = document.documentElement.style;
+    const st  = document.documentElement.style;
     const css = ':root {\n' + vars.map(v => {
         const val = st.getPropertyValue(v) || getComputedStyle(document.documentElement).getPropertyValue(v);
         return `    ${v}: ${val.trim()};`;
