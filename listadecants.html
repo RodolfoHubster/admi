@@ -15,27 +15,47 @@
     <link rel="stylesheet" href="assets/css/features.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
     <style>
+        /* ═══════════════════════════════════════
+           VARIABLES DE DISEÑO — controladas por sliders
+        ═══════════════════════════════════════ */
+        :root {
+            --dc-padding:    14px;
+            --dc-gap:        14px;
+            --dc-content-gap: 5px;
+            --dc-img-size:   80px;
+            --dc-font-title: 15px;
+            --dc-font-desc:  11px;
+            --dc-font-brand: 11px;
+            --dc-font-price: 11px;
+            --dc-tag-font:   8px;
+            --dc-tag-maxw:   48%;
+            --dc-radius:     12px;
+        }
+
+        /* ═══════════════════════════════════════
+           TARJETA
+        ═══════════════════════════════════════ */
         .decant-card {
             background-color: #1e1e1e;
-            border-radius: 12px;
+            border-radius: var(--dc-radius);
             border-left: 4px solid #d4af37;
-            padding: 14px 16px;
+            padding: var(--dc-padding);
             display: flex;
-            gap: 14px;
+            gap: var(--dc-gap);
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
             align-items: flex-start;
             width: 100%;
             box-sizing: border-box;
         }
 
-        /* Imagen FIJA 80x80 — nunca crece, nunca se comprime */
+        /* Imagen FIJA — tamaño controlado por variable, nunca se distorsiona */
         .decant-card .card-image {
-            width: 80px;
-            min-width: 80px;
-            max-width: 80px;
-            height: 80px;
-            min-height: 80px;
-            max-height: 80px;
+            width:      var(--dc-img-size);
+            min-width:  var(--dc-img-size);
+            max-width:  var(--dc-img-size);
+            height:     var(--dc-img-size);
+            min-height: var(--dc-img-size);
+            max-height: var(--dc-img-size);
             background-color: #2a2a2a;
             border-radius: 8px;
             display: flex;
@@ -50,8 +70,8 @@
             overflow: hidden;
         }
         .decant-card .card-image img {
-            width: 80px;
-            height: 80px;
+            width:  var(--dc-img-size);
+            height: var(--dc-img-size);
             object-fit: cover;
             object-position: center;
             display: block;
@@ -63,25 +83,20 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: var(--dc-content-gap);
             min-width: 0;
         }
-
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             gap: 8px;
         }
-
-        .card-header > div:first-child {
-            flex-shrink: 1;
-            min-width: 0;
-        }
+        .card-header > div:first-child { flex-shrink: 1; min-width: 0; }
 
         .perfume-title {
             margin: 0;
-            font-size: 15px;
+            font-size: var(--dc-font-title);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -90,11 +105,10 @@
         }
         .perfume-brand {
             margin: 0;
-            font-size: 11px;
+            font-size: var(--dc-font-brand);
             color: #8d9bb5;
         }
 
-        /* Tags en fila horizontal, compactos */
         .tags-container {
             display: flex;
             flex-direction: row;
@@ -103,11 +117,10 @@
             align-items: flex-start;
             justify-content: flex-end;
             flex-shrink: 0;
-            max-width: 48%;
+            max-width: var(--dc-tag-maxw);
         }
-
         .tag {
-            font-size: 8px;
+            font-size: var(--dc-tag-font);
             font-weight: 700;
             padding: 2px 6px;
             border-radius: 10px;
@@ -132,51 +145,31 @@
 
         .description {
             margin: 0;
-            font-size: 11px;
+            font-size: var(--dc-font-desc);
             color: #cccccc;
             line-height: 1.4;
         }
-
-        .prices-container {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        .prices-container { display: flex; gap: 8px; flex-wrap: wrap; }
         .price-pill {
             background-color: #d4af37;
             color: #121212;
-            font-size: 11px;
+            font-size: var(--dc-font-price);
             font-weight: 700;
             padding: 4px 10px;
             border-radius: 20px;
             white-space: nowrap;
         }
-        .price-pill.inactiva {
-            background-color: #333;
-            color: #666;
-            text-decoration: line-through;
-        }
+        .price-pill.inactiva { background-color: #333; color: #666; text-decoration: line-through; }
 
-        .card-intens {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
+        .card-intens { display: flex; flex-direction: column; gap: 3px; }
         .card-intens-label { font-size: .72rem; color: #8d9bb5; }
         .card-intens-row   { display: flex; align-items: center; gap: 10px; }
-        .intensidad-bar {
-            flex: 1;
-            height: 6px;
-            border-radius: 4px;
-            background: #2a2a2a;
-            overflow: hidden;
-            min-width: 60px;
-        }
+        .intensidad-bar    { flex: 1; height: 6px; border-radius: 4px; background: #2a2a2a; overflow: hidden; min-width: 60px; }
         .intensidad-fill   { height: 100%; border-radius: 4px; }
         .card-intens-val   { font-size: .72rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 
-        .tarjeta-wrapper   { display: flex; flex-direction: column; gap: 6px; }
-        .tarjeta-acciones  { display: flex; gap: 6px; }
+        .tarjeta-wrapper  { display: flex; flex-direction: column; gap: 6px; }
+        .tarjeta-acciones { display: flex; gap: 6px; }
 
         /* ── MODAL CHECKLISTS ── */
         .ocas-check, .temp-check { display: none; }
@@ -198,7 +191,6 @@
         .intens-radio:checked + .intens-label {
             background: rgba(201,168,76,.3); border-color: #c9a84c; color: #ffd966; font-weight: 700;
         }
-
         .tallas-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
         .tallas-table thead th { font-size: .78rem; font-weight: 700; text-transform: uppercase; color: #adb5bd; padding: 4px 10px; letter-spacing: .04em; }
         .tallas-table tbody tr { background: #1a1a2e; border-radius: 8px; }
@@ -214,8 +206,130 @@
         .btn-del-talla:hover { opacity: 1; }
         .btn-add-talla { background: rgba(201,168,76,.12); border: 1px dashed #c9a84c; color: #ffd966; border-radius: 8px; padding: 6px 16px; font-size: .82rem; cursor: pointer; transition: all .15s; width: 100%; margin-top: 4px; }
         .btn-add-talla:hover { background: rgba(201,168,76,.22); }
-
         #toast-lista { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; min-width: 260px; }
+
+        /* ═══════════════════════════════════════
+           PANEL FLOTANTE DE AJUSTES
+        ═══════════════════════════════════════ */
+        #ajustes-toggle {
+            position: fixed;
+            bottom: 5rem;
+            right: 1.5rem;
+            z-index: 8888;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #d4af37;
+            color: #121212;
+            border: none;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform .2s, background .2s;
+        }
+        #ajustes-toggle:hover { background: #c9a020; transform: rotate(30deg); }
+        #ajustes-toggle.active { transform: rotate(90deg); background: #c9a020; }
+
+        #ajustes-panel {
+            position: fixed;
+            bottom: 10rem;
+            right: 1.5rem;
+            z-index: 8887;
+            width: 300px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #ajustes-panel.visible { display: flex; }
+
+        .aj-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .aj-sep {
+            border: none;
+            border-top: 1px solid #2a2a3e;
+            margin: 2px 0;
+        }
+        .aj-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .aj-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #adb5bd;
+        }
+        .aj-label span:last-child {
+            color: #ffd966;
+            font-weight: 700;
+            min-width: 36px;
+            text-align: right;
+        }
+        .aj-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: #2a2a3e;
+            outline: none;
+            cursor: pointer;
+        }
+        .aj-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #d4af37;
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+        .aj-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #d4af37;
+            border: none;
+            cursor: pointer;
+        }
+        .aj-btns {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .aj-btn {
+            flex: 1;
+            padding: 6px 0;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: opacity .15s;
+        }
+        .aj-btn:hover { opacity: .85; }
+        .aj-btn-copy  { background: #d4af37; color: #121212; }
+        .aj-btn-reset { background: #2a2a3e; color: #adb5bd; border: 1px solid #444; }
     </style>
 </head>
 <body>
@@ -242,6 +356,90 @@
             <p class="mt-2">No hay tarjetas aún. Crea la primera.</p>
         </div>
     </div>
+</div>
+
+<!-- ===== PANEL FLOTANTE AJUSTES ===== -->
+<button id="ajustes-toggle" title="Ajustar diseño de tarjetas">
+    <i class="bi bi-sliders"></i>
+</button>
+
+<div id="ajustes-panel">
+    <div class="aj-title">
+        <span>⚙️ Ajustar tarjetas</span>
+    </div>
+    <hr class="aj-sep">
+
+    <!-- ESPACIADO -->
+    <div class="aj-row">
+        <div class="aj-label"><span>📐 Padding interno</span><span id="lbl-padding">14px</span></div>
+        <input class="aj-slider" type="range" min="6" max="32" value="14" step="1"
+               oninput="ajustar('--dc-padding', this.value+'px', 'lbl-padding', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>↔️ Gap imagen→contenido</span><span id="lbl-gap">14px</span></div>
+        <input class="aj-slider" type="range" min="4" max="36" value="14" step="1"
+               oninput="ajustar('--dc-gap', this.value+'px', 'lbl-gap', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>↕️ Gap entre elementos</span><span id="lbl-cgap">5px</span></div>
+        <input class="aj-slider" type="range" min="1" max="20" value="5" step="1"
+               oninput="ajustar('--dc-content-gap', this.value+'px', 'lbl-cgap', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>📦 Borde redondeado</span><span id="lbl-radius">12px</span></div>
+        <input class="aj-slider" type="range" min="0" max="24" value="12" step="1"
+               oninput="ajustar('--dc-radius', this.value+'px', 'lbl-radius', this.value+'px')">
+    </div>
+
+    <hr class="aj-sep">
+
+    <!-- IMAGEN -->
+    <div class="aj-row">
+        <div class="aj-label"><span>🖼️ Tamaño imagen (px)</span><span id="lbl-img">80px</span></div>
+        <input class="aj-slider" type="range" min="40" max="160" value="80" step="4"
+               oninput="ajustarImagen(this.value)">
+    </div>
+
+    <hr class="aj-sep">
+
+    <!-- FUENTES -->
+    <div class="aj-row">
+        <div class="aj-label"><span>🔤 Título (px)</span><span id="lbl-ftitle">15px</span></div>
+        <input class="aj-slider" type="range" min="10" max="26" value="15" step="1"
+               oninput="ajustar('--dc-font-title', this.value+'px', 'lbl-ftitle', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>🔡 Marca (px)</span><span id="lbl-fbrand">11px</span></div>
+        <input class="aj-slider" type="range" min="8" max="18" value="11" step="1"
+               oninput="ajustar('--dc-font-brand', this.value+'px', 'lbl-fbrand', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>📝 Descripción (px)</span><span id="lbl-fdesc">11px</span></div>
+        <input class="aj-slider" type="range" min="8" max="18" value="11" step="1"
+               oninput="ajustar('--dc-font-desc', this.value+'px', 'lbl-fdesc', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>💊 Precio (px)</span><span id="lbl-fprice">11px</span></div>
+        <input class="aj-slider" type="range" min="8" max="16" value="11" step="1"
+               oninput="ajustar('--dc-font-price', this.value+'px', 'lbl-fprice', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>🏷️ Tags (px)</span><span id="lbl-ftag">8px</span></div>
+        <input class="aj-slider" type="range" min="6" max="14" value="8" step="1"
+               oninput="ajustar('--dc-tag-font', this.value+'px', 'lbl-ftag', this.value+'px')">
+    </div>
+    <div class="aj-row">
+        <div class="aj-label"><span>🏷️ Ancho máx. tags (%)</span><span id="lbl-tagw">48%</span></div>
+        <input class="aj-slider" type="range" min="20" max="75" value="48" step="1"
+               oninput="ajustar('--dc-tag-maxw', this.value+'%', 'lbl-tagw', this.value+'%')">
+    </div>
+
+    <hr class="aj-sep">
+    <div class="aj-btns">
+        <button class="aj-btn aj-btn-copy" onclick="copiarCSS()">📋 Copiar CSS</button>
+        <button class="aj-btn aj-btn-reset" onclick="resetAjustes()">↩️ Reset</button>
+    </div>
+    <div id="aj-copied" style="font-size:10px;color:#75c896;text-align:center;display:none">✅ ¡CSS copiado al portapapeles!</div>
 </div>
 
 <!-- ===== MODAL ===== -->
@@ -335,6 +533,72 @@
 <script src="assets/js/storage.js"></script>
 <script src="components/header.js"></script>
 <script src="assets/js/utils.js"></script>
+
+<!-- ===== PANEL DE AJUSTES (script normal, no module) ===== -->
+<script>
+// Aplica variable CSS en :root y actualiza label
+function ajustar(varName, value, labelId, display) {
+    document.documentElement.style.setProperty(varName, value);
+    if (labelId) document.getElementById(labelId).textContent = display || value;
+}
+
+// Imagen: cambia width + height + img width + height al mismo tiempo
+function ajustarImagen(px) {
+    const v = px + 'px';
+    ajustar('--dc-img-size', v, 'lbl-img', v);
+}
+
+function resetAjustes() {
+    const defaults = [
+        ['--dc-padding',    '14px', 'lbl-padding'],
+        ['--dc-gap',        '14px', 'lbl-gap'],
+        ['--dc-content-gap','5px',  'lbl-cgap'],
+        ['--dc-radius',     '12px', 'lbl-radius'],
+        ['--dc-img-size',   '80px', 'lbl-img'],
+        ['--dc-font-title', '15px', 'lbl-ftitle'],
+        ['--dc-font-brand', '11px', 'lbl-fbrand'],
+        ['--dc-font-desc',  '11px', 'lbl-fdesc'],
+        ['--dc-font-price', '11px', 'lbl-fprice'],
+        ['--dc-tag-font',   '8px',  'lbl-ftag'],
+        ['--dc-tag-maxw',   '48%',  'lbl-tagw'],
+    ];
+    const sliderDefaults = {
+        'lbl-padding': 14, 'lbl-gap': 14, 'lbl-cgap': 5, 'lbl-radius': 12,
+        'lbl-img': 80, 'lbl-ftitle': 15, 'lbl-fbrand': 11,
+        'lbl-fdesc': 11, 'lbl-fprice': 11, 'lbl-ftag': 8, 'lbl-tagw': 48,
+    };
+    defaults.forEach(([v, val, lbl]) => ajustar(v, val, lbl, val));
+    // Restablecer sliders visualmente
+    document.querySelectorAll('.aj-slider').forEach(s => {
+        const lbl = s.previousElementSibling?.querySelector('span:last-child')?.id;
+        if (lbl && sliderDefaults[lbl] !== undefined) s.value = sliderDefaults[lbl];
+    });
+}
+
+function copiarCSS() {
+    const vars = [
+        '--dc-padding', '--dc-gap', '--dc-content-gap', '--dc-radius',
+        '--dc-img-size', '--dc-font-title', '--dc-font-brand',
+        '--dc-font-desc', '--dc-font-price', '--dc-tag-font', '--dc-tag-maxw',
+    ];
+    const st = document.documentElement.style;
+    const css = ':root {\n' + vars.map(v => {
+        const val = st.getPropertyValue(v) || getComputedStyle(document.documentElement).getPropertyValue(v);
+        return `    ${v}: ${val.trim()};`;
+    }).join('\n') + '\n}';
+    navigator.clipboard.writeText(css).then(() => {
+        const el = document.getElementById('aj-copied');
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2500);
+    });
+}
+
+document.getElementById('ajustes-toggle').addEventListener('click', function() {
+    const panel = document.getElementById('ajustes-panel');
+    const isOpen = panel.classList.toggle('visible');
+    this.classList.toggle('active', isOpen);
+});
+</script>
 
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
