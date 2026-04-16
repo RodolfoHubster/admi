@@ -32,14 +32,17 @@
             --dc-font-price:  15px;
             --dc-tag-font:    11px;
             --dc-tag-maxw:    33%;
+            --dc-card-maxw:   860px;
         }
 
-        /* Grid de tarjetas — separación manual, sin columnas Bootstrap */
+        /* Grid de tarjetas */
         #grid-tarjetas {
             display: flex;
             flex-direction: column;
             gap: var(--dc-outer-gap);
             padding: 0;
+            max-width: var(--dc-card-maxw);
+            margin-inline: auto;
         }
 
         /* ═══════════════════════════════════════
@@ -51,7 +54,6 @@
             border-left: 4px solid #d4af37;
             padding: var(--dc-padding);
             display: block !important;
-            gap: var(--dc-gap);
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
             box-sizing: border-box;
         }
@@ -321,8 +323,8 @@
 </head>
 <body>
 
-<div class="container my-4">
-    <div class="row mb-3 align-items-center">
+<div class="container-fluid my-4 px-3 px-md-4">
+    <div class="row mb-3 align-items-center" style="max-width:var(--dc-card-maxw);margin-inline:auto;">
         <div class="col">
             <h2 class="fw-bold mb-0">🃏 Lista de Decants</h2>
             <p class="text-muted mb-0 small">Personaliza y guarda las tarjetas de tu catálogo de decants</p>
@@ -337,7 +339,7 @@
         </div>
     </div>
 
-    <!-- Grid manual — sin row/col de Bootstrap -->
+    <!-- Grid manual — ancho controlado por --dc-card-maxw -->
     <div id="grid-tarjetas">
         <div class="text-center text-muted py-5" id="empty-state">
             <i class="bi bi-card-list" style="font-size:3rem;"></i>
@@ -355,6 +357,14 @@
     <div class="aj-title">
         <span>⚙️ Ajustar tarjetas</span>
     </div>
+    <hr class="aj-sep">
+
+    <div class="aj-row">
+        <div class="aj-label"><span>↔️ Ancho máx. tarjeta (px)</span><span id="lbl-card-maxw">860px</span></div>
+        <input class="aj-slider" type="range" min="400" max="1400" value="860" step="10"
+               oninput="ajustar('--dc-card-maxw', this.value+'px', 'lbl-card-maxw', this.value+'px')">
+    </div>
+
     <hr class="aj-sep">
 
     <div class="aj-row">
@@ -541,6 +551,7 @@ function ajustar(varName, value, labelId, display) {
 
 function resetAjustes() {
     const defaults = [
+        ['--dc-card-maxw',  '860px','lbl-card-maxw', 860],
         ['--dc-padding',     '15px', 'lbl-padding',   15],
         ['--dc-gap',         '15px', 'lbl-gap',        15],
         ['--dc-content-gap', '3px',  'lbl-cgap',        3],
@@ -564,6 +575,7 @@ function resetAjustes() {
 
 function copiarCSS() {
     const vars = [
+        '--dc-card-maxw',
         '--dc-padding','--dc-gap','--dc-content-gap','--dc-radius','--dc-outer-gap',
         '--dc-img-minw','--dc-img-maxw',
         '--dc-font-title','--dc-font-brand','--dc-font-desc',
