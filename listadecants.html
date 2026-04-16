@@ -15,42 +15,51 @@
     <link rel="stylesheet" href="assets/css/features.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
     <style>
-        /* ══════════════════════════════════
-           TARJETA DECANT — crece con el contenido
-        ══════════════════════════════════ */
+        /* ══════════════════════════════════════════════
+           TARJETA DECANT
+           Layout: fila horizontal, imagen cuadrada fija,
+           contenido ocupa el resto del ancho
+        ══════════════════════════════════════════════ */
+
+        /* Columna del grid: 1 tarjeta por fila, ancho total */
+        .col-tarjeta {
+            width: 100%;
+        }
+
         .decant-card-preview {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             border: 1px solid rgba(201,168,76,0.3);
             border-radius: 16px;
-            display: flex;
+            display: flex;          /* fila */
             flex-direction: row;
-            align-items: stretch;
+            align-items: stretch;   /* imagen y contenido misma altura */
             overflow: hidden;
-            padding: 0 !important;
             width: 100%;
             box-sizing: border-box;
-            /* SIN min-height — la altura la define el contenido */
+            /* Sin min-height: la altura la dicta el contenido */
         }
 
-        /* Foto: ancho fijo 170px, alto = lo que dicte el contenido */
+        /* ── IMAGEN: cuadrado fijo 200×200 ── */
         .card-img-col {
-            flex: 0 0 170px;
-            width: 170px;
-            min-width: 170px;
-            max-width: 170px;
+            flex: 0 0 200px;   /* NO crece, NO encoge, siempre 200px */
+            width: 200px;
+            min-width: 200px;
+            max-width: 200px;
+            height: 200px;     /* cuadrado */
             background: #111;
+            overflow: hidden;
+            border-radius: 14px 0 0 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            border-radius: 14px 0 0 14px;
-            align-self: stretch;
         }
         .card-img-col img {
-            width: 170px;
-            height: 100%;
-            object-fit: cover;
+            width: 200px;
+            height: 200px;
+            object-fit: cover;   /* recorta al cuadrado, no deforma */
+            object-position: center;
             display: block;
+            flex-shrink: 0;
         }
         .card-img-placeholder {
             text-align: center;
@@ -62,15 +71,15 @@
             padding: 12px;
         }
 
-        /* Contenido derecho — padding generoso, gap cómodo */
+        /* ── CONTENIDO: ocupa todo lo que queda a la derecha ── */
         .card-body-col {
-            flex: 1 1 0;
-            min-width: 0;
-            padding: 18px 22px;
+            flex: 1 1 0;       /* crece para llenar el espacio */
+            min-width: 0;      /* evita desbordamiento de texto largo */
+            padding: 20px 28px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
             box-sizing: border-box;
         }
 
@@ -78,57 +87,48 @@
         .card-nombre {
             font-weight: 700;
             color: #ffd966;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             line-height: 1.25;
             margin: 0;
             word-break: break-word;
         }
         /* Marca */
         .card-marca {
-            font-size: .82rem;
+            font-size: .85rem;
             color: #8d9bb5;
             margin: 0;
         }
-        /* Descripción — COMPLETA, sin recorte */
+        /* Descripción completa, sin recorte */
         .card-desc {
-            font-size: .78rem;
+            font-size: .82rem;
             color: #9aa3b2;
-            line-height: 1.5;
+            line-height: 1.55;
             margin: 0;
             word-break: break-word;
             overflow-wrap: break-word;
-            /* NO hay -webkit-line-clamp ni overflow:hidden */
         }
 
         /* Tallas pills */
-        .card-tallas {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
+        .card-tallas { display: flex; flex-wrap: wrap; gap: 6px; }
         .talla-pill {
             display: inline-block;
             background: #c9a84c;
             color: #1a1a2e;
             font-weight: 700;
-            font-size: 0.78rem;
-            padding: 5px 14px;
+            font-size: 0.8rem;
+            padding: 5px 16px;
             border-radius: 30px;
             letter-spacing: .02em;
             white-space: nowrap;
         }
         .talla-pill.inactiva { background: #333; color: #777; text-decoration: line-through; }
 
-        /* Tags row */
-        .card-tags-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
+        /* Tags */
+        .card-tags-row { display: flex; flex-wrap: wrap; gap: 6px; }
         .tag-badge {
             display: inline-block;
-            font-size: 0.72rem;
-            padding: 3px 10px;
+            font-size: 0.74rem;
+            padding: 3px 11px;
             border-radius: 20px;
             font-weight: 600;
             white-space: nowrap;
@@ -146,42 +146,26 @@
         .tag-primavera{ background:rgba(25,135,84,.2);   color:#75c896; border:1px solid #198754; }
         .tag-otono    { background:rgba(253,126,20,.2);  color:#feb272; border:1px solid #fd7e14; }
 
-        /* Intensidad: 2 filas */
-        .card-intens {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .card-intens-label {
-            font-size: .72rem;
-            color: #8d9bb5;
-        }
-        .card-intens-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        /* Intensidad */
+        .card-intens { display: flex; flex-direction: column; gap: 4px; }
+        .card-intens-label { font-size: .74rem; color: #8d9bb5; }
+        .card-intens-row { display: flex; align-items: center; gap: 10px; }
         .intensidad-bar {
             flex: 1;
-            height: 7px;
+            height: 8px;
             border-radius: 4px;
             background: #222;
             overflow: hidden;
-            min-width: 40px;
+            min-width: 60px;
         }
         .intensidad-fill { height: 100%; border-radius: 4px; }
-        .card-intens-val {
-            font-size: .74rem;
-            font-weight: 700;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
+        .card-intens-val { font-size: .76rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 
-        /* WRAPPER */
+        /* Wrapper tarjeta + botones */
         .tarjeta-wrapper { display: flex; flex-direction: column; gap: 6px; }
         .tarjeta-acciones { display: flex; gap: 6px; }
 
-        /* CHECKLIST modal */
+        /* ── MODAL CHECKLISTS ── */
         .ocas-check,.temp-check { display:none; }
         .ocas-label,.temp-label {
             cursor:pointer; border:1px solid #444; border-radius:20px;
@@ -192,8 +176,6 @@
         .temp-check:checked + .temp-label {
             background:rgba(201,168,76,.3); border-color:#c9a84c; color:#ffd966; font-weight:700;
         }
-
-        /* INTENSIDAD radio */
         .intens-radio { display:none; }
         .intens-label {
             cursor:pointer; border:1px solid #444; border-radius:20px;
@@ -204,7 +186,7 @@
             background:rgba(201,168,76,.3); border-color:#c9a84c; color:#ffd966; font-weight:700;
         }
 
-        /* TALLAS TABLE modal */
+        /* Tallas table modal */
         .tallas-table { width:100%; border-collapse:separate; border-spacing:0 6px; }
         .tallas-table thead th { font-size:.78rem; font-weight:700; text-transform:uppercase; color:#adb5bd; padding:4px 10px; letter-spacing:.04em; }
         .tallas-table tbody tr { background:#1a1a2e; border-radius:8px; }
@@ -242,6 +224,9 @@
         </div>
     </div>
 
+    <!-- ════ GRID: 1 tarjeta por fila ════
+         Cambia "col-12" a "col-md-6" para 2 columnas,
+         o "col-xl-4" para 3 columnas. -->
     <div class="row g-4" id="grid-tarjetas">
         <div class="col-12 text-center text-muted py-5" id="empty-state">
             <i class="bi bi-card-list" style="font-size:3rem;"></i>
@@ -555,8 +540,13 @@ async function cargarTarjetas() {
 
 function renderTarjetaGrid(id, t) {
     const col = document.createElement('div');
-    // col-12 en móvil, col-lg-6 en desktop = 2 por fila, tarjetas anchas
-    col.className = 'col-12 col-lg-6';
+    // ════════════════════════════════════════════
+    // COLUMNAS POR FILA — cambia esta clase:
+    //   col-12        → 1 tarjeta por fila (actual, más ancha)
+    //   col-12 col-md-6 → 2 por fila en desktop
+    //   col-12 col-xl-4 → 3 por fila en pantallas grandes
+    // ════════════════════════════════════════════
+    col.className = 'col-12';
     col.id = `tarjeta-col-${id}`;
     col.innerHTML = `
         <div class="tarjeta-wrapper">
