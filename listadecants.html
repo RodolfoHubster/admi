@@ -30,16 +30,15 @@
             width: 100%;
             max-width: 100%;
             box-sizing: border-box;
-            min-height: 150px;
+            min-height: 180px;
         }
 
-        /* Foto: 140x140 fijo */
+        /* Foto: 180px fijo, se estira en alto */
         .card-img-col {
-            flex: 0 0 140px;
-            width: 140px;
-            min-width: 140px;
-            max-width: 140px;
-            min-height: 150px;
+            flex: 0 0 180px;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
             background: #111;
             display: flex;
             align-items: center;
@@ -49,33 +48,33 @@
             align-self: stretch;
         }
         .card-img-col img {
-            width: 140px;
+            width: 180px;
             height: 100%;
-            min-height: 150px;
+            min-height: 180px;
             object-fit: cover;
             display: block;
             flex-shrink: 0;
         }
         .card-img-placeholder {
             text-align: center;
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: #555;
             letter-spacing: .05em;
-            line-height: 1.3;
-            padding: 8px;
+            line-height: 1.4;
+            padding: 12px;
         }
 
-        /* Contenido derecho */
+        /* Contenido derecho — respira con padding generoso */
         .card-body-col {
             flex: 1 1 0;
             min-width: 0;
-            max-width: calc(100% - 140px);
-            padding: 12px 16px;
+            max-width: calc(100% - 180px);
+            padding: 18px 22px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 5px;
+            gap: 8px;
             overflow: hidden;
             box-sizing: border-box;
         }
@@ -84,17 +83,17 @@
         .card-nombre {
             font-weight: 700;
             color: #ffd966;
-            font-size: 1rem;
+            font-size: 1.1rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.2;
+            line-height: 1.25;
             margin: 0;
             max-width: 100%;
         }
         /* Marca */
         .card-marca {
-            font-size: .78rem;
+            font-size: .82rem;
             color: #8d9bb5;
             white-space: nowrap;
             overflow: hidden;
@@ -104,9 +103,9 @@
         }
         /* Descripción — máx 2 líneas */
         .card-desc {
-            font-size: .74rem;
+            font-size: .78rem;
             color: #9aa3b2;
-            line-height: 1.4;
+            line-height: 1.45;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -121,7 +120,7 @@
         .card-tallas {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 5px;
             overflow: hidden;
             max-width: 100%;
         }
@@ -130,8 +129,8 @@
             background: #c9a84c;
             color: #1a1a2e;
             font-weight: 700;
-            font-size: 0.76rem;
-            padding: 4px 12px;
+            font-size: 0.78rem;
+            padding: 5px 14px;
             border-radius: 30px;
             letter-spacing: .02em;
             white-space: nowrap;
@@ -142,13 +141,13 @@
         .card-tags-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 5px;
             max-width: 100%;
         }
         .tag-badge {
             display: inline-block;
-            font-size: 0.7rem;
-            padding: 2px 9px;
+            font-size: 0.72rem;
+            padding: 3px 10px;
             border-radius: 20px;
             font-weight: 600;
             white-space: nowrap;
@@ -170,31 +169,31 @@
         .card-intens {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
             max-width: 100%;
         }
         .card-intens-label {
-            font-size: .7rem;
+            font-size: .72rem;
             color: #8d9bb5;
             white-space: nowrap;
         }
         .card-intens-row {
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 8px;
             max-width: 100%;
         }
         .intensidad-bar {
             flex: 1;
-            height: 6px;
+            height: 7px;
             border-radius: 4px;
             background: #222;
             overflow: hidden;
-            min-width: 30px;
+            min-width: 40px;
         }
         .intensidad-fill { height: 100%; border-radius: 4px; }
         .card-intens-val {
-            font-size: .72rem;
+            font-size: .74rem;
             font-weight: 700;
             white-space: nowrap;
             flex-shrink: 0;
@@ -207,7 +206,7 @@
         .tarjeta-acciones { display: flex; gap: 6px; }
 
         /* ══════════════════════════════════
-           CHECKLIST (modal) — ocasiones y temporadas
+           CHECKLIST (modal)
         ══════════════════════════════════ */
         .ocas-check,.temp-check { display:none; }
         .ocas-label,.temp-label {
@@ -271,7 +270,8 @@
         </div>
     </div>
 
-    <div class="row g-3" id="grid-tarjetas">
+    <!-- g-4 da mas espacio entre tarjetas, col-12 col-lg-6 = max 2 por fila -->
+    <div class="row g-4" id="grid-tarjetas">
         <div class="col-12 text-center text-muted py-5" id="empty-state">
             <i class="bi bi-card-list" style="font-size:3rem;"></i>
             <p class="mt-2">No hay tarjetas aún. Crea la primera.</p>
@@ -409,10 +409,10 @@ const TEMPORADAS = [
     { id:'invierno',  emoji:'❄️', label:'Invierno / Frío' },
 ];
 const INTENSIDADES = [
-    { id:'sutil',    emoji:'🌬️', label:'Sutil',    sublabel:'proyección cercana',    pct:25,  color:'#6ea8fe' },
-    { id:'moderada', emoji:'💨', label:'Moderada', sublabel:'proyección media',        pct:50,  color:'#75c896' },
-    { id:'alta',     emoji:'🌊', label:'Alta',     sublabel:'buena proyección',       pct:75,  color:'#ffc107' },
-    { id:'bestia',   emoji:'🔥', label:'Bestia',   sublabel:'proyección extrema',     pct:100, color:'#dc3545' },
+    { id:'sutil',    emoji:'🌬️', label:'Sutil',    sublabel:'proyección cercana',  pct:25,  color:'#6ea8fe' },
+    { id:'moderada', emoji:'💨', label:'Moderada', sublabel:'proyección media',    pct:50,  color:'#75c896' },
+    { id:'alta',     emoji:'🌊', label:'Alta',     sublabel:'buena proyección',   pct:75,  color:'#ffc107' },
+    { id:'bestia',   emoji:'🔥', label:'Bestia',   sublabel:'proyección extrema', pct:100, color:'#dc3545' },
 ];
 
 function renderChecklist(cid, items, prefix) {
@@ -421,11 +421,9 @@ function renderChecklist(cid, items, prefix) {
          <label class="${prefix}-label" for="${prefix}-${it.id}">${it.emoji} ${it.label}</label>`
     ).join('');
 }
-// Ocasiones y temporadas siguen siendo checkbox
 renderChecklist('ocas-checklist', OCASIONES,  'ocas');
 renderChecklist('temp-checklist', TEMPORADAS, 'temp');
 
-// Intensidad: radio buttons (solo 1 opción)
 function renderIntensRadio() {
     document.getElementById('intens-checklist').innerHTML = INTENSIDADES.map(it =>
         `<input type="radio" class="intens-radio" name="intens-group" id="intens-${it.id}" value="${it.id}" onchange="actualizarPreview()">
@@ -437,9 +435,7 @@ renderIntensRadio();
 function getChecked(p) { return [...document.querySelectorAll(`.${p}-check:checked`)].map(c => c.value); }
 function setChecked(p, vals) { document.querySelectorAll(`.${p}-check`).forEach(c => c.checked = vals.includes(c.value)); }
 function getIntens() { const r = document.querySelector('.intens-radio:checked'); return r ? r.value : ''; }
-function setIntens(val) {
-    document.querySelectorAll('.intens-radio').forEach(r => r.checked = (r.value === val));
-}
+function setIntens(val) { document.querySelectorAll('.intens-radio').forEach(r => r.checked = (r.value === val)); }
 
 // ── TALLAS ──
 let tallaCounter = 0;
@@ -492,7 +488,6 @@ function tagsHTML(ocas, temps) {
 function intensHTML(id) {
     const x = INTENSIDADES.find(i=>i.id===id);
     if (!x) return '';
-    // 2 filas: etiqueta arriba, barra + valor abajo
     return `<div class="card-intens">
         <span class="card-intens-label">💨 Proyección</span>
         <div class="card-intens-row">
@@ -591,7 +586,8 @@ async function cargarTarjetas() {
 
 function renderTarjetaGrid(id, t) {
     const col = document.createElement('div');
-    col.className = 'col-12 col-md-6 col-xl-4';
+    // col-12 en móvil, col-lg-6 en pantalla grande = máx 2 por fila, tarjetas anchas
+    col.className = 'col-12 col-lg-6';
     col.id = `tarjeta-col-${id}`;
     col.innerHTML = `
         <div class="tarjeta-wrapper">
