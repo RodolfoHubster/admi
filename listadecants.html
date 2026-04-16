@@ -19,19 +19,24 @@
            VARIABLES DE DISEÑO — controladas por sliders
         ═══════════════════════════════════════ */
         :root {
-            --dc-padding:     14px;
-            --dc-gap:         14px;
-            --dc-content-gap: 5px;
-            --dc-img-ratio:   1;      /* relación ancho:alto de la imagen (1 = cuadrada) */
-            --dc-img-minw:    60px;   /* ancho mínimo de la imagen */
-            --dc-img-maxw:    160px;  /* ancho máximo de la imagen */
-            --dc-font-title:  15px;
-            --dc-font-desc:   11px;
-            --dc-font-brand:  11px;
-            --dc-font-price:  11px;
-            --dc-tag-font:    8px;
-            --dc-tag-maxw:    48%;
-            --dc-radius:      12px;
+            --dc-padding:     15px;
+            --dc-gap:         15px;
+            --dc-content-gap: 3px;
+            --dc-img-minw:    66px;
+            --dc-img-maxw:    160px;
+            --dc-font-title:  24px;
+            --dc-font-desc:   15px;
+            --dc-font-brand:  16px;
+            --dc-font-price:  15px;
+            --dc-tag-font:    12px;
+            --dc-tag-maxw:    55%;
+            --dc-radius:      14px;
+            --dc-outer-gap:   12px;  /* espacio externo entre tarjetas del grid */
+        }
+
+        /* padding externo del grid de tarjetas */
+        #grid-tarjetas {
+            row-gap: var(--dc-outer-gap) !important;
         }
 
         /* ═══════════════════════════════════════
@@ -45,18 +50,16 @@
             display: flex;
             gap: var(--dc-gap);
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-            align-items: stretch;   /* imagen toma todo el alto */
+            align-items: stretch;
             width: 100%;
             box-sizing: border-box;
         }
 
-        /* Imagen FLUIDA — ocupa todo el alto de la tarjeta respetando los márgenes */
+        /* Imagen FLUIDA */
         .decant-card .card-image {
-            /* ancho fluido entre min y max */
             width: clamp(var(--dc-img-minw), 20%, var(--dc-img-maxw));
             flex-shrink: 0;
             flex-grow: 0;
-            /* alto = lo que marque el contenido (align-items:stretch lo estira) */
             min-height: var(--dc-img-minw);
             background-color: #2a2a2a;
             border-radius: 8px;
@@ -348,34 +351,43 @@
     </div>
     <hr class="aj-sep">
 
-    <!-- ESPACIADO -->
+    <!-- ESPACIADO INTERNO -->
     <div class="aj-row">
-        <div class="aj-label"><span>📐 Padding interno</span><span id="lbl-padding">14px</span></div>
-        <input class="aj-slider" type="range" min="6" max="32" value="14" step="1"
+        <div class="aj-label"><span>📐 Padding interno</span><span id="lbl-padding">15px</span></div>
+        <input class="aj-slider" type="range" min="6" max="32" value="15" step="1"
                oninput="ajustar('--dc-padding', this.value+'px', 'lbl-padding', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>↔️ Gap imagen→contenido</span><span id="lbl-gap">14px</span></div>
-        <input class="aj-slider" type="range" min="4" max="36" value="14" step="1"
+        <div class="aj-label"><span>↔️ Gap imagen→contenido</span><span id="lbl-gap">15px</span></div>
+        <input class="aj-slider" type="range" min="4" max="36" value="15" step="1"
                oninput="ajustar('--dc-gap', this.value+'px', 'lbl-gap', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>↕️ Gap entre elementos</span><span id="lbl-cgap">5px</span></div>
-        <input class="aj-slider" type="range" min="1" max="20" value="5" step="1"
+        <div class="aj-label"><span>↕️ Gap entre elementos</span><span id="lbl-cgap">3px</span></div>
+        <input class="aj-slider" type="range" min="1" max="20" value="3" step="1"
                oninput="ajustar('--dc-content-gap', this.value+'px', 'lbl-cgap', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>📦 Borde redondeado</span><span id="lbl-radius">12px</span></div>
-        <input class="aj-slider" type="range" min="0" max="24" value="12" step="1"
+        <div class="aj-label"><span>🔲 Borde redondeado</span><span id="lbl-radius">14px</span></div>
+        <input class="aj-slider" type="range" min="0" max="28" value="14" step="1"
                oninput="ajustar('--dc-radius', this.value+'px', 'lbl-radius', this.value+'px')">
+    </div>
+
+    <hr class="aj-sep">
+
+    <!-- ESPACIADO EXTERNO -->
+    <div class="aj-row">
+        <div class="aj-label"><span>📏 Separación entre tarjetas</span><span id="lbl-outer-gap">12px</span></div>
+        <input class="aj-slider" type="range" min="0" max="40" value="12" step="1"
+               oninput="ajustar('--dc-outer-gap', this.value+'px', 'lbl-outer-gap', this.value+'px')">
     </div>
 
     <hr class="aj-sep">
 
     <!-- IMAGEN FLUIDA -->
     <div class="aj-row">
-        <div class="aj-label"><span>🖼️ Ancho mín. imagen (px)</span><span id="lbl-img-minw">60px</span></div>
-        <input class="aj-slider" type="range" min="30" max="120" value="60" step="2"
+        <div class="aj-label"><span>🖼️ Ancho mín. imagen (px)</span><span id="lbl-img-minw">66px</span></div>
+        <input class="aj-slider" type="range" min="30" max="120" value="66" step="2"
                oninput="ajustar('--dc-img-minw', this.value+'px', 'lbl-img-minw', this.value+'px')">
     </div>
     <div class="aj-row">
@@ -388,33 +400,33 @@
 
     <!-- FUENTES -->
     <div class="aj-row">
-        <div class="aj-label"><span>🔤 Título (px)</span><span id="lbl-ftitle">15px</span></div>
-        <input class="aj-slider" type="range" min="10" max="26" value="15" step="1"
+        <div class="aj-label"><span>🔤 Título (px)</span><span id="lbl-ftitle">24px</span></div>
+        <input class="aj-slider" type="range" min="10" max="36" value="24" step="1"
                oninput="ajustar('--dc-font-title', this.value+'px', 'lbl-ftitle', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>🔡 Marca (px)</span><span id="lbl-fbrand">11px</span></div>
-        <input class="aj-slider" type="range" min="8" max="18" value="11" step="1"
+        <div class="aj-label"><span>🔡 Marca (px)</span><span id="lbl-fbrand">16px</span></div>
+        <input class="aj-slider" type="range" min="8" max="24" value="16" step="1"
                oninput="ajustar('--dc-font-brand', this.value+'px', 'lbl-fbrand', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>📝 Descripción (px)</span><span id="lbl-fdesc">11px</span></div>
-        <input class="aj-slider" type="range" min="8" max="18" value="11" step="1"
+        <div class="aj-label"><span>📝 Descripción (px)</span><span id="lbl-fdesc">15px</span></div>
+        <input class="aj-slider" type="range" min="8" max="22" value="15" step="1"
                oninput="ajustar('--dc-font-desc', this.value+'px', 'lbl-fdesc', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>💊 Precio (px)</span><span id="lbl-fprice">11px</span></div>
-        <input class="aj-slider" type="range" min="8" max="16" value="11" step="1"
+        <div class="aj-label"><span>💊 Precio (px)</span><span id="lbl-fprice">15px</span></div>
+        <input class="aj-slider" type="range" min="8" max="22" value="15" step="1"
                oninput="ajustar('--dc-font-price', this.value+'px', 'lbl-fprice', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>🏷️ Tags (px)</span><span id="lbl-ftag">8px</span></div>
-        <input class="aj-slider" type="range" min="6" max="14" value="8" step="1"
+        <div class="aj-label"><span>🏷️ Tags (px)</span><span id="lbl-ftag">12px</span></div>
+        <input class="aj-slider" type="range" min="6" max="18" value="12" step="1"
                oninput="ajustar('--dc-tag-font', this.value+'px', 'lbl-ftag', this.value+'px')">
     </div>
     <div class="aj-row">
-        <div class="aj-label"><span>🏷️ Ancho máx. tags (%)</span><span id="lbl-tagw">48%</span></div>
-        <input class="aj-slider" type="range" min="20" max="75" value="48" step="1"
+        <div class="aj-label"><span>🏷️ Ancho máx. tags (%)</span><span id="lbl-tagw">55%</span></div>
+        <input class="aj-slider" type="range" min="20" max="75" value="55" step="1"
                oninput="ajustar('--dc-tag-maxw', this.value+'%', 'lbl-tagw', this.value+'%')">
     </div>
 
@@ -527,18 +539,19 @@ function ajustar(varName, value, labelId, display) {
 
 function resetAjustes() {
     const defaults = [
-        ['--dc-padding',     '14px', 'lbl-padding',  14],
-        ['--dc-gap',         '14px', 'lbl-gap',       14],
-        ['--dc-content-gap', '5px',  'lbl-cgap',       5],
-        ['--dc-radius',      '12px', 'lbl-radius',    12],
-        ['--dc-img-minw',    '60px', 'lbl-img-minw',  60],
-        ['--dc-img-maxw',   '160px', 'lbl-img-maxw', 160],
-        ['--dc-font-title',  '15px', 'lbl-ftitle',    15],
-        ['--dc-font-brand',  '11px', 'lbl-fbrand',    11],
-        ['--dc-font-desc',   '11px', 'lbl-fdesc',     11],
-        ['--dc-font-price',  '11px', 'lbl-fprice',    11],
-        ['--dc-tag-font',     '8px', 'lbl-ftag',       8],
-        ['--dc-tag-maxw',    '48%',  'lbl-tagw',      48],
+        ['--dc-padding',     '15px', 'lbl-padding',    15],
+        ['--dc-gap',         '15px', 'lbl-gap',         15],
+        ['--dc-content-gap', '3px',  'lbl-cgap',         3],
+        ['--dc-radius',      '14px', 'lbl-radius',      14],
+        ['--dc-outer-gap',   '12px', 'lbl-outer-gap',   12],
+        ['--dc-img-minw',    '66px', 'lbl-img-minw',    66],
+        ['--dc-img-maxw',   '160px', 'lbl-img-maxw',   160],
+        ['--dc-font-title',  '24px', 'lbl-ftitle',      24],
+        ['--dc-font-brand',  '16px', 'lbl-fbrand',      16],
+        ['--dc-font-desc',   '15px', 'lbl-fdesc',       15],
+        ['--dc-font-price',  '15px', 'lbl-fprice',      15],
+        ['--dc-tag-font',    '12px', 'lbl-ftag',        12],
+        ['--dc-tag-maxw',    '55%',  'lbl-tagw',        55],
     ];
     defaults.forEach(([v, val, lbl, num]) => {
         ajustar(v, val, lbl, val);
@@ -549,7 +562,7 @@ function resetAjustes() {
 
 function copiarCSS() {
     const vars = [
-        '--dc-padding','--dc-gap','--dc-content-gap','--dc-radius',
+        '--dc-padding','--dc-gap','--dc-content-gap','--dc-radius','--dc-outer-gap',
         '--dc-img-minw','--dc-img-maxw',
         '--dc-font-title','--dc-font-brand','--dc-font-desc',
         '--dc-font-price','--dc-tag-font','--dc-tag-maxw',
