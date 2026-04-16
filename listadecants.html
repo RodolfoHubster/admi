@@ -31,12 +31,15 @@
             --dc-tag-font:    12px;
             --dc-tag-maxw:    55%;
             --dc-radius:      14px;
-            --dc-outer-gap:   12px;  /* espacio externo entre tarjetas del grid */
+            --dc-outer-gap:   12px;
         }
 
-        /* padding externo del grid de tarjetas */
+        /* Grid de tarjetas — separación manual, sin columnas Bootstrap */
         #grid-tarjetas {
-            row-gap: var(--dc-outer-gap) !important;
+            display: flex;
+            flex-direction: column;
+            gap: var(--dc-outer-gap);
+            padding: 0;
         }
 
         /* ═══════════════════════════════════════
@@ -50,12 +53,10 @@
             display: flex;
             gap: var(--dc-gap);
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-            align-items: stretch;
-            width: 100%;
+            align-items: flex-start;
             box-sizing: border-box;
         }
 
-        /* Imagen FLUIDA */
         .decant-card .card-image {
             width: clamp(var(--dc-img-minw), 20%, var(--dc-img-maxw));
             flex-shrink: 0;
@@ -332,8 +333,9 @@
         </div>
     </div>
 
-    <div class="row g-3" id="grid-tarjetas">
-        <div class="col-12 text-center text-muted py-5" id="empty-state">
+    <!-- Grid manual — sin row/col de Bootstrap -->
+    <div id="grid-tarjetas">
+        <div class="text-center text-muted py-5" id="empty-state">
             <i class="bi bi-card-list" style="font-size:3rem;"></i>
             <p class="mt-2">No hay tarjetas aún. Crea la primera.</p>
         </div>
@@ -351,7 +353,6 @@
     </div>
     <hr class="aj-sep">
 
-    <!-- ESPACIADO INTERNO -->
     <div class="aj-row">
         <div class="aj-label"><span>📐 Padding interno</span><span id="lbl-padding">15px</span></div>
         <input class="aj-slider" type="range" min="6" max="32" value="15" step="1"
@@ -375,7 +376,6 @@
 
     <hr class="aj-sep">
 
-    <!-- ESPACIADO EXTERNO -->
     <div class="aj-row">
         <div class="aj-label"><span>📏 Separación entre tarjetas</span><span id="lbl-outer-gap">12px</span></div>
         <input class="aj-slider" type="range" min="0" max="40" value="12" step="1"
@@ -384,7 +384,6 @@
 
     <hr class="aj-sep">
 
-    <!-- IMAGEN FLUIDA -->
     <div class="aj-row">
         <div class="aj-label"><span>🖼️ Ancho mín. imagen (px)</span><span id="lbl-img-minw">66px</span></div>
         <input class="aj-slider" type="range" min="30" max="120" value="66" step="2"
@@ -398,7 +397,6 @@
 
     <hr class="aj-sep">
 
-    <!-- FUENTES -->
     <div class="aj-row">
         <div class="aj-label"><span>🔤 Título (px)</span><span id="lbl-ftitle">24px</span></div>
         <input class="aj-slider" type="range" min="10" max="36" value="24" step="1"
@@ -792,27 +790,26 @@ async function cargarTarjetas() {
 }
 
 function renderTarjetaGrid(id, t) {
-    const col = document.createElement('div');
-    col.className = 'col-12';
-    col.id = `tarjeta-col-${id}`;
-    col.innerHTML = `
-        <div class="tarjeta-wrapper">
-            <div id="card-snap-${id}">${buildCard(t)}</div>
-            <div class="tarjeta-acciones">
-                <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="editarTarjeta('${id}')">
-                    <i class="bi bi-pencil"></i> Editar
-                </button>
-                <button class="btn btn-outline-danger btn-sm" onclick="eliminarTarjeta('${id}')" title="Eliminar">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
+    const wrap = document.createElement('div');
+    wrap.className = 'tarjeta-wrapper';
+    wrap.id = `tarjeta-col-${id}`;
+    wrap.innerHTML = `
+        <div id="card-snap-${id}">${buildCard(t)}</div>
+        <div class="tarjeta-acciones">
+            <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="editarTarjeta('${id}')">
+                <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="eliminarTarjeta('${id}')" title="Eliminar">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>`;
-    document.getElementById('grid-tarjetas').appendChild(col);
+    document.getElementById('grid-tarjetas').appendChild(wrap);
 }
 
 window.guardarTarjeta = async function() {
     const nombre = document.getElementById('t-nombre').value.trim();
     if (!nombre) { alert('El nombre del perfume es obligatorio.'); return; }
+    const editId = document.getElementById('tarjeta-edit-id').value;
     const data = {
         nombre, marca: document.getElementById('t-marca').value.trim(),
         imagen: document.getElementById('t-imagen').value.trim(),
@@ -821,15 +818,14 @@ window.guardarTarjeta = async function() {
         temporadas: getChecked('temp'), intensidad: getIntens(),
         updatedAt: serverTimestamp(),
     };
-    const editId = document.getElementById('tarjeta-edit-id').value;
-    const ref    = editId ? doc(db,'listadecants',editId) : doc(collection(db,'listadecants'));
+    const ref = editId ? doc(db,'listadecants',editId) : doc(collection(db,'listadecants'));
     if (!editId) data.createdAt = serverTimestamp();
     try {
-        await setDoc(ref, data, { merge:true });
-        mostrarToast('✅ Tarjeta guardada');
+        await setDoc(ref, data, { merge: true });
+        mostrarToast(editId ? '✏️ Tarjeta actualizada' : '✅ Tarjeta guardada');
         bootstrap.Modal.getInstance(document.getElementById('modalNuevaTarjeta')).hide();
         document.getElementById('grid-tarjetas').innerHTML =
-            '<div class="col-12 text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
+            '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
         await cargarTarjetas();
     } catch(e) { console.error(e); alert('Error al guardar: '+e.message); }
 };
@@ -840,6 +836,7 @@ window.editarTarjeta = async function(id) {
         const d    = snap.docs.find(x => x.id===id);
         if (!d) return;
         const t = d.data();
+        // Primero llenamos los datos ANTES de abrir el modal
         document.getElementById('tarjeta-edit-id').value  = id;
         document.getElementById('t-nombre').value         = t.nombre      || '';
         document.getElementById('t-marca').value          = t.marca       || '';
@@ -863,9 +860,9 @@ window.eliminarTarjeta = async function(id) {
         await deleteDoc(doc(db,'listadecants',id));
         document.getElementById(`tarjeta-col-${id}`)?.remove();
         mostrarToast('🗑️ Tarjeta eliminada');
-        if (!document.querySelector('#grid-tarjetas [id^=tarjeta-col]'))
+        if (!document.querySelector('#grid-tarjetas .tarjeta-wrapper'))
             document.getElementById('grid-tarjetas').innerHTML =
-                '<div class="col-12 text-center text-muted py-5" id="empty-state"><i class="bi bi-card-list" style="font-size:3rem;"></i><p class="mt-2">No hay tarjetas aún.</p></div>';
+                '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-card-list" style="font-size:3rem;"></i><p class="mt-2">No hay tarjetas aún.</p></div>';
     } catch(e) { alert('Error: '+e.message); }
 };
 
@@ -874,8 +871,11 @@ function mostrarToast(msg) {
     new bootstrap.Toast(document.getElementById('toast-lista'),{delay:2500}).show();
 }
 
+// ── MODAL EVENTS ──
+// show.bs.modal: solo limpiar si es NUEVA tarjeta (editId ya vacío)
 document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', () => {
-    if (!document.getElementById('tarjeta-edit-id').value) {
+    const editId = document.getElementById('tarjeta-edit-id').value;
+    if (!editId) {
         ['t-nombre','t-marca','t-imagen','t-descripcion'].forEach(id => document.getElementById(id).value='');
         setTallas([]);
         setChecked('ocas',[]); setChecked('temp',[]); setIntens('');
@@ -883,6 +883,10 @@ document.getElementById('modalNuevaTarjeta').addEventListener('show.bs.modal', (
         document.getElementById('select-perfume').value = '';
         actualizarPreview();
     }
+});
+
+// hidden.bs.modal: limpiar el ID de edición DESPUÉS de que el modal cierra del todo
+document.getElementById('modalNuevaTarjeta').addEventListener('hidden.bs.modal', () => {
     document.getElementById('tarjeta-edit-id').value = '';
 });
 
