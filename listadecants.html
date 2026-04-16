@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="assets/css/responsive.css">
     <style>
         /* ══════════════════════════════════
-           TARJETA DECANT
+           TARJETA DECANT — crece con el contenido
         ══════════════════════════════════ */
         .decant-card-preview {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -28,17 +28,16 @@
             overflow: hidden;
             padding: 0 !important;
             width: 100%;
-            max-width: 100%;
             box-sizing: border-box;
-            min-height: 180px;
+            /* SIN min-height — la altura la define el contenido */
         }
 
-        /* Foto: 180px fijo, se estira en alto */
+        /* Foto: ancho fijo 170px, alto = lo que dicte el contenido */
         .card-img-col {
-            flex: 0 0 180px;
-            width: 180px;
-            min-width: 180px;
-            max-width: 180px;
+            flex: 0 0 170px;
+            width: 170px;
+            min-width: 170px;
+            max-width: 170px;
             background: #111;
             display: flex;
             align-items: center;
@@ -48,12 +47,10 @@
             align-self: stretch;
         }
         .card-img-col img {
-            width: 180px;
+            width: 170px;
             height: 100%;
-            min-height: 180px;
             object-fit: cover;
             display: block;
-            flex-shrink: 0;
         }
         .card-img-placeholder {
             text-align: center;
@@ -65,17 +62,15 @@
             padding: 12px;
         }
 
-        /* Contenido derecho — respira con padding generoso */
+        /* Contenido derecho — padding generoso, gap cómodo */
         .card-body-col {
             flex: 1 1 0;
             min-width: 0;
-            max-width: calc(100% - 180px);
             padding: 18px 22px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 8px;
-            overflow: hidden;
             box-sizing: border-box;
         }
 
@@ -84,36 +79,25 @@
             font-weight: 700;
             color: #ffd966;
             font-size: 1.1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             line-height: 1.25;
             margin: 0;
-            max-width: 100%;
+            word-break: break-word;
         }
         /* Marca */
         .card-marca {
             font-size: .82rem;
             color: #8d9bb5;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             margin: 0;
-            max-width: 100%;
         }
-        /* Descripción — máx 2 líneas */
+        /* Descripción — COMPLETA, sin recorte */
         .card-desc {
             font-size: .78rem;
             color: #9aa3b2;
-            line-height: 1.45;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            line-height: 1.5;
+            margin: 0;
             word-break: break-word;
             overflow-wrap: break-word;
-            max-width: 100%;
-            margin: 0;
+            /* NO hay -webkit-line-clamp ni overflow:hidden */
         }
 
         /* Tallas pills */
@@ -121,8 +105,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            overflow: hidden;
-            max-width: 100%;
         }
         .talla-pill {
             display: inline-block;
@@ -142,7 +124,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            max-width: 100%;
         }
         .tag-badge {
             display: inline-block;
@@ -165,23 +146,20 @@
         .tag-primavera{ background:rgba(25,135,84,.2);   color:#75c896; border:1px solid #198754; }
         .tag-otono    { background:rgba(253,126,20,.2);  color:#feb272; border:1px solid #fd7e14; }
 
-        /* ── Intensidad: 2 filas, NUNCA se corta ── */
+        /* Intensidad: 2 filas */
         .card-intens {
             display: flex;
             flex-direction: column;
             gap: 4px;
-            max-width: 100%;
         }
         .card-intens-label {
             font-size: .72rem;
             color: #8d9bb5;
-            white-space: nowrap;
         }
         .card-intens-row {
             display: flex;
             align-items: center;
             gap: 8px;
-            max-width: 100%;
         }
         .intensidad-bar {
             flex: 1;
@@ -199,15 +177,11 @@
             flex-shrink: 0;
         }
 
-        /* ══════════════════════════════════
-           WRAPPER: tarjeta + botones debajo
-        ══════════════════════════════════ */
+        /* WRAPPER */
         .tarjeta-wrapper { display: flex; flex-direction: column; gap: 6px; }
         .tarjeta-acciones { display: flex; gap: 6px; }
 
-        /* ══════════════════════════════════
-           CHECKLIST (modal)
-        ══════════════════════════════════ */
+        /* CHECKLIST modal */
         .ocas-check,.temp-check { display:none; }
         .ocas-label,.temp-label {
             cursor:pointer; border:1px solid #444; border-radius:20px;
@@ -219,7 +193,7 @@
             background:rgba(201,168,76,.3); border-color:#c9a84c; color:#ffd966; font-weight:700;
         }
 
-        /* ── INTENSIDAD: radio buttons (solo 1) ── */
+        /* INTENSIDAD radio */
         .intens-radio { display:none; }
         .intens-label {
             cursor:pointer; border:1px solid #444; border-radius:20px;
@@ -230,9 +204,7 @@
             background:rgba(201,168,76,.3); border-color:#c9a84c; color:#ffd966; font-weight:700;
         }
 
-        /* ══════════════════════════════════
-           TALLAS TABLE (modal)
-        ══════════════════════════════════ */
+        /* TALLAS TABLE modal */
         .tallas-table { width:100%; border-collapse:separate; border-spacing:0 6px; }
         .tallas-table thead th { font-size:.78rem; font-weight:700; text-transform:uppercase; color:#adb5bd; padding:4px 10px; letter-spacing:.04em; }
         .tallas-table tbody tr { background:#1a1a2e; border-radius:8px; }
@@ -270,7 +242,6 @@
         </div>
     </div>
 
-    <!-- g-4 da mas espacio entre tarjetas, col-12 col-lg-6 = max 2 por fila -->
     <div class="row g-4" id="grid-tarjetas">
         <div class="col-12 text-center text-muted py-5" id="empty-state">
             <i class="bi bi-card-list" style="font-size:3rem;"></i>
@@ -290,7 +261,6 @@
             <div class="modal-body">
                 <input type="hidden" id="tarjeta-edit-id">
                 <div class="row g-4">
-                    <!-- IZQUIERDA -->
                     <div class="col-lg-7">
                         <div class="mb-3">
                             <label class="form-label small fw-bold">🔍 Selecciona perfume del inventario</label>
@@ -344,7 +314,6 @@
                             <div id="intens-checklist" class="d-flex flex-wrap gap-1"></div>
                         </div>
                     </div>
-                    <!-- PREVIEW -->
                     <div class="col-lg-5">
                         <label class="form-label small fw-bold d-block mb-2">👁️ Vista previa</label>
                         <div id="card-preview-container"></div>
@@ -390,23 +359,23 @@ const app = getApps().find(a => a.name === 'listadecants') || initializeApp(FIRE
 const db  = getFirestore(app);
 
 const OCASIONES = [
-    { id:'diario',   emoji:'📅', label:'Firma / Diario',      cls:'tag-diario'   },
-    { id:'oficina',  emoji:'💼', label:'Oficina / Formal',     cls:'tag-oficina'  },
-    { id:'cita',     emoji:'🌹', label:'Cita Romántica',       cls:'tag-cita'     },
-    { id:'noche',    emoji:'🌙', label:'Noche',                cls:'tag-noche'    },
-    { id:'club',     emoji:'🎉', label:'Club / Fiesta',        cls:'tag-club'     },
-    { id:'casual',   emoji:'😊', label:'Casual / Salida',      cls:'tag-casual'   },
-    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',        cls:'tag-diario'   },
-    { id:'viaje',    emoji:'✈️', label:'Viaje',                cls:'tag-todo'     },
-    { id:'invierno', emoji:'❄️', label:'Invierno / Frío',      cls:'tag-invierno' },
-    { id:'verano',   emoji:'☀️', label:'Verano / Calor',       cls:'tag-verano'   },
+    { id:'diario',   emoji:'📅', label:'Firma / Diario',   cls:'tag-diario'   },
+    { id:'oficina',  emoji:'💼', label:'Oficina / Formal', cls:'tag-oficina'  },
+    { id:'cita',     emoji:'🌹', label:'Cita Romántica',   cls:'tag-cita'     },
+    { id:'noche',    emoji:'🌙', label:'Noche',            cls:'tag-noche'    },
+    { id:'club',     emoji:'🎉', label:'Club / Fiesta',    cls:'tag-club'     },
+    { id:'casual',   emoji:'😊', label:'Casual / Salida',  cls:'tag-casual'   },
+    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',    cls:'tag-diario'   },
+    { id:'viaje',    emoji:'✈️', label:'Viaje',            cls:'tag-todo'     },
+    { id:'invierno', emoji:'❄️', label:'Invierno / Frío',  cls:'tag-invierno' },
+    { id:'verano',   emoji:'☀️', label:'Verano / Calor',   cls:'tag-verano'   },
 ];
 const TEMPORADAS = [
-    { id:'todo',      emoji:'🌀', label:'Todo el año'     },
-    { id:'primavera', emoji:'🌸', label:'Primavera'       },
-    { id:'verano',    emoji:'☀️', label:'Verano / Calor'  },
-    { id:'otono',     emoji:'🍂', label:'Otoño'           },
-    { id:'invierno',  emoji:'❄️', label:'Invierno / Frío' },
+    { id:'todo',      emoji:'🌀', label:'Todo el año'    },
+    { id:'primavera', emoji:'🌸', label:'Primavera'      },
+    { id:'verano',    emoji:'☀️', label:'Verano / Calor' },
+    { id:'otono',     emoji:'🍂', label:'Otoño'          },
+    { id:'invierno',  emoji:'❄️', label:'Invierno / Frío'},
 ];
 const INTENSIDADES = [
     { id:'sutil',    emoji:'🌬️', label:'Sutil',    sublabel:'proyección cercana',  pct:25,  color:'#6ea8fe' },
@@ -437,7 +406,7 @@ function setChecked(p, vals) { document.querySelectorAll(`.${p}-check`).forEach(
 function getIntens() { const r = document.querySelector('.intens-radio:checked'); return r ? r.value : ''; }
 function setIntens(val) { document.querySelectorAll('.intens-radio').forEach(r => r.checked = (r.value === val)); }
 
-// ── TALLAS ──
+// TALLAS
 let tallaCounter = 0;
 window.agregarFilaTalla = function(ml='', precio='', activa=true) {
     const id = ++tallaCounter;
@@ -470,7 +439,7 @@ function setTallas(arr=[]) {
     arr.length ? arr.forEach(r => agregarFilaTalla(r.ml, r.precio, r.activa !== false)) : agregarFilaTalla();
 }
 
-// ── HTML HELPERS ──
+// HTML HELPERS
 function tallasHTML(tallas) {
     if (!tallas.length) return '';
     const pills = tallas.map(r => {
@@ -525,7 +494,7 @@ function buildCard(d) {
         </div>`;
 }
 
-// ── AUTOCOMPLETAR ──
+// AUTOCOMPLETAR
 window.autocompletarDesdeInventario = function() {
     const opt = document.getElementById('select-perfume').selectedOptions[0];
     if (!opt?.value) return;
@@ -537,7 +506,7 @@ window.autocompletarDesdeInventario = function() {
     actualizarPreview();
 };
 
-// ── PREVIEW ──
+// PREVIEW
 window.actualizarPreview = function() {
     document.getElementById('card-preview-container').innerHTML = buildCard({
         nombre:      document.getElementById('t-nombre').value,
@@ -551,7 +520,7 @@ window.actualizarPreview = function() {
     });
 };
 
-// ── INVENTARIO ──
+// INVENTARIO
 async function cargarPerfumesInventario() {
     try {
         let snap = await getDocs(collection(db, 'inventario'));
@@ -571,7 +540,7 @@ async function cargarPerfumesInventario() {
     } catch(e) { console.warn('No se pudo cargar inventario:', e); }
 }
 
-// ── GRID ──
+// GRID
 async function cargarTarjetas() {
     try {
         const snap  = await getDocs(collection(db, 'listadecants'));
@@ -586,7 +555,7 @@ async function cargarTarjetas() {
 
 function renderTarjetaGrid(id, t) {
     const col = document.createElement('div');
-    // col-12 en móvil, col-lg-6 en pantalla grande = máx 2 por fila, tarjetas anchas
+    // col-12 en móvil, col-lg-6 en desktop = 2 por fila, tarjetas anchas
     col.className = 'col-12 col-lg-6';
     col.id = `tarjeta-col-${id}`;
     col.innerHTML = `
@@ -604,7 +573,7 @@ function renderTarjetaGrid(id, t) {
     document.getElementById('grid-tarjetas').appendChild(col);
 }
 
-// ── GUARDAR ──
+// GUARDAR
 window.guardarTarjeta = async function() {
     const nombre = document.getElementById('t-nombre').value.trim();
     if (!nombre) { alert('El nombre del perfume es obligatorio.'); return; }
@@ -629,7 +598,7 @@ window.guardarTarjeta = async function() {
     } catch(e) { console.error(e); alert('Error al guardar: '+e.message); }
 };
 
-// ── EDITAR ──
+// EDITAR
 window.editarTarjeta = async function(id) {
     try {
         const snap = await getDocs(collection(db,'listadecants'));
@@ -653,7 +622,7 @@ window.editarTarjeta = async function(id) {
     } catch(e) { console.error(e); }
 };
 
-// ── ELIMINAR ──
+// ELIMINAR
 window.eliminarTarjeta = async function(id) {
     if (!confirm('¿Eliminar esta tarjeta?')) return;
     try {
