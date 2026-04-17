@@ -172,6 +172,65 @@
         .tarjeta-wrapper  { display: flex; flex-direction: column; gap: 6px; }
         .tarjeta-acciones { display: flex; gap: 6px; }
 
+        /* =============================================
+           HOVER OVERLAY — guardar/copiar imagen
+        ============================================= */
+        .card-snap-wrap {
+            position: relative;
+        }
+        .card-img-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: var(--dc-radius);
+            background: rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 10;
+            backdrop-filter: blur(2px);
+        }
+        .card-snap-wrap:hover .card-img-overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .btn-card-img {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: rgba(20, 20, 20, 0.85);
+            border: 1px solid rgba(212, 175, 55, 0.6);
+            color: #ffd966;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.15s;
+            min-width: 90px;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .btn-card-img i {
+            font-size: 22px;
+        }
+        .btn-card-img:hover {
+            background: rgba(212, 175, 55, 0.25);
+            border-color: #d4af37;
+            transform: translateY(-2px);
+        }
+        .btn-card-img:active {
+            transform: translateY(0);
+        }
+        .btn-card-img.copying {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
         /* MODAL CHECKLISTS */
         .ocas-check, .temp-check { display: none; }
         .ocas-label, .temp-label {
@@ -245,7 +304,6 @@
         .aj-btn-copy  { background: #d4af37; color: #121212; }
         .aj-btn-reset { background: #2a2a3e; color: #adb5bd; border: 1px solid #444; }
 
-        /* EXPORTAR BTN LOADING */
         #btn-exportar-fuentes.loading { opacity: .7; pointer-events: none; }
     </style>
 </head>
@@ -457,6 +515,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- html2canvas para capturar tarjetas como imagen -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="assets/js/storage.js"></script>
 <script src="components/header.js"></script>
 <script src="assets/js/utils.js"></script>
@@ -516,6 +576,67 @@ document.getElementById('ajustes-toggle').addEventListener('click', function() {
     const isOpen = panel.classList.toggle('visible');
     this.classList.toggle('active', isOpen);
 });
+
+// =============================================
+// CAPTURA DE TARJETA COMO IMAGEN (html2canvas)
+// =============================================
+async function capturarCard(cardEl) {
+    return html2canvas(cardEl, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+    });
+}
+
+window.guardarCardImagen = async function(btn, cardId) {
+    btn.classList.add('copying');
+    try {
+        const cardEl = document.querySelector(`#card-snap-${cardId} .decant-card`);
+        if (!cardEl) return;
+        const canvas = await capturarCard(cardEl);
+        const link   = document.createElement('a');
+        const nombre = cardEl.querySelector('.perfume-title')?.textContent?.trim() || 'decant';
+        link.download = `${nombre.toLowerCase().replace(/\s+/g,'-')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        mostrarToast('🖼️ Imagen guardada');
+    } catch(e) {
+        console.error(e);
+        mostrarToast('❌ Error al guardar imagen');
+    } finally {
+        btn.classList.remove('copying');
+    }
+};
+
+window.copiarCardImagen = async function(btn, cardId) {
+    btn.classList.add('copying');
+    try {
+        const cardEl = document.querySelector(`#card-snap-${cardId} .decant-card`);
+        if (!cardEl) return;
+        const canvas = await capturarCard(cardEl);
+        canvas.toBlob(async (blob) => {
+            try {
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+                mostrarToast('📋 ¡Imagen copiada al portapapeles!');
+            } catch(e) {
+                // Fallback: abrir en nueva pestaña si clipboard falla (HTTP / permisos)
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                mostrarToast('⚠️ No se pudo copiar. Imagen abierta en nueva pestaña.');
+            } finally {
+                btn.classList.remove('copying');
+            }
+        }, 'image/png');
+    } catch(e) {
+        console.error(e);
+        mostrarToast('❌ Error al copiar imagen');
+        btn.classList.remove('copying');
+    }
+};
 </script>
 
 <script type="module">
@@ -728,7 +849,19 @@ function renderTarjetaGrid(id, t) {
     wrap.className = 'tarjeta-wrapper';
     wrap.id = `tarjeta-col-${id}`;
     wrap.innerHTML = `
-        <div id="card-snap-${id}">${buildCard(t)}</div>
+        <div class="card-snap-wrap" id="card-snap-${id}">
+            ${buildCard(t)}
+            <div class="card-img-overlay">
+                <button class="btn-card-img" onclick="guardarCardImagen(this,'${id}')" title="Guardar como imagen">
+                    <i class="bi bi-download"></i>
+                    Guardar PNG
+                </button>
+                <button class="btn-card-img" onclick="copiarCardImagen(this,'${id}')" title="Copiar imagen al portapapeles">
+                    <i class="bi bi-clipboard-image"></i>
+                    Copiar imagen
+                </button>
+            </div>
+        </div>
         <div class="tarjeta-acciones">
             <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="editarTarjeta('${id}')">
                 <i class="bi bi-pencil"></i> Editar
@@ -799,78 +932,35 @@ window.eliminarTarjeta = async function(id) {
     } catch(e) { alert('Error: '+e.message); }
 };
 
-// =========================================================
-// EXPORTAR DESDE decants_fuentes → listadecants
-// Solo crea tarjetas para fuentes que NO existan ya (por nombre normalizado).
-// =========================================================
 window.exportarDesdeFuentes = async function() {
     const btn = document.getElementById('btn-exportar-fuentes');
     btn.classList.add('loading');
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Exportando...';
-
     try {
-        // 1. Leer fuentes actuales de decants
         const snapFuentes = await getDocs(collection(db, 'decants_fuentes'));
-        if (snapFuentes.empty) {
-            mostrarToast('⚠️ No hay fuentes en Decants para exportar.', 'warning');
-            return;
-        }
-
-        // 2. Leer tarjetas ya existentes en listadecants
+        if (snapFuentes.empty) { mostrarToast('⚠️ No hay fuentes en Decants para exportar.'); return; }
         const snapExist = await getDocs(collection(db, 'listadecants'));
-        // Normalizar nombres existentes para comparación (minúsculas, sin espacios extra)
-        const nombresExistentes = new Set(
-            snapExist.docs.map(d => (d.data().nombre || '').trim().toLowerCase())
-        );
-
-        // 3. Filtrar fuentes que NO están ya en listadecants
+        const nombresExistentes = new Set(snapExist.docs.map(d => (d.data().nombre || '').trim().toLowerCase()));
         const nuevas = [];
         snapFuentes.forEach(d => {
             const f = d.data();
             const nombreNorm = (f.nombre || '').trim().toLowerCase();
-            if (nombreNorm && !nombresExistentes.has(nombreNorm)) {
-                nuevas.push(f);
-            }
+            if (nombreNorm && !nombresExistentes.has(nombreNorm)) nuevas.push(f);
         });
-
-        if (!nuevas.length) {
-            mostrarToast('✅ Todos los decants ya están exportados. No hay nuevos.');
-            return;
-        }
-
-        // 4. Crear tarjetas para las fuentes nuevas
+        if (!nuevas.length) { mostrarToast('✅ Todos los decants ya están exportados. No hay nuevos.'); return; }
         let creadas = 0;
         for (const f of nuevas) {
-            const tallas = (f.tallas || []).map(t => ({
-                ml:     t.ml     || 0,
-                precio: t.precio || 0,
-                activa: true,
-            })).filter(t => t.ml > 0);
-
-            const data = {
-                nombre:      f.nombre  || '',
-                marca:       f.marca   || '',
-                imagen:      f.imagen  || '',
-                descripcion: f.notas   || '',
-                tallas,
-                ocasiones:   [],
-                temporadas:  [],
-                intensidad:  '',
-                createdAt:   serverTimestamp(),
-                updatedAt:   serverTimestamp(),
-                exportadoDe: 'decants_fuentes',
-            };
-
-            const ref = doc(collection(db, 'listadecants'));
-            await setDoc(ref, data);
+            const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
+            await setDoc(doc(collection(db, 'listadecants')), {
+                nombre: f.nombre||'', marca: f.marca||'', imagen: f.imagen||'',
+                descripcion: f.notas||'', tallas, ocasiones:[], temporadas:[], intensidad:'',
+                createdAt: serverTimestamp(), updatedAt: serverTimestamp(), exportadoDe: 'decants_fuentes',
+            });
             creadas++;
         }
-
-        // 5. Recargar grid
         document.getElementById('grid-tarjetas').innerHTML =
             '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
         await cargarTarjetas();
-
         mostrarToast(`✅ ${creadas} tarjeta(s) exportada(s) correctamente 🎉`);
     } catch(e) {
         console.error('Error exportando:', e);
