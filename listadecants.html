@@ -578,14 +578,66 @@ document.getElementById('ajustes-toggle').addEventListener('click', function() {
 });
 
 // =============================================
+// UTILIDAD: convertir URL de imagen a base64
+// para evitar problemas de CORS con html2canvas
+// =============================================
+async function imgUrlToBase64(url) {
+    if (!url) return null;
+    // Si ya es base64/data-uri, no hay que hacer nada
+    if (url.startsWith('data:')) return url;
+    try {
+        const res  = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+        const blob = await res.blob();
+        return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload  = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) {
+        // Si CORS bloquea el fetch, intentamos con un Image + canvas como fallback
+        try {
+            return await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const c = document.createElement('canvas');
+                    c.width = img.naturalWidth;
+                    c.height = img.naturalHeight;
+                    c.getContext('2d').drawImage(img, 0, 0);
+                    try { resolve(c.toDataURL('image/png')); }
+                    catch { resolve(null); }
+                };
+                img.onerror = () => resolve(null);
+                img.src = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+            });
+        } catch { return null; }
+    }
+}
+
+// Reemplaza todas las <img> dentro de un elemento por versiones base64
+// para que html2canvas pueda renderizarlas correctamente
+async function prepararImagenesParaCaptura(cardEl) {
+    const imgs = cardEl.querySelectorAll('img');
+    await Promise.all([...imgs].map(async (img) => {
+        const src = img.getAttribute('src');
+        if (!src || src.startsWith('data:')) return;
+        const b64 = await imgUrlToBase64(src);
+        if (b64) img.setAttribute('src', b64);
+    }));
+}
+
+// =============================================
 // CAPTURA DE TARJETA COMO IMAGEN (html2canvas)
 // =============================================
 async function capturarCard(cardEl) {
+    // Pre-convertir imágenes a base64 para evitar CORS
+    await prepararImagenesParaCaptura(cardEl);
     return html2canvas(cardEl, {
         backgroundColor: null,
         scale: 2,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         logging: false,
     });
 }
