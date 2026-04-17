@@ -579,67 +579,104 @@ document.getElementById('ajustes-toggle').addEventListener('click', function() {
 
 // =============================================
 // UTILIDAD: convertir URL de imagen a base64
-// para evitar problemas de CORS con html2canvas
+// Estrategia en cascada:
+//   1. fetch directo (mismo origen o CORS abierto)
+//   2. proxy allorigins.win (evita CORS en imágenes externas)
+//   3. Image + canvas con crossOrigin (fallback)
 // =============================================
 async function imgUrlToBase64(url) {
     if (!url) return null;
-    // Si ya es base64/data-uri, no hay que hacer nada
     if (url.startsWith('data:')) return url;
+
+    // Intento 1: fetch directo
     try {
-        const res  = await fetch(url, { mode: 'cors', cache: 'force-cache' });
-        const blob = await res.blob();
-        return await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload  = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
+        const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+        if (res.ok) {
+            const blob = await res.blob();
+            return await blobToBase64(blob);
+        }
+    } catch (_) { /* sigue */ }
+
+    // Intento 2: proxy CORS (allorigins)
+    try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const res = await fetch(proxyUrl);
+        if (res.ok) {
+            const blob = await res.blob();
+            return await blobToBase64(blob);
+        }
+    } catch (_) { /* sigue */ }
+
+    // Intento 3: Image + canvas
+    try {
+        return await new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width  = img.naturalWidth;
+                c.height = img.naturalHeight;
+                c.getContext('2d').drawImage(img, 0, 0);
+                try { resolve(c.toDataURL('image/png')); }
+                catch { resolve(null); }
+            };
+            img.onerror = () => resolve(null);
+            img.src = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
         });
-    } catch (e) {
-        // Si CORS bloquea el fetch, intentamos con un Image + canvas como fallback
-        try {
-            return await new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
-                    const c = document.createElement('canvas');
-                    c.width = img.naturalWidth;
-                    c.height = img.naturalHeight;
-                    c.getContext('2d').drawImage(img, 0, 0);
-                    try { resolve(c.toDataURL('image/png')); }
-                    catch { resolve(null); }
-                };
-                img.onerror = () => resolve(null);
-                img.src = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
-            });
-        } catch { return null; }
-    }
+    } catch (_) { return null; }
 }
 
-// Reemplaza todas las <img> dentro de un elemento por versiones base64
-// para que html2canvas pueda renderizarlas correctamente
-async function prepararImagenesParaCaptura(cardEl) {
-    const imgs = cardEl.querySelectorAll('img');
-    await Promise.all([...imgs].map(async (img) => {
-        const src = img.getAttribute('src');
-        if (!src || src.startsWith('data:')) return;
-        const b64 = await imgUrlToBase64(src);
-        if (b64) img.setAttribute('src', b64);
-    }));
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
 }
 
 // =============================================
 // CAPTURA DE TARJETA COMO IMAGEN (html2canvas)
+// Clona el nodo para no modificar el DOM visible,
+// pre-convierte imágenes a base64 en el clon,
+// renderiza el clon fuera de pantalla.
 // =============================================
 async function capturarCard(cardEl) {
-    // Pre-convertir imágenes a base64 para evitar CORS
-    await prepararImagenesParaCaptura(cardEl);
-    return html2canvas(cardEl, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-    });
+    // Clonar para no tocar el DOM real
+    const clone = cardEl.cloneNode(true);
+    clone.style.cssText = [
+        'position:fixed',
+        'top:-9999px',
+        'left:-9999px',
+        `width:${cardEl.offsetWidth}px`,
+        'background-color:#1e1e1e',
+        'z-index:-1',
+    ].join(';');
+    document.body.appendChild(clone);
+
+    // Convertir imágenes a base64 en el clon
+    const imgs = clone.querySelectorAll('img');
+    await Promise.all([...imgs].map(async (img) => {
+        const src = img.getAttribute('src');
+        if (!src || src.startsWith('data:')) return;
+        const b64 = await imgUrlToBase64(src);
+        if (b64) img.src = b64;
+    }));
+
+    try {
+        const canvas = await html2canvas(clone, {
+            backgroundColor: '#1e1e1e',
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            width: clone.offsetWidth,
+            height: clone.offsetHeight,
+        });
+        return canvas;
+    } finally {
+        document.body.removeChild(clone);
+    }
 }
 
 window.guardarCardImagen = async function(btn, cardId) {
@@ -675,7 +712,6 @@ window.copiarCardImagen = async function(btn, cardId) {
                 ]);
                 mostrarToast('📋 ¡Imagen copiada al portapapeles!');
             } catch(e) {
-                // Fallback: abrir en nueva pestaña si clipboard falla (HTTP / permisos)
                 const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
                 mostrarToast('⚠️ No se pudo copiar. Imagen abierta en nueva pestaña.');
