@@ -249,12 +249,12 @@ function pasarADecants(index) {
                 </div>
                 <div class="modal-body py-2">
                     <p class="mb-1 small" id="__decant-confirm-msg"></p>
-                    <p class="text-muted small mb-0">Se abrirá la página de Decants con los datos precargados.</p>
+                    <p class="text-warning small fw-bold mb-0">⚠️ El producto será eliminado del inventario general.</p>
                 </div>
                 <div class="modal-footer border-secondary pt-2 gap-2">
                     <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal"
                         onclick="localStorage.removeItem('decant_precarga_tmp')">Cancelar</button>
-                    <button class="btn btn-info btn-sm fw-bold" id="__decant-confirm-btn">Ir a Decants →</button>
+                    <button class="btn btn-info btn-sm fw-bold" id="__decant-confirm-btn">Confirmar y pasar →</button>
                 </div>
             </div>
         </div>`;
@@ -263,7 +263,18 @@ function pasarADecants(index) {
 
     document.getElementById('__decant-confirm-msg').textContent =
         `"${prod.nombre}" (${prod.marca || 'Sin marca'}) — $${prod.costo} costo`;
-    document.getElementById('__decant-confirm-btn').onclick = () => { window.location.href = 'decants.html'; };
+
+    document.getElementById('__decant-confirm-btn').onclick = () => {
+        // Eliminar el producto del inventario
+        const prods = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+        const idx = prods.findIndex(p => p.id === prod.id);
+        if (idx !== -1) {
+            prods.splice(idx, 1);
+            setData('perfumes', prods);
+        }
+        window.location.href = 'decants.html';
+    };
+
     new bootstrap.Modal(modal).show();
 }
 
