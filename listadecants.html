@@ -305,6 +305,101 @@
         .aj-btn-reset { background: #2a2a3e; color: #adb5bd; border: 1px solid #444; }
 
         #btn-exportar-fuentes.loading { opacity: .7; pointer-events: none; }
+
+        /* =============================================
+           ESTILOS DE IMPRESIÓN / PDF
+        ============================================= */
+        @media print {
+            body > *:not(#print-area) { display: none !important; }
+            #print-area { display: block !important; }
+
+            * { -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important; }
+
+            @page { size: A4 portrait; margin: 15mm 12mm; }
+
+            body { background: #0d0d0d !important; margin: 0; padding: 0; }
+
+            #print-area { display: block !important; width: 100%; }
+
+            #print-header {
+                display: flex !important; align-items: center; gap: 10px;
+                margin-bottom: 16px; padding-bottom: 10px;
+                border-bottom: 2px solid #d4af37;
+            }
+            #print-header h2 {
+                font-size: 20px; font-weight: 700; color: #fff !important;
+                margin: 0; font-family: 'Poppins', sans-serif;
+            }
+            #print-header .print-logo {
+                font-size: 22px; color: #d4af37 !important; font-weight: 900;
+                font-family: 'Poppins', sans-serif; letter-spacing: 1px;
+            }
+
+            #print-grid { display: flex !important; flex-direction: column; gap: 20px; }
+
+            .decant-card {
+                background-color: #1e1e1e !important;
+                border-radius: 14px !important;
+                border-left: 4px solid #d4af37 !important;
+                padding: 14px !important; display: block !important;
+                box-shadow: none !important;
+                page-break-inside: avoid; break-inside: avoid;
+            }
+            .decant-card .card-image {
+                width: 120px !important; float: left !important;
+                margin-right: 14px !important; margin-bottom: 8px !important;
+                min-height: 80px !important; background-color: #2a2a2a !important;
+                border-radius: 8px !important; display: flex !important;
+                align-items: center !important; justify-content: center !important;
+                overflow: hidden !important;
+            }
+            .decant-card .card-image img {
+                width: 100% !important; height: 100% !important;
+                object-fit: cover !important; border-radius: 8px !important;
+                display: block !important;
+            }
+            .decant-card::after { content: ''; display: table; clear: both; }
+
+            .perfume-title { color: #fff !important; font-size: 18px !important;
+                font-weight: 700 !important; text-transform: uppercase !important; }
+            .perfume-brand { color: #8d9bb5 !important; font-size: 13px !important; }
+            .description   { color: #cccccc !important; font-size: 13px !important;
+                line-height: 1.4 !important; }
+
+            .price-pill { background-color: #d4af37 !important; color: #121212 !important;
+                font-size: 12px !important; font-weight: 700 !important;
+                padding: 3px 9px !important; border-radius: 20px !important; }
+            .price-pill.inactiva { background-color: #333 !important; color: #666 !important; }
+
+            .tag { font-size: 10px !important; font-weight: 700 !important;
+                padding: 2px 5px !important; border-radius: 10px !important; white-space: nowrap !important; }
+            .tag-diario    { background-color: #333 !important; color: #fff !important; }
+            .tag-oficina   { background-color: #1a2a3a !important; color: #6ea8fe !important; border: 1px solid #0d6efd !important; }
+            .tag-cita      { background-color: #2a0a1a !important; color: #f1afd0 !important; border: 1px solid #d63384 !important; }
+            .tag-noche     { background-color: #1a0b2e !important; color: #b388ff !important; }
+            .tag-club      { background-color: #2a0a0a !important; color: #f5a1a8 !important; border: 1px solid #dc3545 !important; }
+            .tag-casual    { background-color: #0a1a10 !important; color: #75c896 !important; border: 1px solid #198754 !important; }
+            .tag-deporte   { background-color: #0a1a20 !important; color: #6edff6 !important; border: 1px solid #0dcaf0 !important; }
+            .tag-viaje     { background-color: #2a2010 !important; color: #ffda6a !important; border: 1px solid #ffc107 !important; }
+            .tag-todo      { background-color: #2c3e50 !important; color: #a8d5ff !important; }
+            .tag-invierno  { background-color: #0a1530 !important; color: #9ec5fe !important; border: 1px solid #0d6efd !important; }
+            .tag-verano    { background-color: #2a1a00 !important; color: #ffe69c !important; border: 1px solid #ffc107 !important; }
+            .tag-primavera { background-color: #0a1a10 !important; color: #75c896 !important; border: 1px solid #198754 !important; }
+            .tag-otono     { background-color: #2a1000 !important; color: #feb272 !important; border: 1px solid #fd7e14 !important; }
+
+            .card-intens-label { color: #8d9bb5 !important; font-size: 10px !important; }
+            .intensidad-bar    { background: #2a2a2a !important; }
+            .card-intens-val   { font-size: 10px !important; font-weight: 700 !important; }
+
+            .card-img-overlay, .tarjeta-acciones,
+            #ajustes-toggle, #ajustes-panel,
+            .modal, #toast-lista { display: none !important; }
+
+            .card-snap-wrap { position: static !important; }
+        }
+
+        #print-area { display: none; }
     </style>
 </head>
 <body>
@@ -321,6 +416,9 @@
             </button>
             <button id="btn-exportar-fuentes" class="btn btn-outline-info btn-sm" onclick="exportarDesdeFuentes()">
                 <i class="bi bi-box-arrow-in-down"></i> Exportar desde Decants
+            </button>
+            <button class="btn btn-outline-light btn-sm" onclick="imprimirPDF()">
+                <i class="bi bi-printer"></i> Imprimir PDF
             </button>
             <button class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaTarjeta">
                 <i class="bi bi-plus-circle"></i> Nueva Tarjeta
@@ -1084,6 +1182,33 @@ cargarPerfumesInventario();
 cargarTarjetas();
 setTallas([]);
 actualizarPreview();
+</script>
+
+<!-- ÁREA DE IMPRESIÓN (solo visible al imprimir) -->
+<div id="print-area">
+    <div id="print-header">
+        <span class="print-logo">👑 FITOSCENTS</span>
+        <h2>Catálogo de Decants</h2>
+    </div>
+    <div id="print-grid"></div>
+</div>
+
+
+<script>
+function imprimirPDF() {
+    const grid = document.getElementById('grid-tarjetas');
+    const printGrid = document.getElementById('print-grid');
+    if (!grid || !printGrid) { window.print(); return; }
+    printGrid.innerHTML = '';
+    const wrappers = grid.querySelectorAll('.card-snap-wrap');
+    wrappers.forEach(wrap => {
+        const clone = wrap.cloneNode(true);
+        const overlay = clone.querySelector('.card-img-overlay');
+        if (overlay) overlay.remove();
+        printGrid.appendChild(clone);
+    });
+    window.print();
+}
 </script>
 </body>
 </html>
