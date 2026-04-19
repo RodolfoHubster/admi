@@ -1,6 +1,6 @@
 /* ============================================================
-   RESPONSIVE.CSS — Optimizado para Samsung S24 FE (412px)
-   y móviles en general (max-width: 768px)
+   RESPONSIVE.CSS â€” Optimizado para Samsung S24 FE (412px)
+   y mÃ³viles en general (max-width: 768px)
    ============================================================ */
 
 @media (max-width: 768px) {
@@ -30,7 +30,7 @@
     .navbar-brand {
         font-size: 1.1rem !important;
     }
-    /* Menú hamburguesa: links más grandes para dedos */
+    /* MenÃº hamburguesa: links mÃ¡s grandes para dedos */
     .navbar-nav .nav-link {
         padding: 10px 16px !important;
         font-size: 1rem !important;
@@ -38,14 +38,14 @@
     }
 
     /* ==========================================
-       TABLAS — Convertir a cards en móvil
+       TABLAS â€” Convertir a cards en mÃ³vil
     ========================================== */
     .table-responsive {
         border: none !important;
         box-shadow: none !important;
     }
 
-    /* Ocultar encabezados de tabla en móvil */
+    /* Ocultar encabezados de tabla en mÃ³vil */
     .table thead {
         display: none !important;
     }
@@ -61,7 +61,7 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
     }
 
-    /* Cada celda con etiqueta automática */
+    /* Cada celda con etiqueta automÃ¡tica */
     .table tbody td {
         display: flex !important;
         justify-content: space-between !important;
@@ -77,7 +77,7 @@
         border-bottom: none !important;
     }
 
-    /* Botones dentro de tabla: full width en móvil */
+    /* Botones dentro de tabla: full width en mÃ³vil */
     .table tbody td .d-flex.gap-1,
     .table tbody td .d-flex.gap-2 {
         width: 100% !important;
@@ -86,43 +86,64 @@
     }
 
     /* ==========================================
-       BOTONES — Más táctiles
+       BOTONES â€” MÃ¡s tÃ¡ctiles
     ========================================== */
     .btn {
-        min-height: 40px !important;
-        font-size: 0.82rem !important;
-        padding: 8px 12px !important;
+        min-height: 44px !important;
+        font-size: 0.88rem !important;
+        padding: 10px 16px !important;
+        border-radius: 12px !important;
     }
 
-    /* Botones de acción en tabla: más pequeños pero usables */
+    /* Botones de acciÃ³n en tabla: mÃ¡s pequeÃ±os pero usables */
     .table .btn-sm {
-        min-height: 36px !important;
-        padding: 6px 10px !important;
-        font-size: 0.78rem !important;
+        min-height: 40px !important;
+        padding: 8px 12px !important;
+        font-size: 0.82rem !important;
+    }
+
+    /* BotÃ³n primario mÃ¡s destacado */
+    .btn-gold,
+    .btn-primary {
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.02em !important;
+    }
+
+    /* Grupo de botones en header de pÃ¡gina */
+    .col-auto.d-flex.gap-2.flex-wrap {
+        width: 100% !important;
+        gap: 8px !important;
+    }
+    .col-auto.d-flex.gap-2.flex-wrap .btn {
+        flex: 1 1 auto !important;
+        min-width: 120px !important;
+        text-align: center !important;
+        justify-content: center !important;
     }
 
     /* ==========================================
-       CARDS (KPIs / Métricas)
+       CARDS (KPIs / MÃ©tricas)
     ========================================== */
     .card {
-        border-radius: 12px !important;
+        border-radius: 16px !important;
         margin-bottom: 12px !important;
     }
     .card-body {
-        padding: 14px !important;
+        padding: 16px !important;
     }
     .card-header {
-        padding: 10px 14px !important;
-        font-size: 0.8rem !important;
+        padding: 12px 16px !important;
+        font-size: 0.85rem !important;
     }
 
-    /* Cards de métricas en fila */
+    /* Cards de mÃ©tricas en fila */
     .row.g-3 > [class*="col-md"] {
         width: 50% !important;
         flex: 0 0 50% !important;
         max-width: 50% !important;
     }
-    /* Cards que deben ser 100% en móvil */
+    /* Cards que deben ser 100% en mÃ³vil */
     .row.g-3 > .col-md-8,
     .row.g-3 > .col-md-6 {
         width: 100% !important;
@@ -131,51 +152,111 @@
     }
 
     /* ==========================================
-       MODALES — Pantalla completa en móvil
+       MODALES â€” Experiencia nativa tipo sheet
     ========================================== */
     .modal-dialog {
         margin: 0 !important;
         max-width: 100% !important;
         width: 100% !important;
+        display: flex !important;
+        align-items: flex-end !important;
+        min-height: 100dvh !important;
     }
     .modal-dialog-centered {
-        align-items: flex-end !important; /* Sube desde abajo como sheet */
+        align-items: flex-end !important;
     }
     .modal-content {
-        border-radius: 20px 20px 0 0 !important;
-        max-height: 90vh !important;
+        border-radius: 24px 24px 0 0 !important;
+        max-height: 92dvh !important;
         overflow-y: auto !important;
+        border: none !important;
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.6) !important;
+        /* LÃ­nea decorativa tipo handle */
+        background-image: none !important;
+        position: relative !important;
     }
-    /* Modal lg también full width */
-    .modal-lg .modal-content {
-        border-radius: 20px 20px 0 0 !important;
+    /* Handle drag indicator */
+    .modal-content::before {
+        content: '' !important;
+        display: block !important;
+        width: 40px !important;
+        height: 4px !important;
+        background: rgba(255,255,255,0.2) !important;
+        border-radius: 2px !important;
+        margin: 10px auto 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+    }
+    /* Modal lg tambiÃ©n full width */
+    .modal-lg .modal-content,
+    .modal-xl .modal-content {
+        border-radius: 24px 24px 0 0 !important;
     }
     .modal-body {
-        padding: 16px !important;
+        padding: 20px 16px !important;
+        overflow-y: auto !important;
     }
     .modal-header {
-        padding: 14px 16px !important;
+        padding: 16px 20px 12px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+    }
+    .modal-header .modal-title {
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
     }
     .modal-footer {
-        padding: 12px 16px !important;
-    }
-    /* Inputs dentro de modal: más grandes para dedos */
-    .modal-body .form-control,
-    .modal-body .form-select {
-        min-height: 46px !important;
-        font-size: 1rem !important;
+        padding: 12px 16px 20px !important;
+        border-top: 1px solid rgba(255,255,255,0.08) !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 10 !important;
+        gap: 8px !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
     }
     .modal-footer .btn {
         flex: 1 !important;
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
+        min-height: 48px !important;
+        border-radius: 14px !important;
+    }
+    /* Inputs dentro de modal: mÃ¡s grandes para dedos */
+    .modal-body .form-control,
+    .modal-body .form-select {
+        min-height: 48px !important;
+        font-size: 1rem !important;
+        border-radius: 12px !important;
+        padding: 12px 14px !important;
+    }
+    .modal-body .form-label {
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        color: #adb5bd !important;
+        margin-bottom: 6px !important;
+    }
+    /* AnimaciÃ³n de entrada desde abajo */
+    .modal.fade .modal-dialog {
+        transform: translateY(100%) !important;
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1) !important;
+    }
+    .modal.show .modal-dialog {
+        transform: translateY(0) !important;
     }
 
     /* ==========================================
        FORMULARIOS
     ========================================== */
     .form-control, .form-select {
-        min-height: 44px !important;
+        min-height: 46px !important;
         font-size: 0.95rem !important;
+        border-radius: 10px !important;
     }
     .form-label {
         font-size: 0.85rem !important;
@@ -185,33 +266,42 @@
         font-size: 0.9rem !important;
         padding: 0 12px !important;
     }
+    /* Switch tÃ¡ctil mÃ¡s grande */
+    .form-check-input[type="checkbox"][role="switch"] {
+        width: 2.8em !important;
+        height: 1.5em !important;
+    }
 
     /* ==========================================
-       HEADER DE PÁGINAS (título + botón)
+       HEADER DE PÃGINAS (tÃ­tulo + botÃ³n)
     ========================================== */
     .d-flex.justify-content-between.align-items-center {
         flex-direction: column !important;
         align-items: flex-start !important;
-        gap: 10px !important;
+        gap: 12px !important;
     }
     .d-flex.justify-content-between.align-items-center .btn {
         width: 100% !important;
     }
 
     /* ==========================================
-       TABS DE NAVEGACIÓN (clientes, etc.)
+       TABS DE NAVEGACIÃ“N (clientes, etc.)
     ========================================== */
     .nav-tabs {
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch !important;
         scrollbar-width: none;
+        gap: 4px !important;
+        padding-bottom: 2px !important;
     }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-tabs .nav-link {
         white-space: nowrap !important;
-        padding: 10px 14px !important;
-        font-size: 0.85rem !important;
+        padding: 10px 16px !important;
+        font-size: 0.88rem !important;
+        border-radius: 10px 10px 0 0 !important;
+        min-height: 44px !important;
     }
 
     /* ==========================================
@@ -219,11 +309,13 @@
     ========================================== */
     .btn-group {
         flex-wrap: wrap !important;
+        gap: 4px !important;
     }
     .btn-group .btn {
-        font-size: 0.75rem !important;
-        padding: 6px 10px !important;
-        min-height: 34px !important;
+        font-size: 0.78rem !important;
+        padding: 8px 12px !important;
+        min-height: 38px !important;
+        border-radius: 10px !important;
     }
     /* Filtros en columna completa */
     .card .row.g-2 > .col-auto {
@@ -240,7 +332,7 @@
     }
 
     /* ==========================================
-       BARRA ACCIONES RÁPIDAS (index)
+       BARRA ACCIONES RÃPIDAS (index)
     ========================================== */
     .row.g-3 > .col-md-3 {
         width: 50% !important;
@@ -253,13 +345,15 @@
     ========================================== */
     .badge {
         font-size: 0.72rem !important;
+        padding: 4px 8px !important;
+        border-radius: 8px !important;
     }
     .fs-5 { font-size: 1rem !important; }
     .fs-4 { font-size: 1.1rem !important; }
     .display-4 { font-size: 2rem !important; }
 
     /* ==========================================
-       CARDS DE ESTADÍSTICAS (dashboard)
+       CARDS DE ESTADÃSTICAS (dashboard)
     ========================================== */
     .card-body h1.display-4 {
         font-size: 2rem !important;
@@ -285,6 +379,7 @@
     ========================================== */
     .progress {
         height: 8px !important;
+        border-radius: 4px !important;
     }
 
     /* ==========================================
@@ -299,25 +394,78 @@
         padding-top: 16px !important;
     }
 
-    /* mt-5 es demasiado en móvil */
+    /* mt-5 es demasiado en mÃ³vil */
     .mt-5 { margin-top: 1rem !important; }
     .mb-5 { margin-bottom: 1.5rem !important; }
     .mb-4 { margin-bottom: 1rem !important; }
 
-    /* Input de búsqueda full width */
+    /* Input de bÃºsqueda full width */
     #filtro-texto-ventas {
         width: 100% !important;
     }
 
-    /* Contador de ventas en línea propia */
+    /* Contador de ventas en lÃ­nea propia */
     .col-auto.text-end {
         width: auto !important;
         margin-left: auto;
     }
+
+    /* ==========================================
+       DECANTS â€” Lista de decants en mÃ³vil
+    ========================================== */
+    /* Panel de ajustes flotante */
+    #ajustes-toggle {
+        bottom: 1.5rem !important;
+        right: 1rem !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+    #ajustes-panel {
+        right: 1rem !important;
+        width: calc(100vw - 2rem) !important;
+        bottom: 6rem !important;
+    }
+    /* Tarjeta de decant en mÃ³vil */
+    .decant-card {
+        padding: 12px !important;
+    }
+    .tarjeta-acciones {
+        gap: 8px !important;
+    }
+    .tarjeta-acciones .btn {
+        min-height: 42px !important;
+        font-size: 0.82rem !important;
+    }
+    /* Tags de ocasiÃ³n y temporada mÃ¡s legibles */
+    .tags-container {
+        max-width: 100% !important;
+        justify-content: flex-start !important;
+        margin-top: 6px !important;
+    }
+    .tag {
+        font-size: 10px !important;
+        padding: 3px 7px !important;
+    }
+    /* Precios en mÃ³vil */
+    .prices-container {
+        gap: 6px !important;
+    }
+    .price-pill {
+        font-size: 13px !important;
+        padding: 5px 11px !important;
+    }
+    /* Checklist de ocasiones / temporadas */
+    .ocas-label, .temp-label, .intens-label {
+        padding: 6px 14px !important;
+        font-size: 0.82rem !important;
+        min-height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
 }
 
 /* ============================================================
-   BREAKPOINT EXTRA PEQUEÑO — phones < 390px
+   BREAKPOINT EXTRA PEQUEÃ‘O â€” phones < 390px
    ============================================================ */
 @media (max-width: 390px) {
     .row.g-3 > [class*="col-md"] {
@@ -330,5 +478,9 @@
         flex: 0 0 100% !important;
         max-width: 100% !important;
     }
-    .btn { font-size: 0.8rem !important; }
+    .btn { font-size: 0.82rem !important; }
+
+    .modal-footer .btn {
+        font-size: 0.88rem !important;
+    }
 }
