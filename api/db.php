@@ -1,10 +1,19 @@
 <?php
 // api/db.php
-$host = 'localhost';
-$db   = 'perfume_db';
-$user = 'root'; // Cambia esto por tu usuario real
-$pass = '';     // Cambia esto por tu pass real
-$charset = 'utf8mb4';
+if (file_exists(__DIR__ . '/../.env')) {
+    $env = parse_ini_file(__DIR__ . '/../.env');
+    if (is_array($env)) {
+        foreach ($env as $key => $value) {
+            putenv("{$key}={$value}");
+        }
+    }
+}
+
+$host = getenv('DB_HOST') ?: 'localhost';
+$db   = getenv('DB_NAME') ?: 'perfume_db';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASS') ?: '';
+$charset = getenv('DB_CHARSET') ?: 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
@@ -16,8 +25,9 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    // En producción, no muestres el error real al público
-    echo json_encode(["error" => "Error de conexión: " . $e->getMessage()]);
+    http_response_code(500);
+    // En producción, no mostrar detalles sensibles de conexión.
+    echo json_encode(["error" => "Error de conexión a base de datos."]);
     exit;
 }
 ?>
