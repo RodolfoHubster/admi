@@ -409,7 +409,7 @@ function getAllowedOrigins(): array
     }
 
     $defaults = array_map('normalizeOrigin', $defaults);
-    $defaults = array_filter($defaults, static fn ($o) => $o !== '');
+    $defaults = array_filter($defaults, fn ($o) => $o !== '');
     return array_values(array_unique($defaults));
 }
 
