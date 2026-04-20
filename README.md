@@ -111,5 +111,5 @@ Este repositorio no incluye pipeline de build/test/lint definido por `package.js
 
 ### Variables de entorno locales
 
-1. Copia `/home/runner/work/admi/admi/.env.example` a `/home/runner/work/admi/admi/.env`.
+1. Copia `.env.example` a `.env`.
 2. Completa tus valores reales (API key y credenciales de BD).
