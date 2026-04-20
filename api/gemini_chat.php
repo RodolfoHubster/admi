@@ -399,7 +399,7 @@ function getAllowedOrigins(): array
 
     $defaultOrigin = trim(getenv('DEFAULT_ALLOWED_ORIGIN') ?: '');
     $defaults = [
-        $defaultOrigin !== '' ? $defaultOrigin : DEFAULT_ALLOWED_ORIGIN_FALLBACK,
+        $defaultOrigin ?: DEFAULT_ALLOWED_ORIGIN_FALLBACK,
     ];
 
     $host = $_SERVER['HTTP_HOST'] ?? '';
@@ -409,7 +409,7 @@ function getAllowedOrigins(): array
     }
 
     $defaults = array_map('normalizeOrigin', $defaults);
-    $defaults = array_values(array_filter($defaults, static fn ($o) => $o !== ''));
+    $defaults = array_filter($defaults, static fn ($o) => $o !== '');
     return array_values(array_unique($defaults));
 }
 
