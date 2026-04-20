@@ -6,12 +6,14 @@ function validarURLImagen(url) {
 }
 
 const TEMPLATES_KEY = 'perfume_templates_v1';
-const INVENTORY_LOCAL_KEY = (typeof DB_KEY !== 'undefined')
-    ? DB_KEY
-    : ((typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.perfumes) ? STORAGE_KEYS.perfumes : 'perfume_inventory_v1');
+const ordenActualRef = (typeof ordenActual !== 'undefined' && ordenActual)
+    ? ordenActual
+    : { campo: 'nombre', dir: 'asc' };
 
-if (typeof globalThis.ordenActual === 'undefined') {
-    globalThis.ordenActual = { campo: 'nombre', dir: 'asc' };
+function resolveInventoryStorageKey() {
+    if (typeof DB_KEY !== 'undefined') return DB_KEY;
+    if (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.perfumes) return STORAGE_KEYS.perfumes;
+    return 'perfume_inventory_v1';
 }
 
 function getInventoryList() {
@@ -19,12 +21,12 @@ function getInventoryList() {
         const data = getData('perfumes');
         if (Array.isArray(data)) return data;
     }
-    return JSON.parse(localStorage.getItem(INVENTORY_LOCAL_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(resolveInventoryStorageKey()) || '[]');
 }
 
 function setInventoryList(productos) {
     if (typeof setData === 'function') return setData('perfumes', productos);
-    localStorage.setItem(INVENTORY_LOCAL_KEY, JSON.stringify(productos));
+    localStorage.setItem(resolveInventoryStorageKey(), JSON.stringify(productos));
     return true;
 }
 
@@ -85,11 +87,11 @@ function cargarInventario() {
 
     listaGrupos.sort((a, b) => {
         let valA, valB;
-        if (ordenActual.campo === 'nombre')   { valA = a.nombre.toLowerCase(); valB = b.nombre.toLowerCase(); }
-        else if (ordenActual.campo === 'precio')   { valA = a.precioRef;    valB = b.precioRef; }
-        else if (ordenActual.campo === 'ganancia') { valA = a.gananciaRef;  valB = b.gananciaRef; }
-        if (valA < valB) return ordenActual.dir === 'asc' ? -1 : 1;
-        if (valA > valB) return ordenActual.dir === 'asc' ?  1 : -1;
+        if (ordenActualRef.campo === 'nombre')   { valA = a.nombre.toLowerCase(); valB = b.nombre.toLowerCase(); }
+        else if (ordenActualRef.campo === 'precio')   { valA = a.precioRef;    valB = b.precioRef; }
+        else if (ordenActualRef.campo === 'ganancia') { valA = a.gananciaRef;  valB = b.gananciaRef; }
+        if (valA < valB) return ordenActualRef.dir === 'asc' ? -1 : 1;
+        if (valA > valB) return ordenActualRef.dir === 'asc' ?  1 : -1;
         return 0;
     });
 
@@ -319,8 +321,8 @@ function pasarADecants(index) {
 }
 
 function cambiarOrden(campo) {
-    if (ordenActual.campo === campo) ordenActual.dir = (ordenActual.dir === 'asc') ? 'desc' : 'asc';
-    else { ordenActual.campo = campo; ordenActual.dir = (campo === 'precio' || campo === 'ganancia') ? 'desc' : 'asc'; }
+    if (ordenActualRef.campo === campo) ordenActualRef.dir = (ordenActualRef.dir === 'asc') ? 'desc' : 'asc';
+    else { ordenActualRef.campo = campo; ordenActualRef.dir = (campo === 'precio' || campo === 'ganancia') ? 'desc' : 'asc'; }
     cargarInventario();
 }
 
