@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 // Cargar variables de entorno desde .env
-if (file_exists(__DIR__ . '/../../.env')) {
-    $env = parse_ini_file(__DIR__ . '/../../.env');
+if (file_exists(__DIR__ . '/../.env')) {
+    $env = parse_ini_file(__DIR__ . '/../.env');
     foreach ($env as $key => $value) {
         putenv("{$key}={$value}");
     }
@@ -367,23 +367,17 @@ function getAllowedOrigins(): array
     $env = trim(getenv('ALLOWED_ORIGINS') ?: '');
     if ($env !== '') {
         $parts = array_map('trim', explode(',', $env));
+        $parts = array_map('normalizeOrigin', $parts);
         $parts = array_values(array_filter($parts, static fn ($o) => $o !== ''));
-        return array_values(array_unique(array_map('normalizeOrigin', $parts)));
+        return array_values(array_unique($parts));
     }
 
     $host = $_SERVER['HTTP_HOST'] ?? '';
-    $origins = [
-        'https://rodolfohubster.github.io',
-        'http://localhost',
-        'http://127.0.0.1',
-    ];
-
-    if ($host !== '') {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $origins[] = "{$scheme}://{$host}";
+    if ($host === '') {
+        return [];
     }
-
-    return array_values(array_unique(array_map('normalizeOrigin', $origins)));
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    return [normalizeOrigin("{$scheme}://{$host}")];
 }
 
 function isOriginAllowed(string $origin, array $allowedOrigins): bool
@@ -393,7 +387,7 @@ function isOriginAllowed(string $origin, array $allowedOrigins): bool
         return false;
     }
     foreach ($allowedOrigins as $allowed) {
-        if (strcasecmp($origin, normalizeOrigin($allowed)) === 0) {
+        if (strcasecmp($origin, $allowed) === 0) {
             return true;
         }
     }
@@ -402,6 +396,23 @@ function isOriginAllowed(string $origin, array $allowedOrigins): bool
 
 function normalizeOrigin(string $origin): string
 {
-    $origin = trim($origin);
-    return rtrim($origin, '/');
+    $origin = trim(rtrim($origin, '/'));
+    if ($origin === '') {
+        return '';
+    }
+
+    $parts = parse_url($origin);
+    if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+        return $origin;
+    }
+
+    $scheme = strtolower((string)$parts['scheme']);
+    $host = strtolower((string)$parts['host']);
+    $port = isset($parts['port']) ? ':' . (int)$parts['port'] : '';
+
+    if ($scheme === '' || $host === '') {
+        return '';
+    }
+
+    return "{$scheme}://{$host}{$port}";
 }
