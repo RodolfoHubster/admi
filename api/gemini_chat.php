@@ -364,7 +364,7 @@ function getClientIp(): string
 
 function getAllowedOrigins(): array
 {
-    $env = trim((string)(getenv('ALLOWED_ORIGINS') ?: ''));
+    $env = trim(getenv('ALLOWED_ORIGINS') ?: '');
     if ($env !== '') {
         $parts = array_map('trim', explode(',', $env));
         $parts = array_values(array_filter($parts, static fn ($o) => $o !== ''));
