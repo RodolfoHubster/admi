@@ -7,6 +7,7 @@ const ASISTENTE_CLIENTE_KEY = 'fitoscents_asistente_cliente_v1';
 const MAX_CHAT_HISTORY = 60;
 const MAX_CONVERSATION_CONTEXT = 12;
 const MAX_INVENTORY_ITEMS_SENT = 80;
+const ASISTENTE_ENDPOINT_PLACEHOLDER_HOST = 'your-backend-service.example.com';
 const ASISTENTE_API_ENDPOINT = resolveAsistenteApiEndpoint();
 
 const chatContainer = document.getElementById('chat-container');
@@ -274,7 +275,7 @@ function resolveAsistenteApiEndpoint() {
         }
         try {
             const parsed = new URL(endpoint, window.location.origin);
-            if (parsed.hostname === 'your-backend-service.example.com') {
+            if (parsed.hostname === ASISTENTE_ENDPOINT_PLACEHOLDER_HOST) {
                 return '';
             }
         } catch (error) {
