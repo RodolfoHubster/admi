@@ -11,6 +11,12 @@ GitHub Pages **no ejecuta PHP**, por lo que `api/gemini_chat.php` debe correr en
 1. Crea o selecciona un proyecto en Google Cloud.
 2. Verifica que el proyecto tenga billing activo.
 
+Puedes validarlo por CLI:
+
+```bash
+gcloud beta billing projects describe TU_PROJECT_ID
+```
+
 ### 2) Habilita APIs necesarias
 
 En Google Cloud habilita:
@@ -65,7 +71,7 @@ El endpoint final del asistente será:
 
 ### 5) Configura el frontend
 
-En `/home/runner/work/admi/admi/asistente.html` ajusta:
+En `asistente.html` ajusta:
 
 ```html
 <script>
