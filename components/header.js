@@ -41,6 +41,9 @@ function cargarHeader() {
                         <a href="mensajes.html" class="nav-link" data-page="mensajes">
                             💬 Mensajes
                         </a>
+                        <a href="asistente.html" class="nav-link" data-page="asistente">
+                            🤖 Asistente IA
+                        </a>
                         <a href="alertas.html" class="nav-link position-relative" data-page="alertas">
                             🔔 Alertas
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
