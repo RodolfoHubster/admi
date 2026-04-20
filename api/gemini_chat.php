@@ -432,8 +432,8 @@ function logSecurityEvent(string $type, string $value): void
     if ($sanitized === null) {
         $sanitized = 'unreadable_value';
     } else {
-        $sanitized = preg_replace('/[\x00-\x1F\x7F]/u', '', $sanitized) ?? 'unreadable_value';
-        $sanitized = mb_substr($sanitized, 0, 300);
+        $sanitized = preg_replace('/[\x00-\x1F\x7F]/', '', $sanitized) ?? 'unreadable_value';
+        $sanitized = mb_substr($sanitized, 0, 300, 'UTF-8');
     }
     $encodedValue = json_encode($sanitized, JSON_UNESCAPED_UNICODE);
     if (!is_string($encodedValue)) {
