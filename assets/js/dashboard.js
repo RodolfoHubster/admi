@@ -4,6 +4,7 @@
 
 let chartVentas = null;
 let chartInventario = null;
+const DECANTS_VENTAS_FALLBACK_KEY = 'fitoscents_decants_ventas_v1';
 
 document.addEventListener('DOMContentLoaded', async () => {
     await initApp();
@@ -34,7 +35,7 @@ function calcularKPIsDashboard() {
     const gastos = JSON.parse(localStorage.getItem(EXPENSES_KEY)) || [];
     const decantsVentasKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.decants_ventas)
         ? STORAGE_KEYS.decants_ventas
-        : 'fitoscents_decants_ventas_v1';
+        : DECANTS_VENTAS_FALLBACK_KEY;
     const ventasDecants = (typeof getData === 'function')
         ? (getData('decants_ventas') || [])
         : JSON.parse(localStorage.getItem(decantsVentasKey) || '[]');

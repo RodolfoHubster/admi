@@ -15,7 +15,7 @@ let _tallasFila = [];
 // INIT
 // =========================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    await initApp();
+    if (typeof initApp === 'function') await initApp();
     await initDecants();
     await cargarDatosDecants();
     verificarPrecarga();
@@ -41,7 +41,7 @@ async function cargarDatosDecants() {
 async function getDecantsData(key) {
     if (typeof getData === 'function') return await getData(key);
     if (typeof getDataCloud === 'function') return await getDataCloud(key);
-    const localKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS[key]) ? STORAGE_KEYS[key] : key;
+    const localKey = resolveDecantsStorageKey(key);
     const raw = localStorage.getItem(localKey);
     return raw ? JSON.parse(raw) : [];
 }
@@ -55,8 +55,12 @@ async function saveDecantsData(key, data) {
         await setDataCloud(key, data);
         return;
     }
-    const localKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS[key]) ? STORAGE_KEYS[key] : key;
+    const localKey = resolveDecantsStorageKey(key);
     localStorage.setItem(localKey, JSON.stringify(data));
+}
+
+function resolveDecantsStorageKey(key) {
+    return (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS[key]) ? STORAGE_KEYS[key] : key;
 }
 
 function crearTallasSugeridasDesdeBotella(preCarga, mlTotal) {
