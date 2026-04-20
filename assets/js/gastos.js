@@ -6,7 +6,9 @@ let listaGastos = [];
 let filtroPeriodoActual = 'todos';
 
 function cargarGastos() {
-    listaGastos = JSON.parse(localStorage.getItem(EXPENSES_KEY)) || [];
+    listaGastos = (typeof getData === 'function')
+        ? (getData('gastos') || [])
+        : (JSON.parse(localStorage.getItem(EXPENSES_KEY)) || []);
     renderGastos();
     calcularKPIsGastos();
     renderResumenCategorias();
@@ -48,9 +50,10 @@ function guardarGasto() {
     };
 
     listaGastos.push(nuevoGasto);
-    localStorage.setItem(EXPENSES_KEY, JSON.stringify(listaGastos));
-    if (typeof setDataCloud === 'function') {
-        setDataCloud('gastos', listaGastos).catch(() => {});
+    if (typeof setData === 'function') setData('gastos', listaGastos);
+    else {
+        localStorage.setItem(EXPENSES_KEY, JSON.stringify(listaGastos));
+        if (typeof setDataCloud === 'function') setDataCloud('gastos', listaGastos).catch(() => {});
     }
 
     bootstrap.Modal.getInstance(document.getElementById('modalNuevoGasto')).hide();
@@ -123,7 +126,9 @@ function calcularKPIsGastos() {
         .reduce((sum, g) => sum + g.monto, 0);
     const promedioMensual = gastosUltimos3 / 3;
 
-    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     let gananciaVentas = 0;
     ventas.forEach(v => {
         if (v.esCredito) {
@@ -134,12 +139,24 @@ function calcularKPIsGastos() {
         }
     });
 
+    const decantsKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.decants_ventas)
+        ? STORAGE_KEYS.decants_ventas
+        : 'fitoscents_decants_ventas_v1';
+    const ventasDecants = (typeof getData === 'function')
+        ? (getData('decants_ventas') || [])
+        : (JSON.parse(localStorage.getItem(decantsKey) || '[]'));
+    const utilidadDecants = ventasDecants.reduce((sum, v) => {
+        const precio = parseFloat(v.precio) || 0;
+        const costo = parseFloat(v.costoAprox) || 0;
+        return sum + (precio - costo);
+    }, 0);
+
     const misGastos = _calcMisGastos(listaGastos);
 
     document.getElementById('total-gastos').innerText = formatMoney(totalGastos);
     document.getElementById('gastos-mes').innerText = formatMoney(gastosMes);
     document.getElementById('gastos-promedio').innerText = formatMoney(promedioMensual);
-    document.getElementById('ganancia-neta-real').innerText = formatMoney(gananciaVentas - misGastos);
+    document.getElementById('ganancia-neta-real').innerText = formatMoney((gananciaVentas + utilidadDecants) - misGastos);
 }
 
 function renderResumenCategorias() {
@@ -184,7 +201,9 @@ function renderGananciasPorMes() {
     const tbody = document.getElementById('tabla-ganancias-mes');
     if (!tbody) return;
 
-    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const ahora = new Date();
@@ -255,7 +274,9 @@ function buscarGananciasPerfume() {
     if (!contenedor) return;
 
     const query = (document.getElementById('inputBuscarPerfume')?.value || '').trim().toLowerCase();
-    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
 
     const mapaProductos = {};
     ventas.forEach(v => {
@@ -328,12 +349,16 @@ function _calcMisGastos(gastos) {
 // =========================================================
 // ELIMINAR GASTO
 // =========================================================
-function eliminarGasto(id) {
-    if (!solicitarPin()) return;
+async function eliminarGasto(id) {
+    const autorizado = await solicitarPin();
+    if (!autorizado) return;
     showConfirm('¿Eliminar este gasto? Esta acción no se puede deshacer.', () => {
         listaGastos = listaGastos.filter(g => g.id !== id);
-        localStorage.setItem(EXPENSES_KEY, JSON.stringify(listaGastos));
-        if (typeof setDataCloud === 'function') setDataCloud('gastos', listaGastos).catch(() => {});
+        if (typeof setData === 'function') setData('gastos', listaGastos);
+        else {
+            localStorage.setItem(EXPENSES_KEY, JSON.stringify(listaGastos));
+            if (typeof setDataCloud === 'function') setDataCloud('gastos', listaGastos).catch(() => {});
+        }
         cargarGastos();
         showToast('Gasto eliminado', 'warning');
     });

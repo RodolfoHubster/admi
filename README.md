@@ -108,3 +108,8 @@ Publica/actualiza GitHub Pages y valida:
 ## Desarrollo local
 
 Este repositorio no incluye pipeline de build/test/lint definido por `package.json` o `composer.json`.
+
+### Variables de entorno locales
+
+1. Copia `.env.example` a `.env`.
+2. Completa tus valores reales (API key y credenciales de BD).
