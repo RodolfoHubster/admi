@@ -396,8 +396,9 @@ function getAllowedOrigins(): array
         return array_values(array_unique($parts));
     }
 
+    $defaultOrigin = normalizeOrigin(trim(getenv('DEFAULT_ALLOWED_ORIGIN') ?: ''));
     $defaults = [
-        'https://rodolfohubster.github.io',
+        $defaultOrigin !== '' ? $defaultOrigin : 'https://rodolfohubster.github.io',
     ];
 
     $host = $_SERVER['HTTP_HOST'] ?? '';
