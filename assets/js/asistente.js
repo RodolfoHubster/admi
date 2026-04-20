@@ -269,7 +269,15 @@ function sanitizeForMessage(text) {
 function resolveAsistenteApiEndpoint() {
     if (typeof window.ASISTENTE_API_ENDPOINT === 'string') {
         const endpoint = window.ASISTENTE_API_ENDPOINT.trim();
-        if (endpoint.includes('your-backend-service.example.com')) {
+        if (!endpoint) {
+            return '';
+        }
+        try {
+            const parsed = new URL(endpoint, window.location.origin);
+            if (parsed.hostname === 'your-backend-service.example.com') {
+                return '';
+            }
+        } catch (error) {
             return '';
         }
         return endpoint;
