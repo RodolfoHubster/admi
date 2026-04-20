@@ -20,6 +20,26 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = getAllowedOrigins();
 $originAllowed = isOriginAllowed($origin, $allowedOrigins);
 
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && (isset($_GET['health']) || isset($_GET['check']) || isset($_GET['ping']))) {
+    if ($origin !== '' && !$originAllowed) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Origen no autorizado.']);
+        exit;
+    }
+    if ($originAllowed) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Vary: Origin');
+    }
+    echo json_encode([
+        'status' => 'ok',
+        'service' => 'gemini_chat',
+        'api_key_configured' => getenv('GEMINI_API_KEY') !== false && trim((string)getenv('GEMINI_API_KEY')) !== '',
+        'model' => getenv('GEMINI_MODEL') ?: 'gemini-1.5-flash',
+        'timestamp' => date('c')
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 if ($originAllowed) {
     header('Access-Control-Allow-Origin: ' . $origin);
     header('Vary: Origin');

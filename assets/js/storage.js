@@ -206,6 +206,7 @@ async function initApp() {
 // =========================================================
 let currentExchangeRate = null;
 const DEFAULT_EXCHANGE_RATE = 17.0;
+const EXCHANGE_API_CONFIG = getExchangeApiConfig();
 
 // Inicializar calculadora cuando el DOM esté listo
 function initCalculator() {
@@ -229,8 +230,13 @@ function initCalculator() {
 // Cargar tipo de cambio al iniciar
 async function loadExchangeRateOnPage() {
     try {
-        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const response = await fetch(EXCHANGE_API_CONFIG.endpoint, {
+            method: 'GET',
+            headers: resolveExchangeApiHeaders(EXCHANGE_API_CONFIG)
+        });
+        if (!response.ok) {
+            throw new Error(buildExchangeHttpErrorMessage(response.status));
+        }
         const data = await response.json();
         currentExchangeRate = parseFloat(data?.rates?.MXN);
         if (!Number.isFinite(currentExchangeRate) || currentExchangeRate <= 0) {
@@ -251,6 +257,37 @@ async function loadExchangeRateOnPage() {
             badge.innerHTML = `<strong>1 USD = ${currentExchangeRate.toFixed(2)} MXN</strong><br><small>Tipo de cambio de respaldo</small>`;
         }
     }
+}
+
+function getExchangeApiConfig() {
+    const fromConfig = (window.APP_API_CONFIG && window.APP_API_CONFIG.exchangeRate) || {};
+    const endpoint = typeof fromConfig.endpoint === 'string' && fromConfig.endpoint.trim()
+        ? fromConfig.endpoint.trim()
+        : 'https://api.exchangerate-api.com/v4/latest/USD';
+
+    return {
+        endpoint,
+        apiKey: typeof fromConfig.apiKey === 'string' ? fromConfig.apiKey.trim() : '',
+        apiKeyHeader: typeof fromConfig.apiKeyHeader === 'string' ? fromConfig.apiKeyHeader.trim() : 'X-API-Key',
+        bearerToken: typeof fromConfig.bearerToken === 'string' ? fromConfig.bearerToken.trim() : '',
+        authHeader: typeof fromConfig.authHeader === 'string' ? fromConfig.authHeader.trim() : '',
+        authScheme: typeof fromConfig.authScheme === 'string' ? fromConfig.authScheme.trim() : 'Bearer'
+    };
+}
+
+function resolveExchangeApiHeaders(config) {
+    if (typeof window.buildApiAuthHeaders === 'function') {
+        return window.buildApiAuthHeaders(config);
+    }
+    return {};
+}
+
+function buildExchangeHttpErrorMessage(status) {
+    if (status === 401) return 'No autorizado (401) al consultar tipo de cambio.';
+    if (status === 403) return 'Acceso denegado (403) al consultar tipo de cambio.';
+    if (status === 429) return 'Límite de solicitudes (429) en API de tipo de cambio.';
+    if (status >= 500) return `Error del servidor (${status}) en API de tipo de cambio.`;
+    return `HTTP ${status}`;
 }
 
 function calcularImportacion() {
