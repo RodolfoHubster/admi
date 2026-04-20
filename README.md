@@ -45,6 +45,7 @@ Configura en Cloud Run:
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL` (ej. `gemini-1.5-pro`)
 - `ALLOWED_ORIGINS=https://rodolfohubster.github.io`
+- `DEFAULT_ALLOWED_ORIGIN` (opcional, usado solo si `ALLOWED_ORIGINS` no está definido)
 
 > `ALLOWED_ORIGINS` acepta múltiples orígenes separados por coma.
 

@@ -396,12 +396,21 @@ function getAllowedOrigins(): array
         return array_values(array_unique($parts));
     }
 
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    if ($host === '') {
-        return [];
+    $configuredDefaultOrigin = trim(getenv('DEFAULT_ALLOWED_ORIGIN') ?: '');
+    $defaults = [];
+    if ($configuredDefaultOrigin !== '') {
+        $defaults[] = $configuredDefaultOrigin;
     }
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    return [normalizeOrigin("{$scheme}://{$host}")];
+
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host !== '') {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $defaults[] = "{$scheme}://{$host}";
+    }
+
+    $defaults = array_map('normalizeOrigin', $defaults);
+    $defaults = array_filter($defaults, fn ($o) => $o !== '');
+    return array_values(array_unique($defaults));
 }
 
 function isOriginAllowed(string $origin, array $allowedOrigins): bool
