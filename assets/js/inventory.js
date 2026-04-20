@@ -6,6 +6,27 @@ function validarURLImagen(url) {
 }
 
 const TEMPLATES_KEY = 'perfume_templates_v1';
+const INVENTORY_LOCAL_KEY = (typeof DB_KEY !== 'undefined')
+    ? DB_KEY
+    : ((typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.perfumes) ? STORAGE_KEYS.perfumes : 'perfume_inventory_v1');
+
+if (typeof globalThis.ordenActual === 'undefined') {
+    globalThis.ordenActual = { campo: 'nombre', dir: 'asc' };
+}
+
+function getInventoryList() {
+    if (typeof getData === 'function') {
+        const data = getData('perfumes');
+        if (Array.isArray(data)) return data;
+    }
+    return JSON.parse(localStorage.getItem(INVENTORY_LOCAL_KEY) || '[]');
+}
+
+function setInventoryList(productos) {
+    if (typeof setData === 'function') return setData('perfumes', productos);
+    localStorage.setItem(INVENTORY_LOCAL_KEY, JSON.stringify(productos));
+    return true;
+}
 
 function cargarInventario() {
     const tableBody   = document.getElementById('inventory-table-body');
@@ -13,7 +34,7 @@ function cargarInventario() {
     const contadorLabel = document.getElementById('contador-visible');
     if (!tableBody) return;
 
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = getInventoryList();
     let totalUnidades = 0, totalEnCamino = 0;
     productos.forEach(prod => {
         const cant = prod.cantidad || 1;
@@ -160,7 +181,7 @@ function renderFila(prod, index) {
                         $${dineroSocio.toFixed(0)}</span>`
                     : '-'}
             </td>
-            <td>${getBotonesAccion(index)}</td>
+            <td>${getBotonesAccion(index, prod.id)}</td>
         </tr>`;
 }
 
@@ -199,12 +220,13 @@ function renderFilaHija(prod, index) {
                         $${dineroSocio.toFixed(0)}</span>`
                     : '-'}
             </td>
-            <td style="width:12%">${getBotonesAccion(index)}</td>
+            <td style="width:12%">${getBotonesAccion(index, prod.id)}</td>
         </tr>`;
 }
 
 // ========== BOTONES ACCIÓN ==========
-function getBotonesAccion(index) {
+function getBotonesAccion(index, productId = null) {
+    const safeId = (productId !== undefined && productId !== null) ? JSON.stringify(productId) : 'null';
     return `
         <div class="d-flex gap-1 flex-wrap justify-content-center">
             <button class="btn btn-sm btn-gold" onclick="iniciarVenta(${index})" title="Vender">
@@ -219,7 +241,7 @@ function getBotonesAccion(index) {
             <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" style="font-size:0.75rem">
                 🧪
             </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index})" title="Eliminar">
+            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index}, ${safeId})" title="Eliminar">
                 <i class="bi bi-trash"></i>
             </button>
         </div>`;
@@ -227,7 +249,7 @@ function getBotonesAccion(index) {
 
 // ========== PASAR A DECANTS ==========
 function pasarADecants(index) {
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = getInventoryList();
     const prod = productos[index];
     if (!prod) { showToast('No se encontró el producto. Recarga la página.', 'error'); return; }
 
@@ -236,7 +258,10 @@ function pasarADecants(index) {
         imagen: prod.imagen || '',
         costo: parseFloat(prod.costo) || 0,
         precioCompra: parseFloat(prod.costo) || 0,
+        precioVenta: parseFloat(prod.precioVenta) || 0,
         precioVentaBotella: parseFloat(prod.precioVenta) || 0,
+        inversion: prod.inversion || 'mio',
+        porcentajeSocio: parseFloat(prod.porcentajeSocio) || 0,
         sku: prod.sku || '', id: prod.id, origen: 'inventario'
     }));
 
@@ -272,14 +297,14 @@ function pasarADecants(index) {
 
     document.getElementById('__decant-confirm-btn').onclick = async () => {
         // Eliminar el producto del inventario
-        const prods = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+        const prods = getInventoryList();
         const idxById = (prod.id !== undefined && prod.id !== null)
             ? prods.findIndex(p => p.id === prod.id)
             : -1;
         const idx = idxById !== -1 ? idxById : index;
         if (idx !== -1) {
             prods.splice(idx, 1);
-            setData('perfumes', prods);
+            setInventoryList(prods);
             if (typeof setDataCloud === 'function') {
                 try { await setDataCloud('perfumes', prods); }
                 catch (e) { console.warn('No se pudo sincronizar inventario antes de redirigir:', e); }
@@ -331,7 +356,7 @@ function guardarProducto() {
     if (!nombre || !costo || !precio) { alert('Por favor, llena los campos obligatorios.'); return; }
     if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
 
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = getInventoryList();
     for (let i = 0; i < cantidadTotal; i++) {
         productos.push({
             id: Date.now() + i, nombre, marca, sku,
@@ -346,7 +371,7 @@ function guardarProducto() {
     const checkPlantilla = document.getElementById('checkGuardarPlantilla');
     if(checkPlantilla && checkPlantilla.checked) { guardarComoPlantilla(); checkPlantilla.checked = false; }
 
-    setData('perfumes', productos);
+    setInventoryList(productos);
     const modalEl = document.getElementById('modalNuevoPerfume');
     if(modalEl) {
         const modal = bootstrap.Modal.getInstance(modalEl);
@@ -357,17 +382,25 @@ function guardarProducto() {
     alert(`✅ Se registraron correctamente ${cantidadTotal} unidades.`);
 }
 
-function eliminarProducto(index) {
+function eliminarProducto(index, productId = null) {
     if (!solicitarPin()) return alert('❌ PIN Incorrecto.');
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-    productos.splice(index, 1);
-    setData('perfumes', productos);
+    const productos = getInventoryList();
+    const idxById = (productId !== undefined && productId !== null)
+        ? productos.findIndex(p => p.id === productId)
+        : -1;
+    const idx = idxById !== -1 ? idxById : index;
+    if (idx < 0 || idx >= productos.length) {
+        alert('❌ No se encontró el producto a eliminar. Recarga la página.');
+        return;
+    }
+    productos.splice(idx, 1);
+    setInventoryList(productos);
     cargarInventario();
 }
 
 // ========== EDITAR PRODUCTO ==========
 function editarProducto(index) {
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = getInventoryList();
     const prod = productos[index];
     indiceEdicion = index;
     document.getElementById('inputNombre').value    = prod.nombre;
@@ -400,7 +433,7 @@ function editarProducto(index) {
 // ========== GUARDAR CAMBIOS EDICIÓN ==========
 function guardarCambiosEdicion() {
     if (indiceEdicion === null) return;
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = getInventoryList();
     const p = productos[indiceEdicion];
     p.nombre      = document.getElementById('inputNombre').value;
     p.marca       = document.getElementById('inputMarca').value;
@@ -422,7 +455,7 @@ function guardarCambiosEdicion() {
     if (notasEl) p.notas = notasEl.value.trim();
     if (batchEl) p.batch = batchEl.value.trim();
 
-    setData('perfumes', productos);
+    setInventoryList(productos);
     const modalEl = document.getElementById('modalNuevoPerfume');
     const modal   = bootstrap.Modal.getInstance(modalEl);
     if(modal) modal.hide();
@@ -442,9 +475,9 @@ function restaurarModalNuevo() {
 
 function marcarComoRecibido(index) {
     if(confirm('📦 ¿Confirmas que este perfume YA LLEGÓ?')) {
-        const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+        const productos = getInventoryList();
         productos[index].ubicacion = 'en_inventario';
-        setData('perfumes', productos);
+        setInventoryList(productos);
         cargarInventario();
     }
 }
@@ -457,7 +490,7 @@ function togglePersonalizado() {
 }
 
 function calcularKPIsInventario() {
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = getInventoryList();
     let totalCosto = 0, totalVenta = 0, totalGanancia = 0, deudaSocio = 0;
     productos.forEach(prod => {
         const costo = parseFloat(prod.costo) || 0;

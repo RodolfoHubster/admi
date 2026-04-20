@@ -32,6 +32,9 @@ function calcularKPIsDashboard() {
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
     const gastos = JSON.parse(localStorage.getItem(EXPENSES_KEY)) || [];
+    const ventasDecants = (typeof getData === 'function')
+        ? (getData('decants_ventas') || [])
+        : JSON.parse(localStorage.getItem('fitoscents_decants_ventas_v1') || '[]');
 
     let dineroCobrado = 0;
     let dineroPorCobrar = 0;
@@ -52,6 +55,12 @@ function calcularKPIsDashboard() {
         }
     });
 
+    const utilidadDecants = ventasDecants.reduce((sum, v) => {
+        const precio = parseFloat(v.precio) || 0;
+        const costo = parseFloat(v.costoAprox) || 0;
+        return sum + (precio - costo);
+    }, 0);
+
     const misGastos = gastos.reduce((sum, g) => {
         if (g.quienPago === 'mio') return sum + g.monto;
         if (g.quienPago === 'mitad') return sum + (g.monto * 0.5);
@@ -62,10 +71,11 @@ function calcularKPIsDashboard() {
         return sum;
     }, 0);
 
-    const gananciaNeta = dineroCobrado - misGastos;
+    const dineroCobradoTotal = dineroCobrado + utilidadDecants;
+    const gananciaNeta = dineroCobradoTotal - misGastos;
 
     document.getElementById('ganancia-neta-real').innerText = formatMoney(gananciaNeta);
-    document.getElementById('badge-cobrado').innerText = `Cobrado: ${formatMoney(dineroCobrado)}`;
+    document.getElementById('badge-cobrado').innerText = `Cobrado: ${formatMoney(dineroCobradoTotal)}`;
     document.getElementById('badge-gastos-desc').innerText = `Gastos: ${formatMoney(misGastos)}`;
     document.getElementById('dinero-por-cobrar').innerText = formatMoney(dineroPorCobrar);
     document.getElementById('clientes-deudores').innerText = `${clientesDeudores.size} cliente${clientesDeudores.size !== 1 ? 's' : ''}`;

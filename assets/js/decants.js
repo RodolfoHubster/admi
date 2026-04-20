@@ -16,18 +16,19 @@ let _tallasFila = [];
 // =========================================================
 document.addEventListener('DOMContentLoaded', async () => {
     await initApp();
+    await initDecants();
     await cargarDatosDecants();
     verificarPrecarga();
     renderTallasDefault();
 });
 
-async function initApp() {
+async function initDecants() {
     if (typeof waitForFirebase === 'function') await waitForFirebase();
 }
 
 async function cargarDatosDecants() {
-    _fuentes = await getData(DECANTS_FUENTES_KEY) || [];
-    _ventasD = await getData(DECANTS_VENTAS_KEY)  || [];
+    _fuentes = await getDecantsData(DECANTS_FUENTES_KEY) || [];
+    _ventasD = await getDecantsData(DECANTS_VENTAS_KEY)  || [];
     cargarFuentes();
     cargarHistorialVentas();
     actualizarKPIs();
@@ -37,16 +38,33 @@ async function cargarDatosDecants() {
 // =========================================================
 // LECTURA/ESCRITURA FIREBASE + FALLBACK LOCAL
 // =========================================================
-async function getData(key) {
+async function getDecantsData(key) {
+    if (typeof getData === 'function') return await getData(key);
     if (typeof getDataCloud === 'function') return await getDataCloud(key);
-    const raw = localStorage.getItem('fitoscents_' + key);
+    const localKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS[key]) ? STORAGE_KEYS[key] : key;
+    const raw = localStorage.getItem(localKey);
     return raw ? JSON.parse(raw) : [];
 }
 
-async function saveData(key, data) {
-    if (typeof setData === 'function') setData(key, data);
-    else if (typeof setDataCloud === 'function') await setDataCloud(key, data);
-    localStorage.setItem('fitoscents_' + key, JSON.stringify(data));
+async function saveDecantsData(key, data) {
+    if (typeof setData === 'function') {
+        setData(key, data);
+        return;
+    }
+    if (typeof setDataCloud === 'function') {
+        await setDataCloud(key, data);
+        return;
+    }
+    const localKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS[key]) ? STORAGE_KEYS[key] : key;
+    localStorage.setItem(localKey, JSON.stringify(data));
+}
+
+function crearTallasSugeridasDesdeBotella(preCarga, mlTotal) {
+    const precioBotella = parseFloat(preCarga?.precioVentaBotella ?? preCarga?.precioVenta) || 0;
+    const precioPorMl = (mlTotal > 0 && precioBotella > 0) ? (precioBotella / mlTotal) : 0;
+    const precio5 = precioPorMl > 0 ? Math.round(precioPorMl * 5) : 0;
+    const precio10 = precioPorMl > 0 ? Math.round(precioPorMl * 10) : 0;
+    return [{ ml: 5, precio: precio5 }, { ml: 10, precio: precio10 }];
 }
 
 // =========================================================
@@ -118,14 +136,14 @@ function verificarPrecarga() {
             mlUsados:  0,
             costo:     parseFloat(p.precioCompra ?? p.costo) || 0,
             imagen:    p.imagen  || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
-            tallas:    [{ ml: 5, precio: '' }, { ml: 10, precio: '' }],
+            tallas:    crearTallasSugeridasDesdeBotella(p, mlTotal),
             notas:     'Agregado desde inventario',
             createdAt: new Date().toISOString()
         };
 
         _fuentes.push(nuevaFuente);
         try {
-            await saveData(DECANTS_FUENTES_KEY, _fuentes);
+            await saveDecantsData(DECANTS_FUENTES_KEY, _fuentes);
             cargarFuentes();
             actualizarKPIs();
             llenarSelectFuentes();
@@ -336,7 +354,7 @@ function guardarFuente() {
         });
     }
 
-    saveData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
+    saveDecantsData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
         bootstrap.Modal.getInstance(document.getElementById('modalNuevaFuente'))?.hide();
         resetFormFuente();
         cargarFuentes();
@@ -390,8 +408,8 @@ function eliminarFuente(id) {
             _fuentes = _fuentes.filter(x => x.id !== id);
             _ventasD = _ventasD.filter(v => v.fuenteId !== id);
             Promise.all([
-                saveData(DECANTS_FUENTES_KEY, _fuentes),
-                saveData(DECANTS_VENTAS_KEY,  _ventasD)
+                saveDecantsData(DECANTS_FUENTES_KEY, _fuentes),
+                saveDecantsData(DECANTS_VENTAS_KEY,  _ventasD)
             ]).then(() => {
                 cargarFuentes();
                 cargarHistorialVentas();
@@ -459,7 +477,7 @@ function guardarAjusteML() {
     const idx      = _fuentes.findIndex(f => f.id === id);
     if (idx === -1) return;
     _fuentes[idx].mlUsados = nuevoVal;
-    saveData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
+    saveDecantsData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
         bootstrap.Modal.getInstance(document.getElementById('modalAjusteML'))?.hide();
         cargarFuentes();
         actualizarKPIs();
@@ -570,8 +588,8 @@ function registrarVentaDecant() {
     }
 
     Promise.all([
-        saveData(DECANTS_FUENTES_KEY, _fuentes),
-        saveData(DECANTS_VENTAS_KEY,  _ventasD)
+        saveDecantsData(DECANTS_FUENTES_KEY, _fuentes),
+        saveDecantsData(DECANTS_VENTAS_KEY,  _ventasD)
     ]).then(() => {
         bootstrap.Modal.getInstance(document.getElementById('modalVenderDecant'))?.hide();
         document.getElementById('venta-fuente-id').value = '';
@@ -630,8 +648,8 @@ function registrarVentaBotella() {
     });
     _fuentes[fIdx].mlUsados = f.mlTotal;
     Promise.all([
-        saveData(DECANTS_FUENTES_KEY, _fuentes),
-        saveData(DECANTS_VENTAS_KEY,  _ventasD)
+        saveDecantsData(DECANTS_FUENTES_KEY, _fuentes),
+        saveDecantsData(DECANTS_VENTAS_KEY,  _ventasD)
     ]).then(() => {
         bootstrap.Modal.getInstance(document.getElementById('modalVenderBotella'))?.hide();
         cargarFuentes();

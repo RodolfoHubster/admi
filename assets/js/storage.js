@@ -205,6 +205,7 @@ async function initApp() {
 // 💱 CALCULADORA DE IMPORTACIÓN
 // =========================================================
 let currentExchangeRate = null;
+const DEFAULT_EXCHANGE_RATE = 17.0;
 
 // Inicializar calculadora cuando el DOM esté listo
 function initCalculator() {
@@ -229,8 +230,12 @@ function initCalculator() {
 async function loadExchangeRateOnPage() {
     try {
         const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        currentExchangeRate = data.rates.MXN;
+        currentExchangeRate = parseFloat(data?.rates?.MXN);
+        if (!Number.isFinite(currentExchangeRate) || currentExchangeRate <= 0) {
+            throw new Error('Tipo de cambio inválido desde API');
+        }
         
         const timestamp = new Date().toLocaleTimeString('es-MX');
         const badge = document.getElementById('exchange-rate-badge');
@@ -240,9 +245,10 @@ async function loadExchangeRateOnPage() {
         }
     } catch (error) {
         console.error('❌ Error en tipo de cambio:', error);
+        currentExchangeRate = DEFAULT_EXCHANGE_RATE;
         const badge = document.getElementById('exchange-rate-badge');
         if (badge) {
-            badge.textContent = 'Error cargando cambio';
+            badge.innerHTML = `<strong>1 USD = ${currentExchangeRate.toFixed(2)} MXN</strong><br><small>Tipo de cambio de respaldo</small>`;
         }
     }
 }
