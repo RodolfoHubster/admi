@@ -13,6 +13,7 @@ const MAX_CONVERSATION_CONTEXT = 12;
 const MAX_CATALOG_ITEMS = 80;
 const MAX_CONVERSATION_TEXT_LENGTH = 1600;
 const MAX_SECURITY_LOG_VALUE_LENGTH = 300;
+const DEFAULT_ALLOWED_ORIGIN_FALLBACK = 'https://rodolfohubster.github.io';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -396,9 +397,9 @@ function getAllowedOrigins(): array
         return array_values(array_unique($parts));
     }
 
-    $defaultOrigin = normalizeOrigin(trim(getenv('DEFAULT_ALLOWED_ORIGIN') ?: ''));
+    $defaultOrigin = trim(getenv('DEFAULT_ALLOWED_ORIGIN') ?: '');
     $defaults = [
-        $defaultOrigin !== '' ? $defaultOrigin : 'https://rodolfohubster.github.io',
+        $defaultOrigin !== '' ? $defaultOrigin : DEFAULT_ALLOWED_ORIGIN_FALLBACK,
     ];
 
     $host = $_SERVER['HTTP_HOST'] ?? '';
