@@ -396,12 +396,19 @@ function getAllowedOrigins(): array
         return array_values(array_unique($parts));
     }
 
+    $defaults = [
+        'https://rodolfohubster.github.io',
+    ];
+
     $host = $_SERVER['HTTP_HOST'] ?? '';
-    if ($host === '') {
-        return [];
+    if ($host !== '') {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $defaults[] = "{$scheme}://{$host}";
     }
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    return [normalizeOrigin("{$scheme}://{$host}")];
+
+    $defaults = array_map('normalizeOrigin', $defaults);
+    $defaults = array_values(array_filter($defaults, static fn ($o) => $o !== ''));
+    return array_values(array_unique($defaults));
 }
 
 function isOriginAllowed(string $origin, array $allowedOrigins): bool
