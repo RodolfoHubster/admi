@@ -45,7 +45,10 @@ function cargarInventario() {
 
     const grupos = {};
     filtrados.forEach((prod) => {
-        const realIndex = productos.findIndex(p => p.id === prod.id);
+        const realIndexById = (prod.id !== undefined && prod.id !== null)
+            ? productos.findIndex(p => p.id === prod.id)
+            : -1;
+        const realIndex = realIndexById !== -1 ? realIndexById : productos.indexOf(prod);
         prod.originalIndex = realIndex;
         const nombreLimpio = prod.nombre.trim();
         if (!grupos[nombreLimpio]) grupos[nombreLimpio] = [];
@@ -230,7 +233,10 @@ function pasarADecants(index) {
 
     localStorage.setItem('decant_precarga_tmp', JSON.stringify({
         nombre: prod.nombre, marca: prod.marca || '',
-        imagen: prod.imagen || '', costo: prod.costo || 0,
+        imagen: prod.imagen || '',
+        costo: parseFloat(prod.costo) || 0,
+        precioCompra: parseFloat(prod.costo) || 0,
+        precioVentaBotella: parseFloat(prod.precioVenta) || 0,
         sku: prod.sku || '', id: prod.id, origen: 'inventario'
     }));
 
@@ -264,13 +270,20 @@ function pasarADecants(index) {
     document.getElementById('__decant-confirm-msg').textContent =
         `"${prod.nombre}" (${prod.marca || 'Sin marca'}) — $${prod.costo} costo`;
 
-    document.getElementById('__decant-confirm-btn').onclick = () => {
+    document.getElementById('__decant-confirm-btn').onclick = async () => {
         // Eliminar el producto del inventario
         const prods = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        const idx = prods.findIndex(p => p.id === prod.id);
+        const idxById = (prod.id !== undefined && prod.id !== null)
+            ? prods.findIndex(p => p.id === prod.id)
+            : -1;
+        const idx = idxById !== -1 ? idxById : index;
         if (idx !== -1) {
             prods.splice(idx, 1);
             setData('perfumes', prods);
+            if (typeof setDataCloud === 'function') {
+                try { await setDataCloud('perfumes', prods); }
+                catch (e) { console.warn('No se pudo sincronizar inventario antes de redirigir:', e); }
+            }
         }
         window.location.href = 'decants.html';
     };

@@ -116,7 +116,7 @@ function verificarPrecarga() {
             marca:     p.marca   || '',
             mlTotal,
             mlUsados:  0,
-            costo:     parseFloat(p.costo) || 0,
+            costo:     parseFloat(p.precioCompra ?? p.costo) || 0,
             imagen:    p.imagen  || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
             tallas:    [{ ml: 5, precio: '' }, { ml: 10, precio: '' }],
             notas:     'Agregado desde inventario',
