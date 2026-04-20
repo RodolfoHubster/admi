@@ -14,7 +14,7 @@ GitHub Pages **no ejecuta PHP**, por lo que `api/gemini_chat.php` debe correr en
 Puedes validarlo por CLI:
 
 ```bash
-gcloud beta billing projects describe TU_PROJECT_ID
+gcloud billing projects describe TU_PROJECT_ID
 ```
 
 ### 2) Habilita APIs necesarias
@@ -75,7 +75,7 @@ En `asistente.html` ajusta:
 
 ```html
 <script>
-  window.ASISTENTE_API_ENDPOINT = 'https://TU-SERVICIO.a.run.app/api/gemini_chat.php';
+  window.ASISTENTE_API_ENDPOINT = 'https://admi-gemini-api-xxxx-uc.a.run.app/api/gemini_chat.php';
 </script>
 ```
 
