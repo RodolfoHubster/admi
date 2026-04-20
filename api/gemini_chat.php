@@ -131,8 +131,11 @@ $payload = [
 $response = httpPostJson($url, $payload);
 if ($response['status'] < 200 || $response['status'] >= 300) {
     http_response_code(502);
-    logProviderError($response['body']);
-    echo json_encode(['error' => 'Error al consultar Gemini.']);
+    echo json_encode([
+        'error' => 'Error al consultar Gemini.',
+        'provider_status' => $response['status'],
+        'provider_body' => mb_substr((string)$response['body'], 0, 1200),
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
