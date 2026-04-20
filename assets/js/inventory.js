@@ -226,7 +226,9 @@ function renderFilaHija(prod, index) {
 
 // ========== BOTONES ACCIÓN ==========
 function getBotonesAccion(index, productId = null) {
-    const safeId = (productId !== undefined && productId !== null) ? JSON.stringify(productId) : 'null';
+    const safeId = (productId !== undefined && productId !== null)
+        ? `'${encodeURIComponent(String(productId))}'`
+        : "''";
     return `
         <div class="d-flex gap-1 flex-wrap justify-content-center">
             <button class="btn btn-sm btn-gold" onclick="iniciarVenta(${index})" title="Vender">
@@ -382,11 +384,14 @@ function guardarProducto() {
     alert(`✅ Se registraron correctamente ${cantidadTotal} unidades.`);
 }
 
-function eliminarProducto(index, productId = null) {
+function eliminarProducto(index, productId = '') {
     if (!solicitarPin()) return alert('❌ PIN Incorrecto.');
     const productos = getInventoryList();
-    const idxById = (productId !== undefined && productId !== null)
-        ? productos.findIndex(p => p.id === productId)
+    const normalizedId = (typeof productId === 'string' && productId !== '')
+        ? decodeURIComponent(productId)
+        : null;
+    const idxById = (normalizedId !== null)
+        ? productos.findIndex(p => String(p.id) === normalizedId)
         : -1;
     const idx = idxById !== -1 ? idxById : index;
     if (idx < 0 || idx >= productos.length) {

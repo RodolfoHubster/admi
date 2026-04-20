@@ -32,9 +32,12 @@ function calcularKPIsDashboard() {
     const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
     const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
     const gastos = JSON.parse(localStorage.getItem(EXPENSES_KEY)) || [];
+    const decantsVentasKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.decants_ventas)
+        ? STORAGE_KEYS.decants_ventas
+        : 'fitoscents_decants_ventas_v1';
     const ventasDecants = (typeof getData === 'function')
         ? (getData('decants_ventas') || [])
-        : JSON.parse(localStorage.getItem('fitoscents_decants_ventas_v1') || '[]');
+        : JSON.parse(localStorage.getItem(decantsVentasKey) || '[]');
 
     let dineroCobrado = 0;
     let dineroPorCobrar = 0;
