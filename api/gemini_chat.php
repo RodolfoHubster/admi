@@ -396,14 +396,14 @@ function isOriginAllowed(string $origin, array $allowedOrigins): bool
 
 function normalizeOrigin(string $origin): string
 {
-    $origin = trim(rtrim($origin, '/'));
+    $origin = rtrim(trim($origin), '/');
     if ($origin === '') {
         return '';
     }
 
     $parts = parse_url($origin);
     if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
-        return $origin;
+        return '';
     }
 
     $scheme = strtolower((string)$parts['scheme']);
