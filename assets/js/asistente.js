@@ -268,7 +268,11 @@ function sanitizeForMessage(text) {
 
 function resolveAsistenteApiEndpoint() {
     if (typeof window.ASISTENTE_API_ENDPOINT === 'string') {
-        return window.ASISTENTE_API_ENDPOINT.trim();
+        const endpoint = window.ASISTENTE_API_ENDPOINT.trim();
+        if (endpoint.includes('your-backend-service.example.com')) {
+            return '';
+        }
+        return endpoint;
     }
     return '';
 }
