@@ -423,13 +423,18 @@ function isOriginAllowed(string $origin, array $allowedOrigins): bool
 
 function logSecurityEvent(string $type, string $value): void
 {
+    $safeType = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $type);
+    if ($safeType === null || $safeType === '') {
+        $safeType = 'unknown';
+    }
+
     $sanitized = preg_replace('/\s+/', ' ', $value);
-    if (!is_string($sanitized)) {
+    if ($sanitized === null) {
         $sanitized = 'unreadable_value';
     } else {
         $sanitized = mb_substr($sanitized, 0, 300);
     }
-    $line = sprintf("[%s] security_event=%s value=%s\n", date('c'), $type, $sanitized);
+    $line = sprintf("[%s] security_event=%s value=%s\n", date('c'), $safeType, $sanitized);
     $written = file_put_contents(sys_get_temp_dir() . '/gemini_assistant_security.log', $line, FILE_APPEND | LOCK_EX);
     if ($written === false) {
         error_log('No se pudo escribir gemini_assistant_security.log');
