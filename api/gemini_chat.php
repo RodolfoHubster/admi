@@ -470,7 +470,7 @@ function textSlice(string $value, int $length): string
     if (preg_match('/^[\x00-\x7F]*$/', $value) === 1) {
         return substr($value, 0, $length);
     }
-    $chars = preg_split('//u', $value, $length + 1, PREG_SPLIT_NO_EMPTY);
+    $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
     if (!is_array($chars)) {
         return substr($value, 0, $length);
     }
@@ -488,7 +488,7 @@ function textLength(string $value): int
     if (preg_match('/^[\x00-\x7F]*$/', $value) === 1) {
         return strlen($value);
     }
-    $count = preg_match_all('/./us', $value, $matchedChars);
+    $count = preg_match_all('/./us', $value);
     if ($count === false) {
         return strlen($value);
     }
