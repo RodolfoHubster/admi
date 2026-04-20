@@ -467,10 +467,14 @@ function textSlice(string $value, int $length): string
     if (function_exists('mb_substr')) {
         return mb_substr($value, 0, $length, 'UTF-8');
     }
-    if (preg_match_all('/./us', $value, $chars) === false || !isset($chars[0])) {
+    if (preg_match('/^[\x00-\x7F]*$/', $value) === 1) {
         return substr($value, 0, $length);
     }
-    return implode('', array_slice($chars[0], 0, $length));
+    $chars = preg_split('//u', $value, $length + 1, PREG_SPLIT_NO_EMPTY);
+    if (!is_array($chars)) {
+        return substr($value, 0, $length);
+    }
+    return implode('', array_slice($chars, 0, $length));
 }
 
 function textLength(string $value): int
@@ -481,8 +485,12 @@ function textLength(string $value): int
     if (function_exists('mb_strlen')) {
         return (int)mb_strlen($value, 'UTF-8');
     }
-    if (preg_match_all('/./us', $value, $chars) === false || !isset($chars[0])) {
+    if (preg_match('/^[\x00-\x7F]*$/', $value) === 1) {
         return strlen($value);
     }
-    return count($chars[0]);
+    $count = preg_match_all('/./us', $value, $unused);
+    if ($count === false) {
+        return strlen($value);
+    }
+    return (int)$count;
 }
