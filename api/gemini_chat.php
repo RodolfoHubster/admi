@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 // Cargar variables de entorno desde .env
-if (file_exists(__DIR__ . '/../../.env')) {
-    $env = parse_ini_file(__DIR__ . '/../../.env');
+if (file_exists(__DIR__ . '/../.env')) {
+    $env = parse_ini_file(__DIR__ . '/../.env');
     foreach ($env as $key => $value) {
         putenv("{$key}={$value}");
     }
@@ -12,6 +12,7 @@ if (file_exists(__DIR__ . '/../../.env')) {
 const MAX_CONVERSATION_CONTEXT = 12;
 const MAX_CATALOG_ITEMS = 80;
 const MAX_CONVERSATION_TEXT_LENGTH = 1600;
+const MAX_SECURITY_LOG_VALUE_LENGTH = 300;
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -362,11 +363,35 @@ function getClientIp(): string
     return 'unknown';
 }
 
+function normalizeOrigin(string $origin): string
+{
+    $origin = rtrim(trim($origin), '/');
+    if ($origin === '') {
+        return '';
+    }
+
+    $parts = parse_url($origin);
+    if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+        return '';
+    }
+
+    $scheme = strtolower((string)$parts['scheme']);
+    $host = strtolower((string)$parts['host']);
+    $port = isset($parts['port']) ? ':' . (int)$parts['port'] : '';
+
+    if ($scheme === '' || $host === '') {
+        return '';
+    }
+
+    return "{$scheme}://{$host}{$port}";
+}
+
 function getAllowedOrigins(): array
 {
     $env = trim(getenv('ALLOWED_ORIGINS') ?: '');
     if ($env !== '') {
         $parts = array_map('trim', explode(',', $env));
+        $parts = array_map('normalizeOrigin', $parts);
         $parts = array_values(array_filter($parts, static fn ($o) => $o !== ''));
         return array_values(array_unique($parts));
     }
@@ -376,12 +401,17 @@ function getAllowedOrigins(): array
         return [];
     }
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    return ["{$scheme}://{$host}"];
+    return [normalizeOrigin("{$scheme}://{$host}")];
 }
 
 function isOriginAllowed(string $origin, array $allowedOrigins): bool
 {
+    $originalOrigin = $origin;
+    $origin = normalizeOrigin($origin);
     if ($origin === '') {
+        if (trim($originalOrigin) !== '') {
+            logSecurityEvent('invalid_origin_format', $originalOrigin);
+        }
         return false;
     }
     foreach ($allowedOrigins as $allowed) {
@@ -390,4 +420,29 @@ function isOriginAllowed(string $origin, array $allowedOrigins): bool
         }
     }
     return false;
+}
+
+function logSecurityEvent(string $type, string $value): void
+{
+    $safeType = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $type);
+    if ($safeType === null || $safeType === '') {
+        $safeType = 'unknown';
+    }
+
+    $sanitized = preg_replace('/\s+/', ' ', $value);
+    if ($sanitized === null) {
+        $sanitized = 'unreadable_value';
+    } else {
+        $sanitized = preg_replace('/[\x00-\x1F\x7F]/', '', $sanitized) ?? 'unreadable_value';
+        $sanitized = mb_substr($sanitized, 0, MAX_SECURITY_LOG_VALUE_LENGTH, 'UTF-8');
+    }
+    $encodedValue = json_encode($sanitized, JSON_UNESCAPED_UNICODE);
+    if (!is_string($encodedValue)) {
+        $encodedValue = '"unreadable_value"';
+    }
+    $line = sprintf("[%s] security_event=%s value=%s\n", date('c'), $safeType, $encodedValue);
+    $written = file_put_contents(sys_get_temp_dir() . '/gemini_assistant_security.log', $line, FILE_APPEND | LOCK_EX);
+    if ($written === false) {
+        error_log('No se pudo escribir gemini_assistant_security.log');
+    }
 }
