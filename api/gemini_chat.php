@@ -12,6 +12,7 @@ if (file_exists(__DIR__ . '/../.env')) {
 const MAX_CONVERSATION_CONTEXT = 12;
 const MAX_CATALOG_ITEMS = 80;
 const MAX_CONVERSATION_TEXT_LENGTH = 1600;
+const MAX_SECURITY_LOG_VALUE_LENGTH = 300;
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -433,7 +434,7 @@ function logSecurityEvent(string $type, string $value): void
         $sanitized = 'unreadable_value';
     } else {
         $sanitized = preg_replace('/[\x00-\x1F\x7F]/', '', $sanitized) ?? 'unreadable_value';
-        $sanitized = mb_substr($sanitized, 0, 300, 'UTF-8');
+        $sanitized = mb_substr($sanitized, 0, MAX_SECURITY_LOG_VALUE_LENGTH, 'UTF-8');
     }
     $encodedValue = json_encode($sanitized, JSON_UNESCAPED_UNICODE);
     if (!is_string($encodedValue)) {
