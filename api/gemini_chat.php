@@ -1,6 +1,14 @@
 <?php
 declare(strict_types=1);
 
+// Cargar variables de entorno desde .env
+if (file_exists(__DIR__ . '/../../.env')) {
+    $env = parse_ini_file(__DIR__ . '/../../.env');
+    foreach ($env as $key => $value) {
+        putenv("{$key}={$value}");
+    }
+}
+
 const MAX_CONVERSATION_CONTEXT = 12;
 const MAX_CATALOG_ITEMS = 80;
 const MAX_CONVERSATION_TEXT_LENGTH = 1600;
