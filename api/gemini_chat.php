@@ -368,26 +368,40 @@ function getAllowedOrigins(): array
     if ($env !== '') {
         $parts = array_map('trim', explode(',', $env));
         $parts = array_values(array_filter($parts, static fn ($o) => $o !== ''));
-        return array_values(array_unique($parts));
+        return array_values(array_unique(array_map('normalizeOrigin', $parts)));
     }
 
     $host = $_SERVER['HTTP_HOST'] ?? '';
-    if ($host === '') {
-        return [];
+    $origins = [
+        'https://rodolfohubster.github.io',
+        'http://localhost',
+        'http://127.0.0.1',
+    ];
+
+    if ($host !== '') {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $origins[] = "{$scheme}://{$host}";
     }
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    return ["{$scheme}://{$host}"];
+
+    return array_values(array_unique(array_map('normalizeOrigin', $origins)));
 }
 
 function isOriginAllowed(string $origin, array $allowedOrigins): bool
 {
+    $origin = normalizeOrigin($origin);
     if ($origin === '') {
         return false;
     }
     foreach ($allowedOrigins as $allowed) {
-        if (strcasecmp($origin, $allowed) === 0) {
+        if (strcasecmp($origin, normalizeOrigin($allowed)) === 0) {
             return true;
         }
     }
     return false;
+}
+
+function normalizeOrigin(string $origin): string
+{
+    $origin = trim($origin);
+    return rtrim($origin, '/');
 }
