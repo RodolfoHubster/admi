@@ -362,38 +362,6 @@ function getClientIp(): string
     return 'unknown';
 }
 
-function getAllowedOrigins(): array
-{
-    $env = trim(getenv('ALLOWED_ORIGINS') ?: '');
-    if ($env !== '') {
-        $parts = array_map('trim', explode(',', $env));
-        $parts = array_map('normalizeOrigin', $parts);
-        $parts = array_values(array_filter($parts, static fn ($o) => $o !== ''));
-        return array_values(array_unique($parts));
-    }
-
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    if ($host === '') {
-        return [];
-    }
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    return [normalizeOrigin("{$scheme}://{$host}")];
-}
-
-function isOriginAllowed(string $origin, array $allowedOrigins): bool
-{
-    $origin = normalizeOrigin($origin);
-    if ($origin === '') {
-        return false;
-    }
-    foreach ($allowedOrigins as $allowed) {
-        if (strcasecmp($origin, $allowed) === 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function normalizeOrigin(string $origin): string
 {
     $origin = rtrim(trim($origin), '/');
@@ -415,4 +383,48 @@ function normalizeOrigin(string $origin): string
     }
 
     return "{$scheme}://{$host}{$port}";
+}
+
+function getAllowedOrigins(): array
+{
+    $env = trim(getenv('ALLOWED_ORIGINS') ?: '');
+    if ($env !== '') {
+        $parts = array_map('trim', explode(',', $env));
+        $parts = array_map('normalizeOrigin', $parts);
+        $parts = array_values(array_filter($parts, static fn ($o) => $o !== ''));
+        return array_values(array_unique($parts));
+    }
+
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host === '') {
+        return [];
+    }
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    return [normalizeOrigin("{$scheme}://{$host}")];
+}
+
+function isOriginAllowed(string $origin, array $allowedOrigins): bool
+{
+    $originalOrigin = $origin;
+    $origin = normalizeOrigin($origin);
+    if ($origin === '') {
+        if (trim($originalOrigin) !== '') {
+            logSecurityEvent('invalid_origin_format', $originalOrigin);
+        }
+        return false;
+    }
+    foreach ($allowedOrigins as $allowed) {
+        if (strcasecmp($origin, $allowed) === 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function logSecurityEvent(string $type, string $value): void
+{
+    $sanitized = preg_replace('/\s+/', ' ', $value);
+    $sanitized = is_string($sanitized) ? mb_substr($sanitized, 0, 300) : 'valor_no_legible';
+    $line = sprintf("[%s] security_event=%s value=%s\n", date('c'), $type, $sanitized);
+    @file_put_contents(sys_get_temp_dir() . '/gemini_assistant_security.log', $line, FILE_APPEND | LOCK_EX);
 }
