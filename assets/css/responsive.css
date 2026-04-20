@@ -8,6 +8,10 @@
     /* ==========================================
        GLOBAL: Espaciado y fuentes base
     ========================================== */
+    html, body {
+        overflow-x: hidden !important;
+    }
+
     body {
         font-size: 14px;
     }
@@ -15,6 +19,15 @@
     .container {
         padding-left: 12px !important;
         padding-right: 12px !important;
+    }
+    .container-fluid {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    img, video, canvas {
+        max-width: 100% !important;
+        height: auto;
     }
 
     h2 { font-size: 1.3rem !important; }
@@ -461,6 +474,46 @@
         min-height: 36px !important;
         display: inline-flex !important;
         align-items: center !important;
+    }
+
+    /* ==========================================
+       AJUSTES ESPECÍFICOS FRONTEND
+    ========================================== */
+    #chat-container {
+        min-height: 280px !important;
+        max-height: 55dvh !important;
+    }
+
+    .card-header .form-control.w-auto,
+    #buscador-fuentes {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    #fecha-desde,
+    #fecha-hasta,
+    #search-perfume {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .meta-input {
+        width: 100% !important;
+        max-width: 220px !important;
+    }
+
+    .ganancia-tab-btn {
+        flex: 1 1 calc(50% - 6px) !important;
+        text-align: center !important;
+        padding: 10px 12px !important;
+    }
+
+    #toast-decant,
+    #toast-lista {
+        left: 1rem !important;
+        right: 1rem !important;
+        width: auto !important;
+        min-width: 0 !important;
     }
 }
 
