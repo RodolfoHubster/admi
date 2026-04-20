@@ -17,7 +17,7 @@ Puedes validarlo por CLI:
 gcloud billing projects describe TU_PROJECT_ID
 ```
 
-Reemplaza `TU_PROJECT_ID` por tu project id real o usa:
+Reemplaza `TU_PROJECT_ID` por tu project id real. Si ya configuraste el proyecto activo, usa:
 
 ```bash
 gcloud billing projects describe "$(gcloud config get-value project)"
@@ -71,11 +71,11 @@ Al final tendrás una URL pública tipo:
 
 `https://admi-gemini-api-xxxx-uc.a.run.app`
 
+> `xxxx` representa el sufijo único generado por Cloud Run; usa la URL real que te devuelve `gcloud run deploy`.
+
 El endpoint final del asistente será:
 
 `https://admi-gemini-api-xxxx-uc.a.run.app/api/gemini_chat.php`
-
-> `xxxx` representa el sufijo único generado por Cloud Run; usa la URL real que te devuelve `gcloud run deploy`.
 
 ### 5) Configura el frontend
 
