@@ -488,7 +488,7 @@ function textLength(string $value): int
     if (preg_match('/^[\x00-\x7F]*$/', $value) === 1) {
         return strlen($value);
     }
-    $count = preg_match_all('/./us', $value, $unused);
+    $count = preg_match_all('/./us', $value, $matchedChars);
     if ($count === false) {
         return strlen($value);
     }
