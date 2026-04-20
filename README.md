@@ -24,6 +24,8 @@ En `/home/runner/work/admi/admi/asistente.html` ajusta:
 </script>
 ```
 
+> El valor por defecto en el repo está vacío para evitar errores de DNS con dominios de ejemplo.
+
 ### 3) Recomendaciones de seguridad
 
 - Nunca pongas `GEMINI_API_KEY` en HTML/JS público.
