@@ -432,9 +432,14 @@ function logSecurityEvent(string $type, string $value): void
     if ($sanitized === null) {
         $sanitized = 'unreadable_value';
     } else {
+        $sanitized = preg_replace('/[\x00-\x1F\x7F]/u', '', $sanitized) ?? 'unreadable_value';
         $sanitized = mb_substr($sanitized, 0, 300);
     }
-    $line = sprintf("[%s] security_event=%s value=%s\n", date('c'), $safeType, $sanitized);
+    $encodedValue = json_encode($sanitized, JSON_UNESCAPED_UNICODE);
+    if (!is_string($encodedValue)) {
+        $encodedValue = '"unreadable_value"';
+    }
+    $line = sprintf("[%s] security_event=%s value=%s\n", date('c'), $safeType, $encodedValue);
     $written = file_put_contents(sys_get_temp_dir() . '/gemini_assistant_security.log', $line, FILE_APPEND | LOCK_EX);
     if ($written === false) {
         error_log('No se pudo escribir gemini_assistant_security.log');
