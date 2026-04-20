@@ -7,6 +7,7 @@ const ASISTENTE_CLIENTE_KEY = 'fitoscents_asistente_cliente_v1';
 const MAX_CHAT_HISTORY = 60;
 const MAX_CONVERSATION_CONTEXT = 12;
 const MAX_INVENTORY_ITEMS_SENT = 80;
+const ASISTENTE_API_ENDPOINT = resolveAsistenteApiEndpoint();
 
 const chatContainer = document.getElementById('chat-container');
 const inputMensaje = document.getElementById('input-mensaje');
@@ -93,7 +94,11 @@ async function enviarMensaje() {
             inventoryContext: buildInventoryContext()
         };
 
-        const res = await fetch('api/gemini_chat.php', {
+        if (!ASISTENTE_API_ENDPOINT) {
+            throw new Error('Configura ASISTENTE_API_ENDPOINT con la URL pública de tu backend.');
+        }
+
+        const res = await fetch(ASISTENTE_API_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -259,4 +264,11 @@ function escapeHtml(text) {
 
 function sanitizeForMessage(text) {
     return String(text).replace(/[\u0000-\u001F\u007F]/g, '').slice(0, 100);
+}
+
+function resolveAsistenteApiEndpoint() {
+    if (typeof window.ASISTENTE_API_ENDPOINT === 'string') {
+        return window.ASISTENTE_API_ENDPOINT.trim();
+    }
+    return '';
 }

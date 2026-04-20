@@ -15,15 +15,34 @@ const MAX_CONVERSATION_TEXT_LENGTH = 1600;
 
 header('Content-Type: application/json; charset=utf-8');
 
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowedOrigins = getAllowedOrigins();
+$originAllowed = isOriginAllowed($origin, $allowedOrigins);
+
+if ($originAllowed) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Vary: Origin');
+}
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    if (!$originAllowed) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Origen no autorizado.']);
+        exit;
+    }
+    http_response_code(204);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['error' => 'Método no permitido. Usa POST.']);
     exit;
 }
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$host = $_SERVER['HTTP_HOST'] ?? '';
-if ($origin === '' || $host === '' || parse_url($origin, PHP_URL_HOST) !== $host) {
+if (!$originAllowed) {
     http_response_code(403);
     echo json_encode(['error' => 'Origen no autorizado.']);
     exit;
@@ -341,4 +360,34 @@ function getClientIp(): string
         return $remote;
     }
     return 'unknown';
+}
+
+function getAllowedOrigins(): array
+{
+    $env = trim(getenv('ALLOWED_ORIGINS') ?: '');
+    if ($env !== '') {
+        $parts = array_map('trim', explode(',', $env));
+        $parts = array_values(array_filter($parts, static fn ($o) => $o !== ''));
+        return array_values(array_unique($parts));
+    }
+
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host === '') {
+        return [];
+    }
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    return ["{$scheme}://{$host}"];
+}
+
+function isOriginAllowed(string $origin, array $allowedOrigins): bool
+{
+    if ($origin === '') {
+        return false;
+    }
+    foreach ($allowedOrigins as $allowed) {
+        if (strcasecmp($origin, $allowed) === 0) {
+            return true;
+        }
+    }
+    return false;
 }
