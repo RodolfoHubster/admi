@@ -8,10 +8,6 @@
     /* ==========================================
        GLOBAL: Espaciado y fuentes base
     ========================================== */
-    html, body {
-        overflow-x: hidden !important;
-    }
-
     body {
         font-size: 14px;
     }
@@ -499,7 +495,7 @@
 
     .meta-input {
         width: 100% !important;
-        max-width: 220px !important;
+        max-width: 100% !important;
     }
 
     .ganancia-tab-btn {
