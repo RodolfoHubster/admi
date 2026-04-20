@@ -461,16 +461,28 @@ function logSecurityEvent(string $type, string $value): void
 
 function textSlice(string $value, int $length): string
 {
+    if ($length <= 0 || $value === '') {
+        return '';
+    }
     if (function_exists('mb_substr')) {
         return mb_substr($value, 0, $length, 'UTF-8');
     }
-    return substr($value, 0, $length);
+    if (preg_match_all('/./us', $value, $chars) === false || !isset($chars[0])) {
+        return substr($value, 0, $length);
+    }
+    return implode('', array_slice($chars[0], 0, $length));
 }
 
 function textLength(string $value): int
 {
+    if ($value === '') {
+        return 0;
+    }
     if (function_exists('mb_strlen')) {
         return (int)mb_strlen($value, 'UTF-8');
     }
-    return strlen($value);
+    if (preg_match_all('/./us', $value, $chars) === false || !isset($chars[0])) {
+        return strlen($value);
+    }
+    return count($chars[0]);
 }

@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-RUN docker-php-ext-install curl mbstring
+RUN docker-php-ext-install mbstring
 
 WORKDIR /var/www/html
 
