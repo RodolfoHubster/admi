@@ -1,7 +1,5 @@
 FROM php:8.2-apache
 
-RUN docker-php-ext-install curl
-
 WORKDIR /var/www/html
 
 COPY . /var/www/html
