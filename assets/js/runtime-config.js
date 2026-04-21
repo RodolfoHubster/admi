@@ -1,5 +1,5 @@
 window.__APP_ENV__ = window.__APP_ENV__ || {
-    ASISTENTE_API_ENDPOINT: '',
+    ASISTENTE_API_ENDPOINT: 'https://admi-125861101277.us-central1.run.app/api/gemini_chat.php',
     ASISTENTE_API_HEALTH_ENDPOINT: '',
     ASISTENTE_API_KEY: '',
     ASISTENTE_API_KEY_HEADER: 'X-API-Key',
