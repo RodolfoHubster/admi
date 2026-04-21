@@ -15,6 +15,7 @@
             align-items: center;
             justify-content: center;
             font-family: 'Poppins', sans-serif;
+            padding: 16px;
         }
         .login-card {
             background: rgba(255,255,255,0.04);
@@ -118,6 +119,38 @@
             40%,80% { transform: translateX(8px); }
         }
         .shake { animation: shake 0.35s ease; }
+
+        @media (max-width: 576px) {
+            .login-card {
+                padding: 28px 18px;
+                border-radius: 16px;
+                max-width: 100%;
+            }
+            .login-logo { font-size: 2.2rem; }
+            .login-title { font-size: 1.1rem; }
+            .login-sub { margin-bottom: 20px; }
+            .pin-display { gap: 10px; margin-bottom: 20px; }
+            .pin-dot {
+                width: 16px;
+                height: 16px;
+            }
+            .num-btn {
+                font-size: 1.2rem;
+                padding: 14px 0;
+            }
+        }
+
+        @media (max-height: 700px) {
+            body {
+                align-items: flex-start;
+                padding-top: 14px;
+                padding-bottom: 14px;
+            }
+            .login-card {
+                padding-top: 28px;
+                padding-bottom: 28px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -151,7 +184,8 @@
         <div class="error-msg" id="error-msg">❌ PIN incorrecto</div>
     </div>
 
-    <script src="assets/js/config.js"></script>
+    <script src="assets/js/runtime-config.js"></script>
+<script src="assets/js/config.js"></script>
     <script>
         let pin = '';
         // Pega aquí el Hash SHA-256 que generaste en la consola

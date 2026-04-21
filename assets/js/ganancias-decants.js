@@ -29,7 +29,10 @@ async function _cargarDecantVentas() {
         if (typeof getDataCloud === 'function') {
             _decantVentas = await getDataCloud(DECANTS_VENTAS_KEY_G) || [];
         } else {
-            const raw = localStorage.getItem('fitoscents_' + DECANTS_VENTAS_KEY_G);
+            const fallbackKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.decants_ventas)
+                ? STORAGE_KEYS.decants_ventas
+                : 'fitoscents_decants_ventas_v1';
+            const raw = localStorage.getItem(fallbackKey);
             _decantVentas = raw ? JSON.parse(raw) : [];
         }
     } catch(e) {

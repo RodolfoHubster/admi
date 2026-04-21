@@ -77,15 +77,15 @@ function generarAlertasClientes(ventas) {
                 deudasPorCliente[venta.cliente] = {
                     total: 0,
                     ventas: [],
-                    fechaMasAntigua: parsearFecha(venta.fecha) || ahora
+                    fechaMasAntigua: new Date(getVentaTimestamp(venta) || ahora.getTime())
                 };
             }
             deudasPorCliente[venta.cliente].total += venta.saldoPendiente;
             deudasPorCliente[venta.cliente].ventas.push(venta);
             
-            const fechaVenta = parsearFecha(venta.fecha);
-            if (fechaVenta && fechaVenta < deudasPorCliente[venta.cliente].fechaMasAntigua) {
-                deudasPorCliente[venta.cliente].fechaMasAntigua = fechaVenta;
+            const tsVenta = getVentaTimestamp(venta);
+            if (tsVenta > 0 && tsVenta < deudasPorCliente[venta.cliente].fechaMasAntigua.getTime()) {
+                deudasPorCliente[venta.cliente].fechaMasAntigua = new Date(tsVenta);
             }
         }
     });
@@ -127,20 +127,32 @@ function generarAlertasClientes(ventas) {
 function parsearFecha(fechaStr) {
     if (!fechaStr) return null;
     if (fechaStr instanceof Date) return fechaStr;
+    if (typeof fechaStr === 'number' && Number.isFinite(fechaStr)) {
+        const d = new Date(fechaStr);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if (typeof fechaStr !== 'string') return null;
     
     if (fechaStr.includes('T') || fechaStr.includes('-')) {
         const d = new Date(fechaStr);
-        if (!isNaN(d)) return d;
+        if (!Number.isNaN(d.getTime())) return d;
     }
     
     const partes = fechaStr.split(',')[0].trim().split('/');
     if (partes.length === 3) {
         const [dia, mes, año] = partes;
         const d = new Date(parseInt(año), parseInt(mes) - 1, parseInt(dia));
-        if (!isNaN(d)) return d;
+        if (!Number.isNaN(d.getTime())) return d;
     }
     
     return null;
+}
+
+function getVentaTimestamp(venta) {
+    if (venta && typeof venta.id === 'number' && venta.id > 0) return venta.id;
+    if (venta && typeof venta.id === 'string' && !Number.isNaN(Number(venta.id))) return Number(venta.id);
+    const parsed = parsearFecha(venta?.fecha);
+    return parsed ? parsed.getTime() : 0;
 }
 
 function diasDesde(fechaStr) {
@@ -203,7 +215,8 @@ function generarAlertasFinancieras(ventas, gastos) {
     }).reduce((sum, g) => sum + g.monto, 0);
     
     const ventasMes = ventas.filter(v => {
-        const f = parsearFecha(v.fecha);
+        const ts = getVentaTimestamp(v);
+        const f = ts > 0 ? new Date(ts) : null;
         return f && f.getMonth() === mesActual && f.getFullYear() === añoActual;
     }).reduce((sum, v) => sum + v.precioFinal, 0);
     
@@ -224,7 +237,8 @@ function generarAlertasFinancieras(ventas, gastos) {
     const hace3dias = new Date();
     hace3dias.setDate(hace3dias.getDate() - 3);
     const ventasRecientes = ventas.filter(v => {
-        const f = parsearFecha(v.fecha);
+        const ts = getVentaTimestamp(v);
+        const f = ts > 0 ? new Date(ts) : null;
         return f && f >= hace3dias;
     });
     
@@ -250,7 +264,10 @@ function generarAlertasStockBajo(productos, ventas) {
     const hace30dias = new Date();
     hace30dias.setDate(hace30dias.getDate() - 30);
     
-    const ventasRecientes = ventas.filter(v => new Date(v.fecha) >= hace30dias);
+    const ventasRecientes = ventas.filter(v => {
+        const ts = getVentaTimestamp(v);
+        return ts > 0 && ts >= hace30dias.getTime();
+    });
     
     const conteoVentas = {};
     ventasRecientes.forEach(v => {

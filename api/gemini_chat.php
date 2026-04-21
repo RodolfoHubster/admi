@@ -20,6 +20,26 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = getAllowedOrigins();
 $originAllowed = isOriginAllowed($origin, $allowedOrigins);
 
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && (isset($_GET['health']) || isset($_GET['check']) || isset($_GET['ping']))) {
+    if ($origin !== '' && !$originAllowed) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Origen no autorizado.']);
+        exit;
+    }
+    if ($originAllowed) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Vary: Origin');
+    }
+    echo json_encode([
+        'status' => 'ok',
+        'service' => 'gemini_chat',
+        'api_key_configured' => getenv('GEMINI_API_KEY') !== false && trim((string)getenv('GEMINI_API_KEY')) !== '',
+        'model' => getenv('GEMINI_MODEL') ?: 'gemini-1.5-flash',
+        'timestamp' => date('c')
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 if ($originAllowed) {
     header('Access-Control-Allow-Origin: ' . $origin);
     header('Vary: Origin');
@@ -134,7 +154,7 @@ if ($response['status'] < 200 || $response['status'] >= 300) {
     echo json_encode([
         'error' => 'Error al consultar Gemini.',
         'provider_status' => $response['status'],
-        'provider_body' => mb_substr((string)$response['body'], 0, 1200),
+        'provider_body' => textSlice((string)$response['body'], 1200),
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -199,7 +219,7 @@ function buildConversation(array $conversation, string $message, ?array $imagePa
         }
         $contents[] = [
             'role' => $role,
-            'parts' => [['text' => mb_substr($text, 0, MAX_CONVERSATION_TEXT_LENGTH)]]
+            'parts' => [['text' => textSlice($text, MAX_CONVERSATION_TEXT_LENGTH)]]
         ];
     }
 
@@ -343,7 +363,7 @@ function logRequest(string $message, bool $hasImage): void
         "[%s] ip=%s chars=%d image=%s\n",
         date('c'),
         $ip,
-        mb_strlen($message),
+        textLength($message),
         $hasImage ? 'yes' : 'no'
     );
     @file_put_contents(sys_get_temp_dir() . '/gemini_assistant.log', $line, FILE_APPEND | LOCK_EX);
@@ -352,7 +372,7 @@ function logRequest(string $message, bool $hasImage): void
 function logProviderError(string $body): void
 {
     $sanitized = preg_replace('/\s+/', ' ', $body);
-    $sanitized = is_string($sanitized) ? mb_substr($sanitized, 0, 800) : 'error_no_legible';
+    $sanitized = is_string($sanitized) ? textSlice($sanitized, 800) : 'error_no_legible';
     $line = sprintf("[%s] provider_error=%s\n", date('c'), $sanitized);
     @file_put_contents(sys_get_temp_dir() . '/gemini_assistant_error.log', $line, FILE_APPEND | LOCK_EX);
 }
@@ -446,7 +466,7 @@ function logSecurityEvent(string $type, string $value): void
         $sanitized = 'unreadable_value';
     } else {
         $sanitized = preg_replace('/[\x00-\x1F\x7F]/', '', $sanitized) ?? 'unreadable_value';
-        $sanitized = mb_substr($sanitized, 0, MAX_SECURITY_LOG_VALUE_LENGTH, 'UTF-8');
+        $sanitized = textSlice($sanitized, MAX_SECURITY_LOG_VALUE_LENGTH);
     }
     $encodedValue = json_encode($sanitized, JSON_UNESCAPED_UNICODE);
     if (!is_string($encodedValue)) {
@@ -457,4 +477,40 @@ function logSecurityEvent(string $type, string $value): void
     if ($written === false) {
         error_log('No se pudo escribir gemini_assistant_security.log');
     }
+}
+
+function textSlice(string $value, int $length): string
+{
+    if ($length <= 0 || $value === '') {
+        return '';
+    }
+    if (function_exists('mb_substr')) {
+        return mb_substr($value, 0, $length, 'UTF-8');
+    }
+    if (preg_match('/^[\x00-\x7F]*$/', $value) === 1) {
+        return substr($value, 0, $length);
+    }
+    $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+    if (!is_array($chars)) {
+        return substr($value, 0, $length);
+    }
+    return implode('', array_slice($chars, 0, $length));
+}
+
+function textLength(string $value): int
+{
+    if ($value === '') {
+        return 0;
+    }
+    if (function_exists('mb_strlen')) {
+        return (int)mb_strlen($value, 'UTF-8');
+    }
+    if (preg_match('/^[\x00-\x7F]*$/', $value) === 1) {
+        return strlen($value);
+    }
+    $count = preg_match_all('/./us', $value);
+    if ($count === false) {
+        return strlen($value);
+    }
+    return (int)$count;
 }

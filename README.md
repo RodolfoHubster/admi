@@ -2,56 +2,96 @@
 
 Aplicación web estática para gestión de perfumes, con asistente IA en `asistente.html`.
 
+## Procedimiento recomendado (2 APIs)
+
+Este proyecto usa dos APIs en frontend:
+
+1. API del asistente (`api/gemini_chat.php` desplegada en Cloud Run).
+2. API de tipo de cambio (por defecto `https://api.exchangerate-api.com/v4/latest/USD`).
+
+### 1) Confirmar APIs activas y credenciales válidas
+
+- Asistente: valida `GET /api/gemini_chat.php?health=1` (debe devolver `status: ok`).
+- Tipo de cambio: valida que el endpoint configurado responda con `rates.MXN`.
+
+### 2) Guardar keys en variables de entorno (nunca en código)
+
+Usa `.env.example` como base y crea `.env` local.
+
+Variables clave:
+
+- Backend Gemini: `GEMINI_API_KEY`, `GEMINI_MODEL`, `ALLOWED_ORIGINS`.
+- Front runtime (Cloud Run): `ASISTENTE_API_*`, `EXCHANGE_API_*`.
+
+### 3) Configurar URL base y headers de autenticación en frontend
+
+El frontend consume `window.__APP_ENV__` desde:
+
+- `assets/js/runtime-config.js` (local/dev).
+- Archivo generado automáticamente en contenedor por `docker-entrypoint.sh` usando variables de entorno.
+
+### 4) Probar conexión básica a cada API
+
+- Asistente: health-check `?health=1`.
+- Tipo de cambio: request GET al endpoint configurado.
+
+### 5) Manejo de errores HTTP en frontend
+
+Se manejan mensajes específicos para:
+
+- `401` (credenciales inválidas)
+- `403` (origen/permisos)
+- `429` (rate limit)
+- `500+` (error servidor)
+
+### 6) Validar flujo end-to-end
+
+1. Abrir `asistente.html`.
+2. Enviar mensaje sin imagen.
+3. Enviar mensaje con imagen válida.
+4. Verificar respuesta en UI y estado sin errores.
+
+### 7) Aplicar restricciones de seguridad de keys
+
+- Restringir `GEMINI_API_KEY` a Gemini API.
+- Limitar por permisos mínimos requeridos.
+- Usar Secret Manager para producción.
+
+### 8) Revisar logs sin fuga de datos sensibles
+
+Backend registra:
+
+- `gemini_assistant.log`
+- `gemini_assistant_security.log`
+- `gemini_assistant_error.log`
+
+Revisar que no se escriban secrets en logs.
+
+### 9) Documentar despliegue y pruebas
+
+Este README + `.env.example` cubren variables, despliegue y validación básica.
+
+### 10) Paso a staging/producción
+
+Checklist final:
+
+- Variables de entorno configuradas.
+- Health-check de ambas APIs en verde.
+- Flujo UI validado.
+- Monitoreo inicial y cuotas activas.
+
 ## Despliegue del backend Gemini en Google Cloud Run
 
 GitHub Pages **no ejecuta PHP**, por lo que `api/gemini_chat.php` debe correr en un backend (Cloud Run recomendado).
 
-### 1) Proyecto y billing
-
-1. Crea o selecciona un proyecto en Google Cloud.
-2. Verifica que el proyecto tenga billing activo.
-
-Puedes validarlo por CLI:
+### 1) Proyecto, billing y APIs de Google Cloud
 
 ```bash
 gcloud billing projects describe TU_PROJECT_ID
-```
-
-Reemplaza `TU_PROJECT_ID` por tu project ID real. Si ya configuraste el proyecto activo, usa:
-
-```bash
-gcloud billing projects describe "$(gcloud config get-value project)"
-```
-
-### 2) Habilita APIs necesarias
-
-En Google Cloud habilita:
-
-- Cloud Run Admin API
-- Cloud Build API
-- Artifact Registry API
-- Secret Manager API (opcional, recomendado)
-
-También puedes hacerlo por CLI:
-
-```bash
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com
 ```
 
-### 3) Variables de entorno del backend
-
-Configura en Cloud Run:
-
-- `GEMINI_API_KEY`
-- `GEMINI_MODEL` (ej. `gemini-1.5-pro`)
-- `ALLOWED_ORIGINS=https://rodolfohubster.github.io`
-- `DEFAULT_ALLOWED_ORIGIN` (opcional, usado solo si `ALLOWED_ORIGINS` no está definido)
-
-> `ALLOWED_ORIGINS` acepta múltiples orígenes separados por coma.
-
-### 4) Despliega en Cloud Run
-
-Este repositorio incluye `Dockerfile` para desplegar directamente:
+### 2) Despliega en Cloud Run
 
 ```bash
 gcloud run deploy admi-gemini-api \
@@ -62,40 +102,13 @@ gcloud run deploy admi-gemini-api \
   --set-secrets GEMINI_API_KEY=GEMINI_API_KEY:latest
 ```
 
-Si no usas Secret Manager, reemplaza `--set-secrets` por:
+### 3) Configura frontend por variables de entorno
+
+Ejemplo al desplegar en Cloud Run:
 
 ```bash
---set-env-vars GEMINI_API_KEY=TU_API_KEY,GEMINI_MODEL=gemini-1.5-pro,ALLOWED_ORIGINS=https://rodolfohubster.github.io
+--set-env-vars ASISTENTE_API_ENDPOINT=https://admi-gemini-api-PROJECT-HASH-uc.a.run.app/api/gemini_chat.php,EXCHANGE_API_ENDPOINT=https://api.exchangerate-api.com/v4/latest/USD
 ```
-
-Al final tendrás una URL pública tipo:
-
-`https://admi-gemini-api-PROJECT-HASH-uc.a.run.app`
-
-> `PROJECT-HASH` representa el sufijo único generado por Cloud Run; usa la URL real que te devuelve `gcloud run deploy`.
-
-El endpoint final del asistente será:
-
-`https://admi-gemini-api-PROJECT-HASH-uc.a.run.app/api/gemini_chat.php`
-
-### 5) Configura el frontend
-
-En `asistente.html` ajusta:
-
-```html
-<script>
-  window.ASISTENTE_API_ENDPOINT = 'https://admi-gemini-api-PROJECT-HASH-uc.a.run.app/api/gemini_chat.php';
-</script>
-```
-
-> El valor por defecto en el repo está vacío para evitar errores de DNS con dominios de ejemplo.
-
-### 6) Publica y prueba
-
-Publica/actualiza GitHub Pages y valida:
-
-- `https://rodolfohubster.github.io/admi/`
-- `https://rodolfohubster.github.io/admi/asistente.html`
 
 ## Recomendaciones de seguridad
 
@@ -108,3 +121,8 @@ Publica/actualiza GitHub Pages y valida:
 ## Desarrollo local
 
 Este repositorio no incluye pipeline de build/test/lint definido por `package.json` o `composer.json`.
+
+### Variables de entorno locales
+
+1. Copia `.env.example` a `.env`.
+2. Completa tus valores reales (API key y credenciales de BD).

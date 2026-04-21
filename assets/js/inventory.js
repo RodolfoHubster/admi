@@ -73,16 +73,18 @@ function cargarInventario() {
             : -1;
         const realIndex = realIndexById !== -1 ? realIndexById : productos.indexOf(prod);
         prod.originalIndex = realIndex;
-        const nombreLimpio = prod.nombre.trim();
-        if (!grupos[nombreLimpio]) grupos[nombreLimpio] = [];
-        grupos[nombreLimpio].push(prod);
+        const nombreLimpio = (prod.nombre || '').trim().toLowerCase();
+        const marcaLimpia = (prod.marca || '').trim().toLowerCase();
+        const claveGrupo = `${nombreLimpio}||${marcaLimpia}`;
+        if (!grupos[claveGrupo]) grupos[claveGrupo] = [];
+        grupos[claveGrupo].push(prod);
     });
 
-    let listaGrupos = Object.keys(grupos).map(nombre => ({
-        nombre, items: grupos[nombre], principal: grupos[nombre][0],
-        totalStock: grupos[nombre].length,
-        precioRef:  grupos[nombre][0].precioVenta,
-        gananciaRef: grupos[nombre][0].precioVenta - grupos[nombre][0].costo
+    let listaGrupos = Object.keys(grupos).map(clave => ({
+        nombre: grupos[clave][0].nombre, items: grupos[clave], principal: grupos[clave][0],
+        totalStock: grupos[clave].length,
+        precioRef:  grupos[clave][0].precioVenta,
+        gananciaRef: grupos[clave][0].precioVenta - grupos[clave][0].costo
     }));
 
     listaGrupos.sort((a, b) => {
@@ -386,8 +388,9 @@ function guardarProducto() {
     alert(`✅ Se registraron correctamente ${cantidadTotal} unidades.`);
 }
 
-function eliminarProducto(index, productId = '') {
-    if (!solicitarPin()) return alert('❌ PIN Incorrecto.');
+async function eliminarProducto(index, productId = '') {
+    const autorizado = await solicitarPin();
+    if (!autorizado) return alert('❌ PIN Incorrecto.');
     const productos = getInventoryList();
     const normalizedId = (typeof productId === 'string' && productId !== '')
         ? decodeURIComponent(productId)

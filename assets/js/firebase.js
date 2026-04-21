@@ -57,8 +57,8 @@ async function getDataCloud(key) {
             pagos:    'perfume_payouts_v1',
             gastos:   'perfume_expenses_v1',
             decants:  'fitoscents_decants_v1',
-            decants_fuentes: 'decants_fuentes', 
-            decants_ventas:  'decants_ventas' 
+            decants_fuentes: 'fitoscents_decants_fuentes_v1',
+            decants_ventas:  'fitoscents_decants_ventas_v1'
         };
         const raw = localStorage.getItem(LOCAL[key]);
         return raw ? JSON.parse(raw) : (key === 'config' ? {} : []);
@@ -95,7 +95,9 @@ async function setDataCloud(key, data) {
             ventas:   'perfume_sales_v1',
             pagos:    'perfume_payouts_v1',
             gastos:   'perfume_expenses_v1',
-            decants:  'fitoscents_decants_v1'
+            decants:  'fitoscents_decants_v1',
+            decants_fuentes: 'fitoscents_decants_fuentes_v1',
+            decants_ventas:  'fitoscents_decants_ventas_v1'
         };
         if (LOCAL[key]) localStorage.setItem(LOCAL[key], JSON.stringify(data));
 

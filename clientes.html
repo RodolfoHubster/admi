@@ -166,6 +166,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/runtime-config.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/storage.js"></script>
@@ -178,7 +179,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderDeudas() {
-    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     const clientesMap = {};
     let totalCalle = 0;
 
@@ -243,7 +246,9 @@ function renderDeudas() {
 }
 
 function renderEncargos() {
-    const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const inventario = (typeof getData === 'function')
+        ? (getData('perfumes') || [])
+        : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
     const tbody = document.getElementById('encargos-table-body');
     tbody.innerHTML = '';
     let contadorEncargos = 0;
@@ -295,7 +300,9 @@ function formatMoney(amount) {
 let clienteActualAbono = null;
 
 function abrirAbonoCliente(nombreCliente, pagarTodo = false) {
-    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     const ventasCliente = ventas.filter(v => v.cliente === nombreCliente && v.saldoPendiente > 0);
     if (!ventasCliente.length) return alert('Sin deudas pendientes.');
 
@@ -315,7 +322,9 @@ function confirmarAbonoCliente() {
     const nota  = document.getElementById('modal-abono-nota').value.trim() || 'Abono desde Clientes';
     if (!monto || monto <= 0) return alert('❌ Ingresa un monto válido.');
 
-    let ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    let ventas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     let restante = monto;
 
     ventas
@@ -338,7 +347,9 @@ function confirmarAbonoCliente() {
 }
 
 function verHistorialAbonos(nombreCliente) {
-    const ventas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const ventas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     const ventasCliente = ventas.filter(v => v.cliente === nombreCliente);
 
     document.getElementById('hist-cliente-nombre').innerText = nombreCliente;

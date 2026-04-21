@@ -3,7 +3,9 @@
 let carrito = [];
 
 function agregarAlCarrito(index) {
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = (typeof getData === 'function')
+        ? (getData('perfumes') || [])
+        : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
     const prod = productos[index];
     const existe = carrito.find(item => item.id === prod.id);
     if (existe) return alert("⚠️ Ya está en el carrito.");
@@ -148,17 +150,23 @@ function procesarVentaMasiva() {
     
     // Validación
     if (esCredito && !clienteGlobal) return alert("❌ Para fiar, necesitas escribir el nombre del Cliente.");
+    if (abonoTotal < 0) return alert("❌ El abono no puede ser negativo.");
 
     // Calcular totales
     let totalVenta = 0;
     carrito.forEach(p => totalVenta += parseFloat(p.precioVenta));
+    if (esCredito && abonoTotal > totalVenta) return alert("❌ El abono no puede ser mayor al total de la venta.");
 
     // Si hay abono, lo repartimos proporcionalmente entre los productos
     // (Matemática para que cuadren los centavos)
     let abonoRestante = abonoTotal;
 
-    const productosDB = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-    const historialVentas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const productosDB = (typeof getData === 'function')
+        ? (getData('perfumes') || [])
+        : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
+    const historialVentas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
 
     carrito.forEach((item, index) => {
         // Cálculo proporcional del abono por item
@@ -169,7 +177,7 @@ function procesarVentaMasiva() {
             abonoItem = abonoTotal * porcentaje;
         }
 
-        const saldoPendienteItem = esCredito ? (item.precioVenta - abonoItem) : 0;
+        const saldoPendienteItem = esCredito ? Math.max(0, item.precioVenta - abonoItem) : 0;
 
         // Construir venta individual
         const nuevaVenta = {
@@ -231,8 +239,13 @@ function procesarVentaMasiva() {
     // Limpieza final
     const inventarioActualizado = productosDB.filter(p => !p._borrar);
     
-    localStorage.setItem(SALES_KEY, JSON.stringify(historialVentas));
-    localStorage.setItem(DB_KEY, JSON.stringify(inventarioActualizado));
+    if (typeof setData === 'function') {
+        setData('ventas', historialVentas);
+        setData('perfumes', inventarioActualizado);
+    } else {
+        localStorage.setItem(SALES_KEY, JSON.stringify(historialVentas));
+        localStorage.setItem(DB_KEY, JSON.stringify(inventarioActualizado));
+    }
 
     // Resetear todo
     carrito = [];

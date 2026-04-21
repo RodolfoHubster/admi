@@ -11,7 +11,9 @@ let filtroEstadoActual = 'todos';
 // =========================================================
 
 function iniciarVenta(index) {
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = (typeof getData === 'function')
+        ? (getData('perfumes') || [])
+        : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
     const prod = productos[index];
     document.getElementById('venta-nombre-producto').innerText = prod.nombre;
     document.getElementById('venta-precio-lista').value = `$${prod.precioVenta}`;
@@ -40,8 +42,12 @@ function confirmarVentaFinal() {
     const nombreCliente = document.getElementById('venta-cliente').value.trim().toUpperCase();
 
     if (!precioFinal || precioFinal <= 0) return showToast('El precio no puede ser cero.', 'warning');
+    if (anticipo < 0) return showToast('El anticipo no puede ser negativo.', 'warning');
+    if (esCredito && anticipo > precioFinal) return showToast('El anticipo no puede ser mayor al total de la venta.', 'warning');
 
-    const productos = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const productos = (typeof getData === 'function')
+        ? (getData('perfumes') || [])
+        : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
     const producto = productos[index];
     const costo = producto.costo;
     const utilidadTotal = precioFinal - costo - gastosExtra;
@@ -78,7 +84,9 @@ function confirmarVentaFinal() {
         nuevaVenta.historialAbonos.push({ fecha: new Date().toLocaleString(), monto: anticipo, nota: 'Anticipo Inicial' });
     }
 
-    const historial = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
+    const historial = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     historial.push(nuevaVenta);
     setData('ventas', historial);
 
@@ -237,8 +245,12 @@ function calcularRestante() {
 
 function cargarDatosVentas() {
     if(!document.getElementById('sales-table-body')) return;
-    listadoVentas = JSON.parse(localStorage.getItem(SALES_KEY)) || [];
-    listadoPagos  = JSON.parse(localStorage.getItem(PAYOUTS_KEY)) || [];
+    listadoVentas = (typeof getData === 'function')
+        ? (getData('ventas') || [])
+        : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
+    listadoPagos  = (typeof getData === 'function')
+        ? (getData('pagos') || [])
+        : (JSON.parse(localStorage.getItem(PAYOUTS_KEY)) || []);
     renderVentas();
     renderPagos();
     calcularTotales();
@@ -350,7 +362,7 @@ function renderVentas() {
     });
 }
 
-function deshacerVenta(id) {
+async function deshacerVenta(id) {
     const venta = listadoVentas.find(v => v.id === id);
     if (!venta) return;
 
@@ -366,10 +378,13 @@ function deshacerVenta(id) {
         showToast(`No se puede deshacer. Ya le pagaste al socio esta venta. Elimina primero el pago.`, 'error', 5000);
         return;
     }
-    if(!solicitarPin()) return;
+    const autorizado = await solicitarPin();
+    if (!autorizado) return;
 
     showConfirm(`¿Devolver "${venta.producto}" al Inventario?`, () => {
-        const inventario = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+        const inventario = (typeof getData === 'function')
+            ? (getData('perfumes') || [])
+            : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
         inventario.push({
             id: Date.now(), nombre: venta.producto, marca: venta.marca || 'Recuperado',
             sku: venta.sku, costo: venta.costoOriginal, precioVenta: venta.precioFinal,
@@ -443,8 +458,9 @@ function guardarPago() {
     cargarDatosVentas();
 }
 
-function eliminarPago(id) {
-    if(!solicitarPin()) return;
+async function eliminarPago(id) {
+    const autorizado = await solicitarPin();
+    if (!autorizado) return;
     listadoPagos = listadoPagos.filter(p => p.id !== id);
     setData('pagos', listadoPagos);
     cargarDatosVentas();
@@ -573,8 +589,9 @@ function marcarPagadoSocio(idVenta) {
     });
 }
 
-function desmarcarPagadoSocio(idVenta) {
-    if(!solicitarPin()) return;
+async function desmarcarPagadoSocio(idVenta) {
+    const autorizado = await solicitarPin();
+    if (!autorizado) return;
     const venta = listadoVentas.find(v => v.id === idVenta);
     if(!venta || !venta.pagadoAlSocio) return;
     showConfirm(`¿Desmarcar pago de "${venta.producto}"? Esto eliminará el registro del pago.`, () => {

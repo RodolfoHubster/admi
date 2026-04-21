@@ -8,6 +8,7 @@ const MAX_CHAT_HISTORY = 60;
 const MAX_CONVERSATION_CONTEXT = 12;
 const MAX_INVENTORY_ITEMS_SENT = 80;
 const ASISTENTE_ENDPOINT_PLACEHOLDER_HOST = 'your-backend-service.example.com';
+const ASISTENTE_API_CONFIG = getAsistenteApiConfig();
 const ASISTENTE_API_ENDPOINT = resolveAsistenteApiEndpoint();
 
 const chatContainer = document.getElementById('chat-container');
@@ -52,6 +53,7 @@ function initAsistente() {
     }
 
     renderChat();
+    verifyApisHealth();
 }
 
 async function enviarMensaje() {
@@ -101,13 +103,16 @@ async function enviarMensaje() {
 
         const res = await fetch(ASISTENTE_API_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...resolveAsistenteApiHeaders(ASISTENTE_API_CONFIG)
+            },
             body: JSON.stringify(payload)
         });
 
-        const data = await res.json();
+        const data = await safeParseJson(res);
         if (!res.ok || !data.reply) {
-            throw new Error(data.error || 'No se pudo obtener respuesta del asistente.');
+            throw new Error(buildHttpErrorMessage(res.status, data?.error || 'No se pudo obtener respuesta del asistente.'));
         }
 
         chatHistory.push({
@@ -268,6 +273,11 @@ function sanitizeForMessage(text) {
 }
 
 function resolveAsistenteApiEndpoint() {
+    const configuredEndpoint = ASISTENTE_API_CONFIG.endpoint;
+    if (typeof configuredEndpoint === 'string' && configuredEndpoint.trim() !== '') {
+        return configuredEndpoint.trim();
+    }
+
     if (typeof window.ASISTENTE_API_ENDPOINT === 'string') {
         const endpoint = window.ASISTENTE_API_ENDPOINT.trim();
         if (!endpoint) {
@@ -284,4 +294,94 @@ function resolveAsistenteApiEndpoint() {
         return endpoint;
     }
     return '';
+}
+
+function getAsistenteApiConfig() {
+    const fallback = {};
+    const fromConfig = (window.APP_API_CONFIG && window.APP_API_CONFIG.assistant) || fallback;
+    return {
+        endpoint: typeof fromConfig.endpoint === 'string' ? fromConfig.endpoint.trim() : '',
+        healthEndpoint: typeof fromConfig.healthEndpoint === 'string' ? fromConfig.healthEndpoint.trim() : '',
+        apiKey: typeof fromConfig.apiKey === 'string' ? fromConfig.apiKey.trim() : '',
+        apiKeyHeader: typeof fromConfig.apiKeyHeader === 'string' ? fromConfig.apiKeyHeader.trim() : 'X-API-Key',
+        bearerToken: typeof fromConfig.bearerToken === 'string' ? fromConfig.bearerToken.trim() : '',
+        authHeader: typeof fromConfig.authHeader === 'string' ? fromConfig.authHeader.trim() : 'Authorization',
+        authScheme: typeof fromConfig.authScheme === 'string' ? fromConfig.authScheme.trim() : 'Bearer'
+    };
+}
+
+function resolveAsistenteApiHeaders(config) {
+    if (typeof window.buildApiAuthHeaders === 'function') {
+        return window.buildApiAuthHeaders(config);
+    }
+    return {};
+}
+
+async function safeParseJson(response) {
+    try {
+        return await response.json();
+    } catch (error) {
+        return {};
+    }
+}
+
+function buildHttpErrorMessage(status, fallbackMessage) {
+    const defaultMessage = fallbackMessage || 'Error inesperado al conectar con la API.';
+    if (status === 401) return 'No autorizado (401). Verifica credenciales/API key.';
+    if (status === 403) return 'Acceso denegado (403). Revisa origen permitido y permisos.';
+    if (status === 429) return 'Límite de solicitudes alcanzado (429). Intenta nuevamente en unos minutos.';
+    if (status >= 500) return `Error del servidor (${status}). Revisa logs del backend.`;
+    return defaultMessage;
+}
+
+async function verifyApisHealth() {
+    const checks = await Promise.allSettled([
+        checkAssistantApiHealth(),
+        checkExchangeRateApiHealth()
+    ]);
+
+    const hasFailure = checks.some((check) => check.status !== 'fulfilled');
+    if (hasFailure) {
+        estado.textContent = 'Listo (con alertas de API)';
+    }
+}
+
+async function checkAssistantApiHealth() {
+    if (!ASISTENTE_API_ENDPOINT) {
+        throw new Error('Falta endpoint del asistente.');
+    }
+    const healthUrl = ASISTENTE_API_CONFIG.healthEndpoint || buildHealthUrl(ASISTENTE_API_ENDPOINT, 'health=1');
+    const response = await fetch(healthUrl, {
+        method: 'GET',
+        headers: resolveAsistenteApiHeaders(ASISTENTE_API_CONFIG)
+    });
+    if (!response.ok) {
+        throw new Error(`Health check asistente falló (${response.status}).`);
+    }
+}
+
+async function checkExchangeRateApiHealth() {
+    const exchangeConfig = (window.APP_API_CONFIG && window.APP_API_CONFIG.exchangeRate) || {};
+    const endpoint = (typeof exchangeConfig.healthEndpoint === 'string' && exchangeConfig.healthEndpoint.trim())
+        || (typeof exchangeConfig.endpoint === 'string' ? exchangeConfig.endpoint.trim() : '');
+    if (!endpoint) {
+        throw new Error('Falta endpoint de tipo de cambio.');
+    }
+    const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: resolveAsistenteApiHeaders(exchangeConfig)
+    });
+    if (!response.ok) {
+        throw new Error(`Health check tipo de cambio falló (${response.status}).`);
+    }
+}
+
+function buildHealthUrl(endpoint, query) {
+    try {
+        const url = new URL(endpoint, window.location.origin);
+        url.search = query;
+        return url.toString();
+    } catch (error) {
+        return endpoint;
+    }
 }
