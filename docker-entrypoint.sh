@@ -33,11 +33,6 @@ escape_js() {
 
 asistente_endpoint="$(escape_js "${ASISTENTE_API_ENDPOINT:-}")"
 asistente_health_endpoint="$(escape_js "${ASISTENTE_API_HEALTH_ENDPOINT:-}")"
-asistente_api_key="$(escape_js "${ASISTENTE_API_KEY:-}")"
-asistente_api_key_header="$(escape_js "${ASISTENTE_API_KEY_HEADER:-X-API-Key}")"
-asistente_bearer_token="$(escape_js "${ASISTENTE_API_BEARER_TOKEN:-}")"
-asistente_auth_header="$(escape_js "${ASISTENTE_API_AUTH_HEADER:-Authorization}")"
-asistente_auth_scheme="$(escape_js "${ASISTENTE_API_AUTH_SCHEME:-Bearer}")"
 exchange_endpoint="$(escape_js "${EXCHANGE_API_ENDPOINT:-https://api.exchangerate-api.com/v4/latest/USD}")"
 exchange_health_endpoint="$(escape_js "${EXCHANGE_API_HEALTH_ENDPOINT:-}")"
 exchange_api_key="$(escape_js "${EXCHANGE_API_KEY:-}")"
@@ -50,11 +45,6 @@ cat > "${RUNTIME_CONFIG_FILE}" <<EOF
 window.__APP_ENV__ = {
   ASISTENTE_API_ENDPOINT: "${asistente_endpoint}",
   ASISTENTE_API_HEALTH_ENDPOINT: "${asistente_health_endpoint}",
-  ASISTENTE_API_KEY: "${asistente_api_key}",
-  ASISTENTE_API_KEY_HEADER: "${asistente_api_key_header}",
-  ASISTENTE_API_BEARER_TOKEN: "${asistente_bearer_token}",
-  ASISTENTE_API_AUTH_HEADER: "${asistente_auth_header}",
-  ASISTENTE_API_AUTH_SCHEME: "${asistente_auth_scheme}",
   EXCHANGE_API_ENDPOINT: "${exchange_endpoint}",
   EXCHANGE_API_HEALTH_ENDPOINT: "${exchange_health_endpoint}",
   EXCHANGE_API_KEY: "${exchange_api_key}",

@@ -27,12 +27,7 @@ function normalizeHeaderName(name, fallback) {
 const APP_API_CONFIG = Object.freeze({
     assistant: Object.freeze({
         endpoint: readEnv('ASISTENTE_API_ENDPOINT', ''),
-        healthEndpoint: readEnv('ASISTENTE_API_HEALTH_ENDPOINT', ''),
-        apiKey: readEnv('ASISTENTE_API_KEY', ''),
-        apiKeyHeader: normalizeHeaderName(readEnv('ASISTENTE_API_KEY_HEADER', 'X-API-Key'), 'X-API-Key'),
-        bearerToken: readEnv('ASISTENTE_API_BEARER_TOKEN', ''),
-        authHeader: normalizeHeaderName(readEnv('ASISTENTE_API_AUTH_HEADER', 'Authorization'), 'Authorization'),
-        authScheme: readEnv('ASISTENTE_API_AUTH_SCHEME', 'Bearer')
+        healthEndpoint: readEnv('ASISTENTE_API_HEALTH_ENDPOINT', '')
     }),
     exchangeRate: Object.freeze({
         endpoint: readEnv('EXCHANGE_API_ENDPOINT', 'https://api.exchangerate-api.com/v4/latest/USD'),

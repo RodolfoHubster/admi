@@ -1,11 +1,6 @@
 window.__APP_ENV__ = window.__APP_ENV__ || {
     ASISTENTE_API_ENDPOINT: '',
     ASISTENTE_API_HEALTH_ENDPOINT: '',
-    ASISTENTE_API_KEY: '',
-    ASISTENTE_API_KEY_HEADER: 'X-API-Key',
-    ASISTENTE_API_BEARER_TOKEN: '',
-    ASISTENTE_API_AUTH_HEADER: 'Authorization',
-    ASISTENTE_API_AUTH_SCHEME: 'Bearer',
     EXCHANGE_API_ENDPOINT: 'https://api.exchangerate-api.com/v4/latest/USD',
     EXCHANGE_API_HEALTH_ENDPOINT: '',
     EXCHANGE_API_KEY: '',
