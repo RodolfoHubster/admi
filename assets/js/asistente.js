@@ -104,8 +104,7 @@ async function enviarMensaje() {
         const res = await fetch(ASISTENTE_API_ENDPOINT, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                ...resolveAsistenteApiHeaders(ASISTENTE_API_CONFIG)
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
         });
@@ -301,20 +300,8 @@ function getAsistenteApiConfig() {
     const fromConfig = (window.APP_API_CONFIG && window.APP_API_CONFIG.assistant) || fallback;
     return {
         endpoint: typeof fromConfig.endpoint === 'string' ? fromConfig.endpoint.trim() : '',
-        healthEndpoint: typeof fromConfig.healthEndpoint === 'string' ? fromConfig.healthEndpoint.trim() : '',
-        apiKey: typeof fromConfig.apiKey === 'string' ? fromConfig.apiKey.trim() : '',
-        apiKeyHeader: typeof fromConfig.apiKeyHeader === 'string' ? fromConfig.apiKeyHeader.trim() : 'X-API-Key',
-        bearerToken: typeof fromConfig.bearerToken === 'string' ? fromConfig.bearerToken.trim() : '',
-        authHeader: typeof fromConfig.authHeader === 'string' ? fromConfig.authHeader.trim() : 'Authorization',
-        authScheme: typeof fromConfig.authScheme === 'string' ? fromConfig.authScheme.trim() : 'Bearer'
+        healthEndpoint: typeof fromConfig.healthEndpoint === 'string' ? fromConfig.healthEndpoint.trim() : ''
     };
-}
-
-function resolveAsistenteApiHeaders(config) {
-    if (typeof window.buildApiAuthHeaders === 'function') {
-        return window.buildApiAuthHeaders(config);
-    }
-    return {};
 }
 
 async function safeParseJson(response) {
@@ -352,8 +339,7 @@ async function checkAssistantApiHealth() {
     }
     const healthUrl = ASISTENTE_API_CONFIG.healthEndpoint || buildHealthUrl(ASISTENTE_API_ENDPOINT, 'health=1');
     const response = await fetch(healthUrl, {
-        method: 'GET',
-        headers: resolveAsistenteApiHeaders(ASISTENTE_API_CONFIG)
+        method: 'GET'
     });
     if (!response.ok) {
         throw new Error(`Health check asistente falló (${response.status}).`);
