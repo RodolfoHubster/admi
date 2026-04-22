@@ -99,7 +99,7 @@
 .inventory-table thead th {
     white-space: nowrap;
     font-size: 0.72rem;
-    letter-spacing: 1px;
+    letter-spacing: 0.05em;
     padding: 10px 10px;
 }
 .inventory-table tbody td {

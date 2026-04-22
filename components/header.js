@@ -167,12 +167,12 @@ function marcarPaginaActiva() {
     
     // Buscar el link correspondiente y marcarlo como activo
     const links = document.querySelectorAll('[data-page]');
-    let activeDentroDropdown = false;
+    let activeInsideDropdown = false;
     links.forEach(link => {
         if (link.dataset.page === paginaActual) {
             link.classList.add('active');
             if (link.classList.contains('dropdown-item')) {
-                activeDentroDropdown = true;
+                activeInsideDropdown = true;
             }
         } else {
             link.classList.remove('active');
@@ -181,7 +181,7 @@ function marcarPaginaActiva() {
 
     const toggleMas = document.getElementById('nav-mas-toggle');
     if (toggleMas) {
-        toggleMas.classList.toggle('active', activeDentroDropdown);
+        toggleMas.classList.toggle('active', activeInsideDropdown);
     }
 }
 
