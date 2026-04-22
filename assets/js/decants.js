@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarDatosDecants();
     verificarPrecarga();
     renderTallasDefault();
+    document.getElementById('venta-cantidad')?.addEventListener('input', validarMLDisponibles);
+    document.getElementById('venta-fuente-id')?.addEventListener('change', validarMLDisponibles);
 });
 
 async function initDecants() {
@@ -165,9 +167,18 @@ function verificarPrecarga() {
 function cargarFuentes() {
     const tbody    = document.getElementById('tabla-fuentes');
     const busqueda = (document.getElementById('buscador-fuentes')?.value || '').toLowerCase();
-    const lista    = _fuentes.filter(f =>
-        (f.nombre + ' ' + f.marca).toLowerCase().includes(busqueda)
-    );
+    const filtroStock = document.getElementById('filtro-stock-fuentes')?.value || 'todos';
+    const lista = _fuentes.filter(f => {
+        const texto = (f.nombre + ' ' + (f.marca || '')).toLowerCase();
+        if (!texto.includes(busqueda)) return false;
+        const mlTotal = f.mlTotal || 0;
+        const mlDisp = mlTotal - (f.mlUsados || 0);
+        const esBajo = mlDisp > 0 && mlTotal > 0 && mlDisp <= (mlTotal * 0.2);
+        if (filtroStock === 'agotado') return mlDisp <= 0;
+        if (filtroStock === 'bajo') return esBajo;
+        if (filtroStock === 'disponible') return mlDisp > 0 && !esBajo;
+        return true;
+    });
 
     if (!lista.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
@@ -231,14 +242,34 @@ function cargarFuentes() {
 function cargarHistorialVentas() {
     const tbody = document.getElementById('tabla-ventas-decants');
     const badge = document.getElementById('badge-total-ventas');
-    if (badge) badge.textContent = _ventasD.length + ' ventas';
+    const busqueda = (document.getElementById('buscador-ventas-decants')?.value || '').trim().toLowerCase();
+    const filtroPeriodo = document.getElementById('filtro-ventas-decants')?.value || 'todos';
+    const ahora = new Date();
+    const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
 
     if (!_ventasD.length) {
+        if (badge) badge.textContent = '0 ventas';
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Sin ventas registradas</td></tr>`;
         return;
     }
 
-    const ordenadas = [..._ventasD].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    const filtradas = _ventasD.filter(v => {
+        const fechaVenta = new Date(v.fecha);
+        if (filtroPeriodo === 'hoy' && fechaVenta < inicioHoy) return false;
+        if (filtroPeriodo === '7dias' && fechaVenta < new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000)) return false;
+        if (filtroPeriodo === '30dias' && fechaVenta < new Date(ahora.getTime() - 30 * 24 * 60 * 60 * 1000)) return false;
+        if (!busqueda) return true;
+        const fuente = _fuentes.find(f => f.id === v.fuenteId);
+        const nombre = fuente ? fuente.nombre : (v.nombrePerfume || '');
+        const texto = `${nombre} ${v.cliente || ''} ${v.marca || ''} ${v.ml || ''}`.toLowerCase();
+        return texto.includes(busqueda);
+    });
+    if (badge) badge.textContent = `${filtradas.length}/${_ventasD.length} ventas`;
+    const ordenadas = [...filtradas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    if (!ordenadas.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">No hay ventas que coincidan con el filtro</td></tr>`;
+        return;
+    }
     tbody.innerHTML = ordenadas.map(v => {
         const fuente   = _fuentes.find(f => f.id === v.fuenteId);
         const nombre   = fuente ? fuente.nombre : (v.nombrePerfume || '-');
@@ -529,6 +560,7 @@ function onSeleccionarFuente() {
     document.getElementById('venta-ml').value = '';
     document.getElementById('venta-precio-sugerido').value = '';
     document.getElementById('venta-precio').value = '';
+    validarMLDisponibles();
 }
 
 function seleccionarTalla(btn, ml, precio) {
