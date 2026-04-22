@@ -86,7 +86,15 @@
     <div class="card shadow border-0 mb-4">
         <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold">🧴 Botellas Fuente (Inventario de Decants)</h6>
-            <input type="text" id="buscador-fuentes" class="form-control form-control-sm w-auto" placeholder="🔍 Buscar..." oninput="cargarFuentes()">
+            <div class="d-flex gap-2 flex-wrap justify-content-end">
+                <select id="filtro-stock-fuentes" class="form-select form-select-sm w-auto" onchange="cargarFuentes()">
+                    <option value="todos">Todo stock</option>
+                    <option value="disponible">Disponible</option>
+                    <option value="bajo">Stock bajo</option>
+                    <option value="agotado">Agotado</option>
+                </select>
+                <input type="text" id="buscador-fuentes" class="form-control form-control-sm w-auto" placeholder="🔍 Buscar..." oninput="cargarFuentes()">
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -114,7 +122,16 @@
     <div class="card shadow border-0">
         <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold">📋 Historial de Ventas de Decants</h6>
-            <span class="badge bg-secondary" id="badge-total-ventas">0 ventas</span>
+            <div class="d-flex gap-2 flex-wrap justify-content-end">
+                <select id="filtro-ventas-decants" class="form-select form-select-sm w-auto" onchange="cargarHistorialVentas()">
+                    <option value="todos">Todo periodo</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="7dias">Últimos 7 días</option>
+                    <option value="30dias">Últimos 30 días</option>
+                </select>
+                <input type="text" id="buscador-ventas-decants" class="form-control form-control-sm w-auto" placeholder="🔍 Cliente o perfume..." oninput="cargarHistorialVentas()">
+                <span class="badge bg-secondary d-flex align-items-center" id="badge-total-ventas">0 ventas</span>
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

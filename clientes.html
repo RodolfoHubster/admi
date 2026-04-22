@@ -79,6 +79,30 @@
                 Estos son perfumes registrados en el <strong>Inventario</strong> asignados a un cliente.
                 Si cambias la ubicación a &quot;En Inventario&quot;, aparecerán como listos.
             </div>
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body py-2">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold mb-1">🔍 Buscar pedido</label>
+                            <input type="text" class="form-control form-control-sm" id="filtro-pedidos-texto" placeholder="Cliente, perfume o marca..." oninput="renderEncargos()">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold mb-1">📦 Estado</label>
+                            <select class="form-select form-select-sm" id="filtro-pedidos-estado" onchange="renderEncargos()">
+                                <option value="todos">Todos</option>
+                                <option value="listo">Listo para entrega</option>
+                                <option value="transito">En tránsito</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <small class="text-muted d-block">Resumen rápido</small>
+                            <span class="badge bg-success" id="count-pedidos-listos">0 listos</span>
+                            <span class="badge bg-warning text-dark" id="count-pedidos-transito">0 en tránsito</span>
+                            <small class="text-muted d-block mt-1" id="resumen-pedidos-vista">Mostrando 0</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="table-responsive shadow-sm rounded">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
@@ -250,10 +274,21 @@ function renderEncargos() {
         ? (getData('perfumes') || [])
         : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
     const tbody = document.getElementById('encargos-table-body');
+    const filtroTexto = (document.getElementById('filtro-pedidos-texto')?.value || '').trim().toLowerCase();
+    const filtroEstado = (document.getElementById('filtro-pedidos-estado')?.value || 'todos');
     tbody.innerHTML = '';
     let contadorEncargos = 0;
 
-    const encargos = inventario.filter(prod => prod.cliente && prod.cliente.trim() !== '');
+    const encargosBase = inventario.filter(prod => prod.cliente && prod.cliente.trim() !== '');
+    const totalListos = encargosBase.filter(prod => prod.ubicacion === 'en_inventario' || prod.ubicacion === 'stock').length;
+    const totalTransito = encargosBase.length - totalListos;
+    const encargos = encargosBase.filter(prod => {
+        const estado = (prod.ubicacion === 'en_inventario' || prod.ubicacion === 'stock') ? 'listo' : 'transito';
+        if (filtroEstado !== 'todos' && estado !== filtroEstado) return false;
+        if (!filtroTexto) return true;
+        const texto = `${prod.cliente || ''} ${prod.nombre || ''} ${prod.marca || ''}`.toLowerCase();
+        return texto.includes(filtroTexto);
+    });
     encargos.sort((a, b) => (a.ubicacion === 'en_inventario' ? -1 : 1));
 
     encargos.forEach(prod => {
@@ -282,7 +317,13 @@ function renderEncargos() {
         `;
     });
 
-    document.getElementById('count-pedidos').innerText = contadorEncargos;
+    document.getElementById('count-pedidos').innerText = encargosBase.length;
+    const resumenVista = document.getElementById('resumen-pedidos-vista');
+    if (resumenVista) resumenVista.innerText = `Mostrando ${contadorEncargos} de ${encargosBase.length}`;
+    const badgeListos = document.getElementById('count-pedidos-listos');
+    if (badgeListos) badgeListos.innerText = `${totalListos} listos`;
+    const badgeTransito = document.getElementById('count-pedidos-transito');
+    if (badgeTransito) badgeTransito.innerText = `${totalTransito} en tránsito`;
     if (contadorEncargos === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">📭 No tienes encargos activos.</td></tr>`;
     }
