@@ -77,3 +77,14 @@ Configura el runtime del frontend con el endpoint público del backend:
 ## Desarrollo local
 
 Este repositorio no incluye pipeline estándar de `lint/test/build` por `package.json` o `composer.json`.
+
+## Extras añadidos para colaboración y calidad
+
+- CI básico en GitHub Actions (`.github/workflows/ci.yml`) con:
+  - validación de sintaxis PHP en `api/`
+  - validación de sintaxis JavaScript en `assets/` y `components/`
+- Plantilla de Pull Request: `.github/pull_request_template.md`
+- Plantillas de Issues:
+  - `.github/ISSUE_TEMPLATE/bug_report.yml`
+  - `.github/ISSUE_TEMPLATE/feature_request.yml`
+- Guía de contribución: `CONTRIBUTING.md`

@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  php-lint:
+    name: PHP syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: Lint PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          files="$(find api -name '*.php' -type f)"
+          if [ -z "${files}" ]; then
+            echo "No PHP files found in api/"
+            exit 0
+          fi
+          while IFS= read -r file; do
+            php -l "$file"
+          done <<< "${files}"
+
+  js-syntax:
+    name: JavaScript syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check JS syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          files="$(find assets components -name '*.js' -type f 2>/dev/null || true)"
+          if [ -z "${files}" ]; then
+            echo "No JS files found"
+            exit 0
+          fi
+          while IFS= read -r file; do
+            node --check "$file"
+          done <<< "${files}"
