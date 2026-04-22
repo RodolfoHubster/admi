@@ -106,6 +106,9 @@ function exportarTodo() {
     link.click();
     URL.revokeObjectURL(url);
     showToast(`✅ Backup exportado! ${totalItems} registros.`, 'success');
+    if (typeof auditLog === 'function') {
+        auditLog('backup.export', { totalItems, categorias: backup.metadata.categorias.length });
+    }
 }
 
 // =========================================================
@@ -128,6 +131,9 @@ function importarTodo(file) {
                         totalItems += Array.isArray(data) ? data.length : 0;
                     }
                 });
+                if (typeof auditLog === 'function') {
+                    auditLog('backup.import', { categorias: importados, items: totalItems, version: backup.version || 'unknown' });
+                }
                 resolve({ success: true, categorias: importados, items: totalItems });
             } catch (error) {
                 reject(error);
@@ -178,6 +184,7 @@ async function initApp() {
     if (typeof getDataCloud !== 'function') {
         console.warn('⚠️ Firebase no disponible, usando localStorage');
         ocultarSpinner();
+        programarBackupAutomatico();
         return;
     }
 
@@ -198,6 +205,23 @@ async function initApp() {
 
     ocultarSpinner();
     console.log('🔄 Sincronizado desde Firebase');
+    programarBackupAutomatico();
+}
+
+function programarBackupAutomatico() {
+    const key = 'fito_auto_backup_last_day';
+    const day = new Date().toISOString().slice(0, 10);
+    const last = localStorage.getItem(key);
+    if (last === day) return;
+    const snapshot = {};
+    Object.keys(STORAGE_KEYS).forEach(k => {
+        snapshot[k] = getData(k);
+    });
+    localStorage.setItem(`fito_auto_backup_${day}`, JSON.stringify({
+        fecha: new Date().toISOString(),
+        datos: snapshot
+    }));
+    localStorage.setItem(key, day);
 }
 
 

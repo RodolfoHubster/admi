@@ -65,6 +65,18 @@ Configura el runtime del frontend con el endpoint público del backend:
 - Rate limit activo en backend.
 - Revisar logs: `gemini_assistant.log`, `gemini_assistant_security.log`, `gemini_assistant_error.log`.
 
+## Control de acceso por roles (frontend)
+
+Se añadió sesión con roles para operación diaria:
+
+- `admin`: acceso total (edición, borrado, respaldos).
+- `vendedor`: venta/cobranza sin borrados sensibles.
+- `readonly`: solo consulta.
+
+La sesión se guarda en `sessionStorage` (`fito_session`) y usa versión global (`fito_session_version`) para cierre de sesión global.
+
+> Importante: cambia los hashes/PINs por defecto definidos en `login.html` antes de usar en producción.
+
 ## Checklist post-pull (copiar/pegar)
 
 - [ ] `.env` creado desde `.env.example`.

@@ -54,10 +54,25 @@ function cargarHeader() {
                         <a href="clientes.html" class="nav-link" data-page="clientes">
                             👥 Clientes
                         </a>
+                        <span class="nav-link disabled small text-uppercase" id="nav-role-badge" style="opacity:.8;"></span>
+                        <button class="btn btn-sm btn-outline-light ms-1" id="btn-logout-global" type="button">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
                     </div>
                 </div>
             </div>
         </nav>
+        <div id="sync-status-banner" class="container mb-2">
+            <div class="small text-muted">
+                <span class="me-2">🔄 Sync:</span>
+                <span id="sync-status-value">Verificando...</span>
+            </div>
+        </div>
+        <div id="mobile-quick-actions" style="position:fixed;right:12px;bottom:14px;z-index:1050;display:flex;flex-direction:column;gap:8px;">
+            <a href="products.html" class="btn btn-sm btn-dark shadow rounded-pill">+ Inventario</a>
+            <a href="ventas.html" class="btn btn-sm btn-success shadow rounded-pill">+ Venta/Abono</a>
+            <a href="gastos.html" class="btn btn-sm btn-warning shadow rounded-pill">+ Gasto</a>
+        </div>
         
         <!-- Botones flotantes de importar/exportar 
         <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; gap: 10px;">
@@ -76,10 +91,62 @@ function cargarHeader() {
     
     // Marcar página activa
     marcarPaginaActiva();
+    pintarInfoSesionHeader();
+    inicializarBotonSalir();
+    actualizarEstadoSync();
     
     // Actualizar badge de alertas
     if (typeof actualizarBadgeAlertas === 'function') {
         actualizarBadgeAlertas();
+    }
+}
+
+function pintarInfoSesionHeader() {
+    const badge = document.getElementById('nav-role-badge');
+    if (!badge) return;
+    const sesion = typeof getFitoSession === 'function' ? getFitoSession() : null;
+    if (!sesion) {
+        badge.textContent = 'Sin sesión';
+        return;
+    }
+    badge.textContent = `Rol: ${sesion.role || 'readonly'}`;
+    const quick = document.getElementById('mobile-quick-actions');
+    if (quick && sesion.role === 'readonly') {
+        quick.style.display = 'none';
+    }
+}
+
+function inicializarBotonSalir() {
+    const btn = document.getElementById('btn-logout-global');
+    if (!btn) return;
+    btn.onclick = () => {
+        if (typeof fitoLogoutGlobal === 'function') {
+            fitoLogoutGlobal('logout');
+            return;
+        }
+        sessionStorage.removeItem('fito_auth');
+        location.replace('login.html');
+    };
+}
+
+function actualizarEstadoSync() {
+    const el = document.getElementById('sync-status-value');
+    if (!el) return;
+    const online = navigator.onLine;
+    el.textContent = online ? 'Online' : 'Offline (solo local)';
+    el.style.color = online ? '#4ade80' : '#fbbf24';
+    window.addEventListener('online', () => {
+        el.textContent = 'Online';
+        el.style.color = '#4ade80';
+    });
+    window.addEventListener('offline', () => {
+        el.textContent = 'Offline (solo local)';
+        el.style.color = '#fbbf24';
+    });
+    const quick = document.getElementById('mobile-quick-actions');
+    if (quick) {
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        quick.style.display = isMobile ? 'flex' : 'none';
     }
 }
 

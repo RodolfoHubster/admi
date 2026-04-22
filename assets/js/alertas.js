@@ -103,7 +103,9 @@ function generarAlertasClientes(ventas) {
                 mensaje: `${cliente} debe $${info.total.toFixed(2)} desde hace ${diasDeuda} día${diasDeuda !== 1 ? 's' : ''}. Total de ${info.ventas.length} venta(s) pendiente(s).`,
                 accion: { texto: 'Cobrar Ahora', link: 'clientes.html' },
                 fecha: ahora.toISOString(),
-                datos: { cliente, totalDeuda: info.total, dias: diasDeuda }
+                datos: { cliente, totalDeuda: info.total, dias: diasDeuda },
+                responsable: 'Ventas',
+                slaDias: 1
             });
         } else if (info.total > 500) {
             alertasActivas.push({
@@ -114,7 +116,9 @@ function generarAlertasClientes(ventas) {
                 mensaje: `${cliente} debe $${info.total.toFixed(2)} desde hace ${diasDeuda} día${diasDeuda !== 1 ? 's' : ''}. Considera recordarle el pago.`,
                 accion: { texto: 'Ver Cliente', link: 'clientes.html' },
                 fecha: ahora.toISOString(),
-                datos: { cliente, totalDeuda: info.total }
+                datos: { cliente, totalDeuda: info.total },
+                responsable: 'Ventas',
+                slaDias: 3
             });
         }
     });
@@ -351,6 +355,15 @@ function renderAlertas() {
     alertasFiltradas.forEach(alerta => {
         const s = estilos[alerta.tipo] || estilos.info;
         const ico = iconos[alerta.tipo] || 'bi-bell-fill';
+        const fechaAlerta = new Date(alerta.fecha);
+        const slaDias = Number.isFinite(alerta.slaDias) ? alerta.slaDias : 3;
+        const vence = new Date(fechaAlerta.getTime() + slaDias * 86400000);
+        const vencida = new Date() > vence;
+        const responsable = alerta.responsable || 'General';
+        const whatsappText = armarMensajeWhatsappAlerta(alerta);
+        const whatsappBtn = whatsappText
+            ? `<a href="https://wa.me/?text=${encodeURIComponent(whatsappText)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success ms-2">WhatsApp</a>`
+            : '';
         
         const card = `
             <div class="card mb-3 shadow-sm" style="border: 1px solid ${s.border}; background: ${s.bg};">
@@ -360,13 +373,18 @@ function renderAlertas() {
                         <div class="flex-grow-1">
                             <h5 class="card-title mb-2" style="color:${s.titleColor};">${alerta.titulo}</h5>
                             <p class="card-text mb-3" style="color: var(--text-primary);">${alerta.mensaje}</p>
+                            <div class="mb-2 small text-muted">
+                                Responsable: <span class="fw-bold">${responsable}</span> ·
+                                SLA: <span class="${vencida ? 'text-danger fw-bold' : ''}">${slaDias} día(s) (vence ${vence.toLocaleDateString()})</span>
+                            </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">
                                     <i class="bi bi-tag-fill"></i> ${capitalize(alerta.categoria)}
                                 </small>
-                                <a href="${alerta.accion.link}" class="btn btn-sm btn-gold">
-                                    ${alerta.accion.texto} →
-                                </a>
+                                <div>
+                                    <a href="${alerta.accion.link}" class="btn btn-sm btn-gold">${alerta.accion.texto} →</a>
+                                    ${whatsappBtn}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -401,4 +419,15 @@ function setFiltroAlerta(tipo, btn) {
 
 function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function armarMensajeWhatsappAlerta(alerta) {
+    if (!alerta || !alerta.datos) return '';
+    if (alerta.categoria === 'clientes' && alerta.datos.cliente) {
+        return `Hola ${alerta.datos.cliente}, te recordamos tu saldo pendiente de $${(alerta.datos.totalDeuda || 0).toFixed(2)}. ¿Te comparto métodos de pago?`;
+    }
+    if (alerta.categoria === 'inventario' && alerta.datos.producto) {
+        return `Recordatorio interno: revisar recompra de ${alerta.datos.producto}.`;
+    }
+    return '';
 }
