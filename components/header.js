@@ -4,7 +4,7 @@
 
 function cargarHeader() {
     const headerHTML = `
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow app-navbar">
             <div class="container">
                 <a class="navbar-brand fw-bold" href="index.html">👑 Fitoscents</a>
                 
@@ -12,8 +12,8 @@ function cargarHeader() {
                     <span class="navbar-toggler-icon"></span>
                 </button>
         
-                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                    <div class="navbar-nav gap-2">
+                <div class="collapse navbar-collapse justify-content-between gap-3" id="navbarNav">
+                    <div class="navbar-nav gap-lg-1 flex-wrap">
                         <a href="index.html" class="nav-link" data-page="index">
                             Inicio
                         </a>
@@ -23,26 +23,8 @@ function cargarHeader() {
                         <a href="catalogo.html" class="nav-link" data-page="catalogo">
                             📸 Catálogo
                         </a>
-                        <a href="decants.html" class="nav-link" data-page="decants">
-                            🧪 Decants
-                        </a>
-                        <a href="listadecants.html" class="nav-link" data-page="listadecants">
-                            🃏 Lista Decants
-                        </a>
                         <a href="ventas.html" class="nav-link" data-page="ventas">
                             💰 Ventas
-                        </a>
-                        <a href="ganancias.html" class="nav-link" data-page="ganancias">
-                            📊 Ganancias
-                        </a>
-                        <a href="gastos.html" class="nav-link" data-page="gastos">
-                            💸 Gastos
-                        </a>
-                        <a href="mensajes.html" class="nav-link" data-page="mensajes">
-                            💬 Mensajes
-                        </a>
-                        <a href="asistente.html" class="nav-link" data-page="asistente">
-                            🤖 Asistente IA
                         </a>
                         <a href="alertas.html" class="nav-link position-relative" data-page="alertas">
                             🔔 Alertas
@@ -51,11 +33,24 @@ function cargarHeader() {
                                 0
                             </span>
                         </a>
-                        <a href="clientes.html" class="nav-link" data-page="clientes">
-                            👥 Clientes
-                        </a>
-                        <span class="nav-link disabled small text-uppercase" id="nav-role-badge" style="opacity:.8;"></span>
-                        <button class="btn btn-sm btn-outline-light ms-1" id="btn-logout-global" type="button">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="nav-mas-toggle">
+                                Más
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
+                                <li><a href="decants.html" class="dropdown-item" data-page="decants">🧪 Decants</a></li>
+                                <li><a href="listadecants.html" class="dropdown-item" data-page="listadecants">🃏 Lista Decants</a></li>
+                                <li><a href="ganancias.html" class="dropdown-item" data-page="ganancias">📊 Ganancias</a></li>
+                                <li><a href="gastos.html" class="dropdown-item" data-page="gastos">💸 Gastos</a></li>
+                                <li><a href="mensajes.html" class="dropdown-item" data-page="mensajes">💬 Mensajes</a></li>
+                                <li><a href="clientes.html" class="dropdown-item" data-page="clientes">👥 Clientes</a></li>
+                                <li><a href="asistente.html" class="dropdown-item" data-page="asistente">🤖 Asistente IA</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 ms-lg-auto header-utility">
+                        <span class="badge text-uppercase" id="nav-role-badge"></span>
+                        <button class="btn btn-sm btn-outline-light" id="btn-logout-global" type="button">
                             <i class="bi bi-box-arrow-right"></i> Salir
                         </button>
                     </div>
@@ -171,14 +166,23 @@ function marcarPaginaActiva() {
     }
     
     // Buscar el link correspondiente y marcarlo como activo
-    const links = document.querySelectorAll('.nav-link[data-page]');
+    const links = document.querySelectorAll('[data-page]');
+    let activeDentroDropdown = false;
     links.forEach(link => {
         if (link.dataset.page === paginaActual) {
             link.classList.add('active');
+            if (link.classList.contains('dropdown-item')) {
+                activeDentroDropdown = true;
+            }
         } else {
             link.classList.remove('active');
         }
     });
+
+    const toggleMas = document.getElementById('nav-mas-toggle');
+    if (toggleMas) {
+        toggleMas.classList.toggle('active', activeDentroDropdown);
+    }
 }
 
 // Auto-ejecutar cuando el DOM esté listo

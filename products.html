@@ -204,29 +204,25 @@
             <!-- TABLA INVENTARIO -->
             <div class="card shadow">
                 <div class="card-body p-0">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th style="width: 8%">SKU</th>
-                                <th style="width: 18%; cursor: pointer;" onclick="cambiarOrden('nombre')">Producto <i class="bi bi-arrow-down-up small opacity-50"></i></th>
-                                <th style="width: 9%">Propiedad</th>
-                                <th style="width: 9%">Destino</th>
-                                <th style="width: 11%">Ubicación</th>
-                                <th style="width: 7%; cursor: pointer;" onclick="cambiarOrden('precio')">Precio <i class="bi bi-arrow-down-up small opacity-50"></i></th>
-                                <th style="width: 8%; cursor: pointer;" onclick="cambiarOrden('ganancia')">Ganancia <i class="bi bi-arrow-down-up small opacity-50"></i></th>
-                                <th style="width: 5%" class="text-center">Cant.</th>
-                                <th style="width: 9%" class="text-center">
-                                    <div class="d-flex flex-column align-items-center">
-                                        <span style="color: var(--gold-flat); font-weight:700; font-size:0.75rem;">💰 DEUDA</span>
-                                        <span style="color: var(--gold-flat); font-weight:700; font-size:0.75rem;">SOCIO</span>
-                                        <small class="text-muted" style="font-size: 0.65rem;">Por Inv.</small>
-                                    </div>
-                                </th>
-                                <th style="width: 16%" class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-table-body"></tbody>
-                    </table>
+                    <div class="table-responsive inventory-table-wrap">
+                        <table class="table table-hover table-sm align-middle mb-0 inventory-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 7%">SKU</th>
+                                    <th style="width: 21%; cursor: pointer;" onclick="cambiarOrden('nombre')">Producto <i class="bi bi-arrow-down-up small opacity-50"></i></th>
+                                    <th style="width: 8%">Prop.</th>
+                                    <th style="width: 8%">Dest.</th>
+                                    <th style="width: 11%">Ubicación</th>
+                                    <th style="width: 8%; cursor: pointer;" onclick="cambiarOrden('precio')">Precio <i class="bi bi-arrow-down-up small opacity-50"></i></th>
+                                    <th style="width: 8%; cursor: pointer;" onclick="cambiarOrden('ganancia')">Gan. <i class="bi bi-arrow-down-up small opacity-50"></i></th>
+                                    <th style="width: 5%" class="text-center">Cant.</th>
+                                    <th style="width: 8%" class="text-center" title="Deuda del socio por inversión">💰 Socio</th>
+                                    <th style="width: 16%" class="text-center">Acc.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body"></tbody>
+                        </table>
+                    </div>
                     <div id="empty-msg" class="text-center text-muted p-5" style="display:none;">
                         👻 No hay perfumes que coincidan con estos filtros.
                     </div>

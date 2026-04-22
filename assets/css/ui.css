@@ -89,6 +89,27 @@
 .table-hover > tbody > tr:hover > td {
     background-color: rgba(255, 215, 0, 0.06) !important;
 }
+.inventory-table-wrap {
+    overflow-x: auto;
+}
+.inventory-table {
+    min-width: 980px;
+    table-layout: fixed;
+}
+.inventory-table thead th {
+    white-space: nowrap;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    padding: 10px 10px;
+}
+.inventory-table tbody td {
+    font-size: 0.88rem;
+    padding: 8px 10px;
+}
+.inventory-table .btn.btn-sm {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+}
 .table-group-header {
     background-color: rgba(255,215,0,0.05) !important;
     border-left: 3px solid var(--gold-flat);
