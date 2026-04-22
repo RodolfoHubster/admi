@@ -69,9 +69,9 @@ function cargarHeader() {
             </div>
         </div>
         <div id="mobile-quick-actions" style="position:fixed;right:12px;bottom:14px;z-index:1050;display:flex;flex-direction:column;gap:8px;">
-            <a href="products.html" class="btn btn-sm btn-dark shadow rounded-pill">+ Inventario</a>
-            <a href="ventas.html" class="btn btn-sm btn-success shadow rounded-pill">+ Venta/Abono</a>
-            <a href="gastos.html" class="btn btn-sm btn-warning shadow rounded-pill">+ Gasto</a>
+            <a href="products.html" id="qa-inventario" class="btn btn-sm btn-dark shadow rounded-pill">+ Inventario</a>
+            <a href="ventas.html" id="qa-venta" class="btn btn-sm btn-success shadow rounded-pill">+ Venta/Abono</a>
+            <a href="gastos.html" id="qa-gasto" class="btn btn-sm btn-warning shadow rounded-pill">+ Gasto</a>
         </div>
         
         <!-- Botones flotantes de importar/exportar 
@@ -111,8 +111,15 @@ function pintarInfoSesionHeader() {
     }
     badge.textContent = `Rol: ${sesion.role || 'readonly'}`;
     const quick = document.getElementById('mobile-quick-actions');
-    if (quick && sesion.role === 'readonly') {
-        quick.style.display = 'none';
+    if (quick) {
+        const qaInv = document.getElementById('qa-inventario');
+        const qaVenta = document.getElementById('qa-venta');
+        const qaGasto = document.getElementById('qa-gasto');
+        if (qaInv) qaInv.style.display = (typeof fitoCan === 'function' && fitoCan('edit')) ? 'inline-block' : 'none';
+        if (qaVenta) qaVenta.style.display = (typeof fitoCan === 'function' && fitoCan('sell')) ? 'inline-block' : 'none';
+        if (qaGasto) qaGasto.style.display = (typeof fitoCan === 'function' && fitoCan('edit')) ? 'inline-block' : 'none';
+        const visibleActions = [qaInv, qaVenta, qaGasto].filter(el => el && el.style.display !== 'none').length;
+        if (visibleActions === 0) quick.style.display = 'none';
     }
 }
 

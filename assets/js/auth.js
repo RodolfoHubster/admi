@@ -6,7 +6,11 @@
     const LEGACY_KEY = 'fito_auth';
     const SESSION_VERSION_KEY = 'fito_session_version';
     const CURRENT_VERSION = localStorage.getItem(SESSION_VERSION_KEY) || '1';
-    const MAX_SESSION_MS = 12 * 60 * 60 * 1000;
+    // Política de sesión: por defecto 12h. Puede ajustarse con localStorage.fito_session_timeout_ms.
+    const configuredTimeout = Number(localStorage.getItem('fito_session_timeout_ms'));
+    const MAX_SESSION_MS = Number.isFinite(configuredTimeout) && configuredTimeout > 0
+        ? configuredTimeout
+        : 12 * 60 * 60 * 1000;
     const ROLE_ORDER = { readonly: 1, vendedor: 2, admin: 3 };
     const ROLE_PERMISSIONS = {
         readonly: ['read'],

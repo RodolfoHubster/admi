@@ -334,7 +334,8 @@
                     loginAt: Date.now(),
                     sessionVersion
                 }));
-                sessionStorage.setItem('fito_auth', 'ok'); // Compatibilidad temporal
+                // Compatibilidad temporal con páginas antiguas; eliminar cuando todo use fito_session.
+                sessionStorage.setItem('fito_auth', 'ok');
                 const dest = new URLSearchParams(location.search).get('redirect') || 'index.html';
                 location.replace(dest);
             } else {

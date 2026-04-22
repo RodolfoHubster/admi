@@ -379,12 +379,19 @@ function renderLeads() {
             </td>
             <td>
                 <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-outline-success" onclick="window.open('https://wa.me/?text='+encodeURIComponent('Hola ${l.nombre}, te contacto por ${l.interes}'), '_blank')" title="WhatsApp">🟢</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarLead(${l.id})" title="Eliminar">🗑️</button>
+                    <button class="btn btn-sm btn-outline-success" onclick="enviarWhatsAppLead(${l.id})" title="WhatsApp" aria-label="WhatsApp">🟢 WhatsApp</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarLead(${l.id})" title="Eliminar" aria-label="Eliminar">🗑️ Eliminar</button>
                 </div>
             </td>
         </tr>`;
     }).join('');
+}
+
+function enviarWhatsAppLead(idLead) {
+    const lead = getLeads().find(l => l.id === idLead);
+    if (!lead) return;
+    const texto = `Hola ${lead.nombre}, te contacto por ${lead.interes}. ¿Te comparto opciones disponibles?`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
 }
 
 function renderDeudas() {

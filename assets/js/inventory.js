@@ -6,6 +6,8 @@ function validarURLImagen(url) {
 }
 
 const TEMPLATES_KEY = 'perfume_templates_v1';
+// Regla comercial: no permitir precio > 4x costo para evitar capturas erróneas.
+const MAX_PRICE_MULTIPLIER = 4;
 const ordenActualRef = (typeof ordenActual !== 'undefined' && ordenActual)
     ? ordenActual
     : { campo: 'nombre', dir: 'asc' };
@@ -238,22 +240,22 @@ function getBotonesAccion(index, productId = null) {
     const canSell = typeof fitoCan === 'function' ? fitoCan('sell') : true;
     return `
         <div class="d-flex gap-1 flex-wrap justify-content-center">
-            <button class="btn btn-sm btn-gold" onclick="iniciarVenta(${index})" title="Vender" ${canSell ? '' : 'disabled'}>
+            <button class="btn btn-sm btn-gold" onclick="iniciarVenta(${index})" title="Vender" aria-label="Vender producto" ${canSell ? '' : 'disabled'}>
                 <i class="bi bi-cash-coin"></i>
             </button>
-            <button class="btn btn-sm btn-outline-secondary" onclick="agregarAlCarrito(${index})" title="Carrito">
+            <button class="btn btn-sm btn-outline-secondary" onclick="agregarAlCarrito(${index})" title="Carrito" aria-label="Agregar al carrito">
                 <i class="bi bi-cart-plus"></i>
             </button>
-            <button class="btn btn-sm btn-outline-warning" onclick="editarProducto(${index})" title="Editar" ${canEdit ? '' : 'disabled'}>
+            <button class="btn btn-sm btn-outline-warning" onclick="editarProducto(${index})" title="Editar" aria-label="Editar producto" ${canEdit ? '' : 'disabled'}>
                 <i class="bi bi-pencil"></i>
             </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="duplicarProducto(${index})" title="Duplicar" ${canEdit ? '' : 'disabled'}>
+            <button class="btn btn-sm btn-outline-primary" onclick="duplicarProducto(${index})" title="Duplicar" aria-label="Duplicar producto" ${canEdit ? '' : 'disabled'}>
                 <i class="bi bi-copy"></i>
             </button>
-            <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" style="font-size:0.75rem">
+            <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" aria-label="Pasar producto a decants" style="font-size:0.75rem">
                 🧪
             </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index}, ${safeId})" title="Eliminar" ${canDelete ? '' : 'disabled'}>
+            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index}, ${safeId})" title="Eliminar" aria-label="Eliminar producto" ${canDelete ? '' : 'disabled'}>
                 <i class="bi bi-trash"></i>
             </button>
         </div>`;
@@ -397,7 +399,7 @@ function guardarProducto() {
         showToast('El precio de venta no puede ser menor al costo.', 'warning');
         return;
     }
-    if (precioNum > costoNum * 4) {
+    if (precioNum > costoNum * MAX_PRICE_MULTIPLIER) {
         showToast('Precio fuera de rango. Revisa antes de guardar.', 'warning');
         return;
     }
@@ -522,6 +524,14 @@ function guardarCambiosEdicion() {
     if (tipoEl)  p.tipo  = tipoEl.value.trim();
     if (notasEl) p.notas = notasEl.value.trim();
     if (batchEl) p.batch = batchEl.value.trim();
+
+    const skuNormalizado = String(p.sku || '').toLowerCase();
+    const duplicado = productos.some((item, idx) => idx !== indiceEdicion && String(item.sku || '').toLowerCase() === skuNormalizado);
+    if (duplicado) {
+        showToast('SKU duplicado. Elige otro SKU.', 'warning');
+        p.sku = skuAnterior;
+        return;
+    }
 
     setInventoryList(productos);
     if (typeof auditLog === 'function') {
@@ -683,10 +693,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     cargarListaPlantillas();
     calcularKPIsInventario();
 });
-    const skuNormalizado = String(p.sku || '').toLowerCase();
-    const duplicado = productos.some((item, idx) => idx !== indiceEdicion && String(item.sku || '').toLowerCase() === skuNormalizado);
-    if (duplicado) {
-        showToast('SKU duplicado. Elige otro SKU.', 'warning');
-        p.sku = skuAnterior;
-        return;
-    }

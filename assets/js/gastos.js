@@ -56,6 +56,7 @@ function guardarGasto() {
         localStorage.setItem(EXPENSES_KEY, JSON.stringify(listaGastos));
         if (typeof setDataCloud === 'function') setDataCloud('gastos', listaGastos).catch(() => {});
     }
+    if (typeof auditLog === 'function') auditLog('expenses.create', nuevoGasto);
 
     bootstrap.Modal.getInstance(document.getElementById('modalNuevoGasto')).hide();
     cargarGastos();
@@ -404,4 +405,3 @@ function getBadgeQuienPago(gasto) {
     }
     return '-';
 }
-    if (typeof auditLog === 'function') auditLog('expenses.create', nuevoGasto);
