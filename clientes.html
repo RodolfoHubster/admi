@@ -25,7 +25,7 @@
             <h2 class="fw-bold">Gestión de Clientes</h2>
             <p class="text-muted">Cobranza y seguimiento de pedidos.</p>
         </div>
-        <button class="btn btn-dark" onclick="alert('Próximamente: Lista de Interesados/Leads')">
+        <button class="btn btn-dark" onclick="abrirModalLead()">
             <i class="bi bi-notebook"></i> Anotar Interesado
         </button>
     </div>
@@ -41,6 +41,12 @@
             <button class="nav-link fw-bold" id="pedidos-tab"
                     data-bs-toggle="tab" data-bs-target="#pedidos-content" type="button">
                 📦 Pedidos y Encargos (<span id="count-pedidos">0</span>)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="leads-tab"
+                    data-bs-toggle="tab" data-bs-target="#leads-content" type="button">
+                🧲 Leads (<span id="count-leads">0</span>)
             </button>
         </li>
     </ul>
@@ -118,6 +124,31 @@
                 </table>
             </div>
         </div>
+
+        <div class="tab-pane fade" id="leads-content" role="tabpanel">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Interesados para seguimiento comercial.</small>
+                    <button class="btn btn-sm btn-dark" onclick="abrirModalLead()"><i class="bi bi-plus-circle"></i> Nuevo lead</button>
+                </div>
+            </div>
+            <div class="table-responsive shadow-sm rounded">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Canal</th>
+                            <th>Interés</th>
+                            <th>Último contacto</th>
+                            <th>Próx. seguimiento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leads-table-body"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -189,10 +220,61 @@
     </div>
 </div>
 
+<!-- Modal Lead -->
+<div class="modal fade" id="modalLead" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">🧲 Registrar Lead</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="lead-nombre" placeholder="Ej: Ana López">
+                </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Canal</label>
+                        <select class="form-select" id="lead-canal">
+                            <option>WhatsApp</option>
+                            <option>Instagram</option>
+                            <option>Facebook</option>
+                            <option>Mostrador</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" id="lead-estado">
+                            <option value="nuevo">Nuevo</option>
+                            <option value="seguimiento">Seguimiento</option>
+                            <option value="ganado">Ganado</option>
+                            <option value="perdido">Perdido</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <label class="form-label">Interés</label>
+                    <input type="text" class="form-control" id="lead-interes" placeholder="Ej: Dior Sauvage Elixir">
+                </div>
+                <div class="mt-2">
+                    <label class="form-label">Próximo seguimiento</label>
+                    <input type="date" class="form-control" id="lead-seguimiento">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-dark" onclick="guardarLead()">Guardar lead</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/runtime-config.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/utils.js"></script>
+<script src="assets/js/audit.js"></script>
 <script src="assets/js/storage.js"></script>
 <script>
 
@@ -200,7 +282,117 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initApp();
     renderDeudas();
     renderEncargos();
+    renderLeads();
 });
+
+const LEADS_KEY = 'fito_leads_v1';
+function getLeads() {
+    try { return JSON.parse(localStorage.getItem(LEADS_KEY) || '[]'); } catch (e) { return []; }
+}
+function setLeads(leads) {
+    localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
+}
+
+function abrirModalLead() {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
+    document.getElementById('lead-nombre').value = '';
+    document.getElementById('lead-interes').value = '';
+    document.getElementById('lead-canal').value = 'WhatsApp';
+    document.getElementById('lead-estado').value = 'nuevo';
+    document.getElementById('lead-seguimiento').value = '';
+    new bootstrap.Modal(document.getElementById('modalLead')).show();
+}
+
+function guardarLead() {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
+    const nombre = document.getElementById('lead-nombre').value.trim();
+    const canal = document.getElementById('lead-canal').value;
+    const interes = document.getElementById('lead-interes').value.trim();
+    const estado = document.getElementById('lead-estado').value;
+    const proximo = document.getElementById('lead-seguimiento').value;
+    if (!nombre || !interes) return showToast('Nombre e interés son obligatorios.', 'warning');
+    const leads = getLeads();
+    leads.push({
+        id: Date.now(),
+        nombre,
+        canal,
+        interes,
+        estado,
+        proximoSeguimiento: proximo || null,
+        ultimoContacto: new Date().toISOString()
+    });
+    setLeads(leads);
+    if (typeof auditLog === 'function') auditLog('leads.create', { nombre, canal, estado });
+    bootstrap.Modal.getInstance(document.getElementById('modalLead')).hide();
+    renderLeads();
+    showToast('Lead guardado.', 'success');
+}
+
+function eliminarLead(id) {
+    if (typeof requirePermission === 'function' && !requirePermission('delete')) return;
+    const leads = getLeads();
+    const lead = leads.find(l => l.id === id);
+    const filtrados = leads.filter(l => l.id !== id);
+    setLeads(filtrados);
+    if (typeof auditLog === 'function') auditLog('leads.delete', { id, nombre: lead?.nombre });
+    renderLeads();
+}
+
+function cambiarEstadoLead(id, estado) {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
+    const leads = getLeads();
+    const idx = leads.findIndex(l => l.id === id);
+    if (idx === -1) return;
+    leads[idx].estado = estado;
+    leads[idx].ultimoContacto = new Date().toISOString();
+    setLeads(leads);
+    if (typeof auditLog === 'function') auditLog('leads.update_status', { id, estado });
+    renderLeads();
+}
+
+function renderLeads() {
+    const tbody = document.getElementById('leads-table-body');
+    if (!tbody) return;
+    const leads = getLeads().sort((a, b) => (b.id || 0) - (a.id || 0));
+    document.getElementById('count-leads').innerText = leads.length;
+    if (!leads.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Sin leads registrados.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = leads.map(l => {
+        const next = l.proximoSeguimiento ? new Date(l.proximoSeguimiento) : null;
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const vencido = next && next < hoy && l.estado !== 'ganado' && l.estado !== 'perdido';
+        return `<tr>
+            <td class="fw-bold">${l.nombre}</td>
+            <td>${l.canal || '-'}</td>
+            <td>${l.interes || '-'}</td>
+            <td><small>${new Date(l.ultimoContacto).toLocaleDateString()}</small></td>
+            <td>${l.proximoSeguimiento ? `<span class="${vencido ? 'text-danger fw-bold' : ''}">${new Date(l.proximoSeguimiento).toLocaleDateString()}</span>` : '-'}</td>
+            <td>
+                <select class="form-select form-select-sm" onchange="cambiarEstadoLead(${l.id}, this.value)">
+                    <option value="nuevo" ${l.estado === 'nuevo' ? 'selected' : ''}>Nuevo</option>
+                    <option value="seguimiento" ${l.estado === 'seguimiento' ? 'selected' : ''}>Seguimiento</option>
+                    <option value="ganado" ${l.estado === 'ganado' ? 'selected' : ''}>Ganado</option>
+                    <option value="perdido" ${l.estado === 'perdido' ? 'selected' : ''}>Perdido</option>
+                </select>
+            </td>
+            <td>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-success" onclick="enviarWhatsAppLead(${l.id})" title="WhatsApp" aria-label="WhatsApp">🟢 WhatsApp</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarLead(${l.id})" title="Eliminar" aria-label="Eliminar">🗑️ Eliminar</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function enviarWhatsAppLead(idLead) {
+    const lead = getLeads().find(l => l.id === idLead);
+    if (!lead) return;
+    const texto = `Hola ${lead.nombre}, te contacto por ${lead.interes}. ¿Te comparto opciones disponibles?`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+}
 
 function renderDeudas() {
     const ventas = (typeof getData === 'function')

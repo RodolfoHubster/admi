@@ -6,6 +6,8 @@ function validarURLImagen(url) {
 }
 
 const TEMPLATES_KEY = 'perfume_templates_v1';
+// Regla comercial: no permitir precio > 4x costo para evitar capturas erróneas.
+const MAX_PRICE_MULTIPLIER = 4;
 const ordenActualRef = (typeof ordenActual !== 'undefined' && ordenActual)
     ? ordenActual
     : { campo: 'nombre', dir: 'asc' };
@@ -233,24 +235,50 @@ function getBotonesAccion(index, productId = null) {
     const safeId = (productId !== undefined && productId !== null)
         ? `'${encodeURIComponent(String(productId))}'`
         : "''";
+    const canEdit = typeof fitoCan === 'function' ? fitoCan('edit') : true;
+    const canDelete = typeof fitoCan === 'function' ? fitoCan('delete') : true;
+    const canSell = typeof fitoCan === 'function' ? fitoCan('sell') : true;
     return `
         <div class="d-flex gap-1 flex-wrap justify-content-center">
-            <button class="btn btn-sm btn-gold" onclick="iniciarVenta(${index})" title="Vender">
+            <button class="btn btn-sm btn-gold" onclick="iniciarVenta(${index})" title="Vender" aria-label="Vender producto" ${canSell ? '' : 'disabled'}>
                 <i class="bi bi-cash-coin"></i>
             </button>
-            <button class="btn btn-sm btn-outline-secondary" onclick="agregarAlCarrito(${index})" title="Carrito">
+            <button class="btn btn-sm btn-outline-secondary" onclick="agregarAlCarrito(${index})" title="Carrito" aria-label="Agregar al carrito">
                 <i class="bi bi-cart-plus"></i>
             </button>
-            <button class="btn btn-sm btn-outline-warning" onclick="editarProducto(${index})" title="Editar">
+            <button class="btn btn-sm btn-outline-warning" onclick="editarProducto(${index})" title="Editar" aria-label="Editar producto" ${canEdit ? '' : 'disabled'}>
                 <i class="bi bi-pencil"></i>
             </button>
-            <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" style="font-size:0.75rem">
+            <button class="btn btn-sm btn-outline-primary" onclick="duplicarProducto(${index})" title="Duplicar" aria-label="Duplicar producto" ${canEdit ? '' : 'disabled'}>
+                <i class="bi bi-copy"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" aria-label="Pasar producto a decants" style="font-size:0.75rem">
                 🧪
             </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index}, ${safeId})" title="Eliminar">
+            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${index}, ${safeId})" title="Eliminar" aria-label="Eliminar producto" ${canDelete ? '' : 'disabled'}>
                 <i class="bi bi-trash"></i>
             </button>
         </div>`;
+}
+
+function duplicarProducto(index) {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
+    const productos = getInventoryList();
+    const original = productos[index];
+    if (!original) return;
+    const nuevo = {
+        ...original,
+        id: Date.now(),
+        sku: `${original.sku}-COPIA`,
+        fechaRegistro: new Date().toISOString()
+    };
+    productos.push(nuevo);
+    setInventoryList(productos);
+    if (typeof auditLog === 'function') {
+        auditLog('inventory.duplicate', { origenId: original.id, nuevoId: nuevo.id, sku: nuevo.sku });
+    }
+    cargarInventario();
+    showToast('Producto duplicado.', 'success');
 }
 
 // ========== PASAR A DECANTS ==========
@@ -332,6 +360,7 @@ function filtrarTabla() { cargarInventario(); }
 
 // ========== GUARDAR PRODUCTO (NUEVO) ==========
 function guardarProducto() {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
     const nombre   = document.getElementById('inputNombre').value.trim();
     const marca    = document.getElementById('inputMarca').value.trim();
     let sku        = document.getElementById('inputSku').value.trim();
@@ -359,14 +388,34 @@ function guardarProducto() {
     const notas    = notasEl ? notasEl.value.trim()  : '';
     const batch    = batchEl ? batchEl.value.trim()  : '';
 
-    if (!nombre || !costo || !precio) { alert('Por favor, llena los campos obligatorios.'); return; }
+    const costoNum = parseFloat(costo);
+    const precioNum = parseFloat(precio);
+    if (!nombre || !marca || !costo || !precio) { showToast('Completa nombre, marca, costo y precio.', 'warning'); return; }
+    if (!Number.isFinite(costoNum) || !Number.isFinite(precioNum) || costoNum <= 0 || precioNum <= 0) {
+        showToast('Costo y precio deben ser mayores a 0.', 'warning');
+        return;
+    }
+    if (precioNum < costoNum) {
+        showToast('El precio de venta no puede ser menor al costo.', 'warning');
+        return;
+    }
+    if (precioNum > costoNum * MAX_PRICE_MULTIPLIER) {
+        showToast('Precio fuera de rango. Revisa antes de guardar.', 'warning');
+        return;
+    }
     if (!sku) sku = 'SKU-' + Math.floor(Math.random() * 10000);
 
     const productos = getInventoryList();
+    const skuNormalizado = sku.toLowerCase();
+    const skuDuplicado = productos.some(p => String(p.sku || '').toLowerCase() === skuNormalizado);
+    if (skuDuplicado) {
+        showToast('SKU duplicado. Usa uno distinto.', 'warning');
+        return;
+    }
     for (let i = 0; i < cantidadTotal; i++) {
         productos.push({
             id: Date.now() + i, nombre, marca, sku,
-            costo: parseFloat(costo), precioVenta: parseFloat(precio),
+            costo: costoNum, precioVenta: precioNum,
             inversion, porcentajeSocio, destino, cliente, ubicacion,
             imagen: imagenUrl || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
             cantidad: 1, fechaRegistro: new Date().toISOString(),
@@ -378,6 +427,9 @@ function guardarProducto() {
     if(checkPlantilla && checkPlantilla.checked) { guardarComoPlantilla(); checkPlantilla.checked = false; }
 
     setInventoryList(productos);
+    if (typeof auditLog === 'function') {
+        auditLog('inventory.create', { nombre, sku, cantidad: cantidadTotal, costo: costoNum, precio: precioNum });
+    }
     const modalEl = document.getElementById('modalNuevoPerfume');
     if(modalEl) {
         const modal = bootstrap.Modal.getInstance(modalEl);
@@ -385,10 +437,11 @@ function guardarProducto() {
         document.getElementById('form-nuevo-perfume').reset();
     }
     cargarInventario();
-    alert(`✅ Se registraron correctamente ${cantidadTotal} unidades.`);
+    showToast(`Se registraron ${cantidadTotal} unidad(es).`, 'success');
 }
 
 async function eliminarProducto(index, productId = '') {
+    if (typeof requirePermission === 'function' && !requirePermission('delete')) return;
     const autorizado = await solicitarPin();
     if (!autorizado) return alert('❌ PIN Incorrecto.');
     const productos = getInventoryList();
@@ -403,13 +456,18 @@ async function eliminarProducto(index, productId = '') {
         alert('❌ No se encontró el producto a eliminar. Recarga la página.');
         return;
     }
+    const eliminado = productos[idx];
     productos.splice(idx, 1);
     setInventoryList(productos);
+    if (typeof auditLog === 'function') {
+        auditLog('inventory.delete', { nombre: eliminado?.nombre, sku: eliminado?.sku, id: eliminado?.id });
+    }
     cargarInventario();
 }
 
 // ========== EDITAR PRODUCTO ==========
 function editarProducto(index) {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
     const productos = getInventoryList();
     const prod = productos[index];
     indiceEdicion = index;
@@ -442,12 +500,14 @@ function editarProducto(index) {
 
 // ========== GUARDAR CAMBIOS EDICIÓN ==========
 function guardarCambiosEdicion() {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
     if (indiceEdicion === null) return;
     const productos = getInventoryList();
     const p = productos[indiceEdicion];
+    const skuAnterior = p.sku;
     p.nombre      = document.getElementById('inputNombre').value;
     p.marca       = document.getElementById('inputMarca').value;
-    p.sku         = document.getElementById('inputSku').value;
+    p.sku         = document.getElementById('inputSku').value.trim();
     p.costo       = parseFloat(document.getElementById('inputCosto').value);
     p.precioVenta = parseFloat(document.getElementById('inputPrecio').value);
     p.inversion   = document.getElementById('inputInversion').value;
@@ -465,7 +525,18 @@ function guardarCambiosEdicion() {
     if (notasEl) p.notas = notasEl.value.trim();
     if (batchEl) p.batch = batchEl.value.trim();
 
+    const skuNormalizado = String(p.sku || '').toLowerCase();
+    const duplicado = productos.some((item, idx) => idx !== indiceEdicion && String(item.sku || '').toLowerCase() === skuNormalizado);
+    if (duplicado) {
+        showToast('SKU duplicado. Elige otro SKU.', 'warning');
+        p.sku = skuAnterior;
+        return;
+    }
+
     setInventoryList(productos);
+    if (typeof auditLog === 'function') {
+        auditLog('inventory.update', { id: p.id, nombre: p.nombre, sku: p.sku });
+    }
     const modalEl = document.getElementById('modalNuevoPerfume');
     const modal   = bootstrap.Modal.getInstance(modalEl);
     if(modal) modal.hide();

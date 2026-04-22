@@ -29,6 +29,7 @@ function togglePorcentajeGasto() {
 }
 
 function guardarGasto() {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
     const monto = parseFloat(document.getElementById('inputMontoGasto').value);
     const categoria = document.getElementById('inputCategoriaGasto').value;
     const concepto = document.getElementById('inputConceptoGasto').value.trim();
@@ -55,6 +56,7 @@ function guardarGasto() {
         localStorage.setItem(EXPENSES_KEY, JSON.stringify(listaGastos));
         if (typeof setDataCloud === 'function') setDataCloud('gastos', listaGastos).catch(() => {});
     }
+    if (typeof auditLog === 'function') auditLog('expenses.create', nuevoGasto);
 
     bootstrap.Modal.getInstance(document.getElementById('modalNuevoGasto')).hide();
     cargarGastos();
@@ -350,6 +352,7 @@ function _calcMisGastos(gastos) {
 // ELIMINAR GASTO
 // =========================================================
 async function eliminarGasto(id) {
+    if (typeof requirePermission === 'function' && !requirePermission('delete')) return;
     const autorizado = await solicitarPin();
     if (!autorizado) return;
     showConfirm('¿Eliminar este gasto? Esta acción no se puede deshacer.', () => {
@@ -359,6 +362,7 @@ async function eliminarGasto(id) {
             localStorage.setItem(EXPENSES_KEY, JSON.stringify(listaGastos));
             if (typeof setDataCloud === 'function') setDataCloud('gastos', listaGastos).catch(() => {});
         }
+        if (typeof auditLog === 'function') auditLog('expenses.delete', { id });
         cargarGastos();
         showToast('Gasto eliminado', 'warning');
     });

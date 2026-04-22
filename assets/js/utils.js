@@ -11,6 +11,16 @@ async function solicitarPin() {
     return hashHex === ADMIN_PIN;
 }
 
+function requirePermission(permission, message = 'No tienes permisos para esta acción.') {
+    if (typeof fitoCan !== 'function') return true;
+    const ok = fitoCan(permission);
+    if (!ok) {
+        if (typeof showToast === 'function') showToast(message, 'warning');
+        else alert(message);
+    }
+    return ok;
+}
+
 function formatMoney(amount) {
     return '$' + parseFloat(amount).toLocaleString('es-MX', {minimumFractionDigits: 2});
 }
@@ -185,3 +195,5 @@ function calcularDeudaSocioPorPieza(costo, precioVenta, tipoInversion, porcentaj
     else if (tipoInversion === 'personalizado') gananciaSocio = utilidadTotal * (porcentajeSocio / 100);
     return { inversionSocio, gananciaSocio, totalPagarSocio: inversionSocio + gananciaSocio };
 }
+
+window.requirePermission = requirePermission;

@@ -159,6 +159,16 @@
         <div class="login-title">Fitoscents Admin</div>
         <div class="login-sub">Ingresa tu PIN para continuar</div>
 
+        <div class="mb-3">
+            <label for="usuario-select" class="form-label text-light small mb-1">Usuario</label>
+            <select id="usuario-select" class="form-select form-select-sm" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(197,160,89,0.4);">
+                <option value="admin">Administrador</option>
+                <option value="vendedor">Vendedor</option>
+                <option value="readonly">Solo lectura</option>
+            </select>
+            <small class="d-block mt-1" style="color: rgba(255,255,255,0.45);">Cada usuario tiene su PIN.</small>
+        </div>
+
         <div class="pin-display" id="pin-display">
             <div class="pin-dot" id="dot-0"></div>
             <div class="pin-dot" id="dot-1"></div>
@@ -188,15 +198,40 @@
 <script src="assets/js/config.js"></script>
     <script>
         let pin = '';
-        // Pega aquí el Hash SHA-256 que generaste en la consola
-        const PIN_HASH_CORRECTO = 'e0b08ad65f5b6f6b75d18c8642a041ca1160609af1b7dfc55ab7f2d293fd8758';
+        const SESSION_KEY = 'fito_session';
+        const SESSION_VERSION_KEY = 'fito_session_version';
+        const USUARIOS = {
+            admin: {
+                role: 'admin',
+                label: 'Administrador',
+                pinHash: 'e0b08ad65f5b6f6b75d18c8642a041ca1160609af1b7dfc55ab7f2d293fd8758'
+            },
+            vendedor: {
+                role: 'vendedor',
+                label: 'Vendedor',
+                pinHash: '0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c'
+            },
+            readonly: {
+                role: 'readonly',
+                label: 'Solo lectura',
+                pinHash: 'edee29f882543b956620b26d0ee0e7e950399b1c4222f5de05e06425b4c995e9'
+            }
+        };
 
         // Configuración de seguridad
         const MAX_INTENTOS = 3;
         const TIEMPO_BLOQUEO_MS = 3 * 60 * 1000; // 3 minutos en milisegundos
 
-        // Si ya está autenticado, redirigir directo
-        if (sessionStorage.getItem('fito_auth') === 'ok') {
+        function getSession() {
+            try {
+                return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        const activeSession = getSession();
+        if (activeSession && activeSession.auth === 'ok') {
             const dest = new URLSearchParams(location.search).get('redirect') || 'index.html';
             location.replace(dest);
         }
@@ -285,8 +320,21 @@
 
             const pinIngresadoHash = await hashearPIN(pin);
 
-            if (pinIngresadoHash === PIN_HASH_CORRECTO) {
+            const usuarioSeleccionado = document.getElementById('usuario-select').value;
+            const user = USUARIOS[usuarioSeleccionado] || USUARIOS.admin;
+
+            if (pinIngresadoHash === user.pinHash) {
                 localStorage.setItem('fito_intentos', '0'); // Reiniciamos contador tras éxito
+                const sessionVersion = localStorage.getItem(SESSION_VERSION_KEY) || String(Date.now());
+                localStorage.setItem(SESSION_VERSION_KEY, sessionVersion);
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+                    auth: 'ok',
+                    role: user.role,
+                    username: user.label,
+                    loginAt: Date.now(),
+                    sessionVersion
+                }));
+                // Compatibilidad temporal con páginas antiguas; eliminar cuando todo use fito_session.
                 sessionStorage.setItem('fito_auth', 'ok');
                 const dest = new URLSearchParams(location.search).get('redirect') || 'index.html';
                 location.replace(dest);
@@ -316,6 +364,10 @@
 
         // Revisar estado al cargar la página
         comprobarBloqueo();
+        const reason = new URLSearchParams(location.search).get('reason');
+        if (reason === 'expired') {
+            mostrarMensajeError('Sesión expirada o cerrada globalmente. Inicia sesión de nuevo.');
+        }
     </script>
 </body>
 </html>

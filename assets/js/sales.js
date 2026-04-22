@@ -11,6 +11,7 @@ let filtroEstadoActual = 'todos';
 // =========================================================
 
 function iniciarVenta(index) {
+    if (typeof requirePermission === 'function' && !requirePermission('sell')) return;
     const productos = (typeof getData === 'function')
         ? (getData('perfumes') || [])
         : (JSON.parse(localStorage.getItem(DB_KEY)) || []);
@@ -34,6 +35,7 @@ function iniciarVenta(index) {
 }
 
 function confirmarVentaFinal() {
+    if (typeof requirePermission === 'function' && !requirePermission('sell')) return;
     const index = document.getElementById('venta-index-producto').value;
     const precioFinal = parseFloat(document.getElementById('venta-precio-final').value);
     const gastosExtra = parseFloat(document.getElementById('venta-gastos').value) || 0;
@@ -89,6 +91,15 @@ function confirmarVentaFinal() {
         : (JSON.parse(localStorage.getItem(SALES_KEY)) || []);
     historial.push(nuevaVenta);
     setData('ventas', historial);
+    if (typeof auditLog === 'function') {
+        auditLog('sales.create', {
+            ventaId: nuevaVenta.id,
+            producto: nuevaVenta.producto,
+            cliente: nuevaVenta.cliente,
+            total: nuevaVenta.precioFinal,
+            credito: nuevaVenta.esCredito
+        });
+    }
 
     if (producto.cantidad && producto.cantidad > 1) {
         producto.cantidad -= 1;
@@ -145,6 +156,7 @@ function abrirEdicion(id) {
 }
 
 function guardarEdicionVenta() {
+    if (typeof requirePermission === 'function' && !requirePermission('edit')) return;
     const id = parseFloat(document.getElementById('edit-id-venta').value);
     const nuevoPrecio  = parseFloat(document.getElementById('edit-precio').value);
     const nuevoCliente = document.getElementById('edit-cliente').value.trim().toUpperCase();
@@ -178,6 +190,9 @@ function guardarEdicionVenta() {
     listadoVentas[index].reglasReparto   = { tipo: nuevoTipo, pctSocio: nuevoPct };
 
     setData('ventas', listadoVentas);
+    if (typeof auditLog === 'function') {
+        auditLog('sales.update', { id, precio: nuevoPrecio, cliente: nuevoCliente, tipo: nuevoTipo });
+    }
     bootstrap.Modal.getInstance(document.getElementById('modalEditarVenta')).hide();
     setTimeout(() => cargarDatosVentas(), 100);
 }
@@ -293,6 +308,9 @@ function renderVentas() {
     }
 
     ventasDisplay.forEach(venta => {
+        const canEdit = typeof fitoCan === 'function' ? fitoCan('edit') : true;
+        const canDelete = typeof fitoCan === 'function' ? fitoCan('delete') : true;
+        const canCharge = typeof fitoCan === 'function' ? fitoCan('charge') : true;
         let inversionSocio = 0;
         let tipo = 'mio', pct = 0;
         if (venta.reglasReparto) {
@@ -316,7 +334,7 @@ function renderVentas() {
         const pendiente = parseFloat(venta.saldoPendiente || 0);
         if (pendiente > 0) {
             badgeEstado = `<div class="mt-1"><span class="badge bg-danger shadow-sm">DEBE: $${pendiente.toFixed(2)}</span></div>`;
-            botonAbonar = `<button class="btn btn-sm btn-success fw-bold" onclick="abrirModalAbono(${venta.id})" title="Registrar Abono">💲</button>`;
+            botonAbonar = `<button class="btn btn-sm btn-success fw-bold" onclick="abrirModalAbono(${venta.id})" title="Registrar Abono" ${canCharge ? '' : 'disabled'}>💲</button>`;
         } else if (venta.esCredito) {
             badgeEstado = `<div class="mt-1"><span class="badge bg-success text-dark border border-success">✅ LIQUIDADO</span></div>`;
         }
@@ -342,17 +360,17 @@ function renderVentas() {
                         ${venta.pagadoAlSocio ?
                             `<span class="badge bg-success text-white">✅ PAGADO</span>
                              <br><small class="text-muted">$${totalPagarSocio.toFixed(0)}</small>` :
-                            `<strong class="text-dark fs-6">$${totalPagarSocio.toFixed(2)}</strong>
-                             <br><small class="text-muted" style="font-size:10px;">(Inv: $${inversionSocio.toFixed(0)} + Gan: $${parseFloat(venta.reparto.socio).toFixed(0)})</small>
-                             <br><button class="btn btn-sm btn-success mt-1" onclick="marcarPagadoSocio(${venta.id})" title="Marcar como pagado">💰 Pagar</button>`
+                             `<strong class="text-dark fs-6">$${totalPagarSocio.toFixed(2)}</strong>
+                              <br><small class="text-muted" style="font-size:10px;">(Inv: $${inversionSocio.toFixed(0)} + Gan: $${parseFloat(venta.reparto.socio).toFixed(0)})</small>
+                              <br><button class="btn btn-sm btn-success mt-1" onclick="marcarPagadoSocio(${venta.id})" title="Marcar como pagado" ${canCharge ? '' : 'disabled'}>💰 Pagar</button>`
                         }` : '<span class="text-muted">-</span>'}
                 </td>
                 <td>
                     <div class="d-flex gap-1">
                         ${botonAbonar}
                         <button class="btn btn-sm btn-info text-white" onclick="verDetalle(${venta.id})" title="Ver Ficha">ℹ️</button>
-                        <button class="btn btn-sm btn-warning" onclick="abrirEdicion(${venta.id})" title="Editar">✏️</button>
-                        <button class="btn btn-sm btn-danger" onclick="deshacerVenta(${venta.id})" title="Devolver Stock">↩️</button>
+                        <button class="btn btn-sm btn-warning" onclick="abrirEdicion(${venta.id})" title="Editar" ${canEdit ? '' : 'disabled'}>✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deshacerVenta(${venta.id})" title="Devolver Stock" ${canDelete ? '' : 'disabled'}>↩️</button>
                     </div>
                 </td>
             </tr>`;
@@ -363,6 +381,7 @@ function renderVentas() {
 }
 
 async function deshacerVenta(id) {
+    if (typeof requirePermission === 'function' && !requirePermission('delete')) return;
     const venta = listadoVentas.find(v => v.id === id);
     if (!venta) return;
 
@@ -399,6 +418,9 @@ async function deshacerVenta(id) {
         setData('perfumes', inventario);
         listadoVentas = listadoVentas.filter(v => v.id !== id);
         setData('ventas', listadoVentas);
+        if (typeof auditLog === 'function') {
+            auditLog('sales.undo', { id: venta.id, producto: venta.producto, cliente: venta.cliente });
+        }
         cargarDatosVentas();
         showToast('Venta deshecha. Producto devuelto al inventario.', 'success');
     });
@@ -448,21 +470,31 @@ function renderPagos() {
 }
 
 function guardarPago() {
+    if (typeof requirePermission === 'function' && !requirePermission('charge')) return;
     const monto = parseFloat(document.getElementById('inputMontoPago').value);
     const nota  = document.getElementById('inputNotaPago').value;
     if (!monto || monto <= 0) return showToast('Ingresa un monto válido', 'warning');
-    listadoPagos.push({ id: Date.now(), monto, nota });
+    const pago = { id: Date.now(), monto, nota };
+    listadoPagos.push(pago);
     setData('pagos', listadoPagos);
+    if (typeof auditLog === 'function') {
+        auditLog('payouts.create', pago);
+    }
     bootstrap.Modal.getInstance(document.getElementById('modalPagarSocio')).hide();
     document.getElementById('inputMontoPago').value = '';
     cargarDatosVentas();
 }
 
 async function eliminarPago(id) {
+    if (typeof requirePermission === 'function' && !requirePermission('delete')) return;
     const autorizado = await solicitarPin();
     if (!autorizado) return;
+    const pago = listadoPagos.find(p => p.id === id);
     listadoPagos = listadoPagos.filter(p => p.id !== id);
     setData('pagos', listadoPagos);
+    if (typeof auditLog === 'function') {
+        auditLog('payouts.delete', { id, monto: pago?.monto, nota: pago?.nota });
+    }
     cargarDatosVentas();
 }
 
@@ -554,6 +586,7 @@ function abrirModalAbono(idVenta) {
 }
 
 function guardarAbono() {
+    if (typeof requirePermission === 'function' && !requirePermission('charge')) return;
     const idVenta = parseInt(document.getElementById('abono-id-venta').value);
     const monto   = parseFloat(document.getElementById('inputMontoAbono').value);
     const nota    = document.getElementById('inputNotaAbono').value.trim() || 'Abono parcial';
@@ -565,6 +598,9 @@ function guardarAbono() {
     if (!listadoVentas[index].historialAbonos) listadoVentas[index].historialAbonos = [];
     listadoVentas[index].historialAbonos.push({ fecha: new Date().toLocaleString(), monto, nota });
     setData('ventas', listadoVentas);
+    if (typeof auditLog === 'function') {
+        auditLog('sales.installment', { ventaId: idVenta, monto, nota });
+    }
     bootstrap.Modal.getInstance(document.getElementById('modalAbono')).hide();
     renderVentas();
     calcularTotales(); // FIX: actualizar "por cobrar" inmediatamente tras abonar

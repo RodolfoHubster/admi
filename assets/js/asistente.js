@@ -61,16 +61,19 @@ async function enviarMensaje() {
     const archivo = inputImagen.files?.[0] || null;
 
     if (!texto && !archivo) {
-        return alert('Escribe un mensaje o adjunta una imagen.');
+        if (typeof showToast === 'function') showToast('Escribe un mensaje o adjunta una imagen.', 'warning');
+        return;
     }
 
     let imagePayload = null;
     if (archivo) {
         if (!['image/jpeg', 'image/png'].includes(archivo.type)) {
-            return alert('Solo se permiten imágenes JPG o PNG.');
+            if (typeof showToast === 'function') showToast('Solo se permiten imágenes JPG o PNG.', 'warning');
+            return;
         }
         if (archivo.size > 4 * 1024 * 1024) {
-            return alert('La imagen excede 4MB.');
+            if (typeof showToast === 'function') showToast('La imagen excede 4MB.', 'warning');
+            return;
         }
         imagePayload = await fileToPayload(archivo);
     }
@@ -94,7 +97,8 @@ async function enviarMensaje() {
             clientName: inputCliente.value.trim(),
             salesMode: checkVentas.checked,
             conversation: chatHistory.slice(-MAX_CONVERSATION_CONTEXT).map(m => ({ role: m.role, text: m.text })),
-            inventoryContext: buildInventoryContext()
+            inventoryContext: buildInventoryContext(),
+            pricingHints: buildPricingHints()
         };
 
         if (!ASISTENTE_API_ENDPOINT) {
@@ -168,21 +172,49 @@ function buildInventoryContext() {
         const data = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(data)) return { total: 0, items: [] };
 
+        const inStockCount = data.filter(p => p.ubicacion !== 'en_camino').length;
         const items = data.slice(0, MAX_INVENTORY_ITEMS_SENT).map((p) => ({
             nombre: p.nombre || p.name || '',
             marca: p.marca || p.brand || '',
             precioVenta: Number(p.precioVenta || p.precio || 0),
+            costo: Number(p.costo || 0),
             disponibleMl: Number(p.mlActuales || p.current_ml || p.ml || 0),
-            estado: p.estado || p.status || ''
+            estado: p.estado || p.status || '',
+            ubicacion: p.ubicacion || '',
+            cliente: p.cliente || ''
         }));
 
         return {
             total: data.length,
+            enStock: inStockCount,
             items
         };
     } catch (error) {
         console.warn('No se pudo preparar contexto de inventario', error);
         return { total: 0, items: [] };
+    }
+}
+
+function buildPricingHints() {
+    try {
+        const raw = localStorage.getItem('perfume_inventory_v1');
+        const data = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(data) || !data.length) return { margenObjetivo: 0.35, ejemplos: [] };
+        const ejemplos = data.slice(0, 20).map(p => {
+            const costo = Number(p.costo || 0);
+            const precio = Number(p.precioVenta || 0);
+            const margen = costo > 0 ? (precio - costo) / costo : 0;
+            return {
+                nombre: p.nombre,
+                costo,
+                precioActual: precio,
+                margenActual: Number.isFinite(margen) ? Number(margen.toFixed(3)) : 0,
+                precioObjetivo35: costo > 0 ? Number((costo * 1.35).toFixed(2)) : 0
+            };
+        });
+        return { margenObjetivo: 0.35, ejemplos };
+    } catch (e) {
+        return { margenObjetivo: 0.35, ejemplos: [] };
     }
 }
 
