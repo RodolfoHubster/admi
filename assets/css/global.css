@@ -91,11 +91,39 @@ code, pre {
     padding: 0.5rem 1rem;
     border-radius: 6px;
 }
+.app-navbar .navbar-nav .nav-link {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.75rem;
+}
 .navbar-dark .navbar-nav .nav-link:hover,
 .navbar-dark .navbar-nav .nav-link.active {
     color: var(--gold-flat);
     text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
     background-color: rgba(255,215,0,0.05);
+}
+.app-navbar .dropdown-menu {
+    background: #0f0f19;
+    border: 1px solid rgba(255, 215, 0, 0.15) !important;
+    min-width: 220px;
+}
+.app-navbar .dropdown-item {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+.app-navbar .dropdown-item:hover,
+.app-navbar .dropdown-item:focus,
+.app-navbar .dropdown-item.active {
+    color: var(--gold-flat);
+    background: rgba(255, 215, 0, 0.08);
+}
+.header-utility #nav-role-badge {
+    background: rgba(255, 215, 0, 0.12);
+    border: 1px solid rgba(255, 215, 0, 0.28);
+    color: var(--gold-flat);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    padding: 0.4rem 0.65rem;
 }
 /* FIX: toggler icono visible */
 .navbar-toggler {
@@ -111,4 +139,9 @@ code, pre {
     border-top: 1px solid rgba(255,215,0,0.15);
     padding: 8px 0;
     border-radius: 0 0 12px 12px;
+}
+.navbar-collapse.show .header-utility,
+.navbar-collapse.collapsing .header-utility {
+    padding: 0.65rem 0.75rem 0.2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }

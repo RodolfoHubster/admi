@@ -45,6 +45,18 @@
         font-size: 1rem !important;
         border-bottom: 1px solid rgba(255,255,255,0.05);
     }
+    .app-navbar .dropdown-menu {
+        border: 1px solid rgba(255,215,0,0.15) !important;
+        margin: 0.25rem 0.75rem 0.5rem;
+    }
+    .app-navbar .dropdown-item {
+        padding: 10px 12px;
+    }
+    .header-utility {
+        width: 100%;
+        justify-content: space-between;
+        padding: 8px 12px 4px;
+    }
 
     /* ==========================================
        TABLAS â€” Convertir a cards en mÃ³vil
