@@ -93,7 +93,8 @@
     overflow-x: auto;
 }
 .inventory-table {
-    min-width: 980px;
+    --inventory-min-width: 980px;
+    min-width: var(--inventory-min-width);
     table-layout: fixed;
 }
 .inventory-table thead th {

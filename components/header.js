@@ -166,7 +166,7 @@ function marcarPaginaActiva() {
     }
     
     // Buscar el link correspondiente y marcarlo como activo
-    const links = document.querySelectorAll('[data-page]');
+    const links = document.querySelectorAll('.nav-link[data-page], .dropdown-item[data-page]');
     let activeInsideDropdown = false;
     links.forEach(link => {
         if (link.dataset.page === paginaActual) {
