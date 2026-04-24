@@ -75,6 +75,8 @@ code, pre {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
     padding: 0.85rem 0;
     backdrop-filter: blur(10px);
+       position: relative;
+    z-index: 1030;
 }
 .navbar-brand {
     font-weight: 700;
@@ -105,6 +107,8 @@ code, pre {
     background: #0f0f19;
     border: 1px solid rgba(255, 215, 0, 0.15) !important;
     min-width: 220px;
+       z-index: 9999 !important;
+    position: relative !important;
 }
 .app-navbar .dropdown-item {
     color: var(--text-secondary);
