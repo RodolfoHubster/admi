@@ -111,8 +111,10 @@ function verificarPrecarga() {
         document.body.appendChild(modal);
     }
 
-    document.getElementById('__precarga-nombre-label').textContent =
-        `"${p.nombre}" (${p.marca || 'Sin marca'}) — $${p.costo || 0} costo`;
+document.getElementById('__precarga-nombre-label').innerHTML =
+        `<strong>${p.nombre}</strong> <span class="text-muted">${p.marca || 'Sin marca'}</span><br>
+        <span class="text-warning">💰 Costo compra: $${p.precioCompra ?? p.costo ?? 0}</span>
+        ${p.precioVentaBotella || p.precioVenta ? `· <span class="text-info">🏷️ Precio venta botella: $${p.precioVentaBotella || p.precioVenta || 0}</span>` : ''}`;
     document.getElementById('__precarga-ml-input').value = 100;
 
     const bsModal = new bootstrap.Modal(modal);
