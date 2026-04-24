@@ -149,3 +149,29 @@ code, pre {
     padding: 0.65rem 0.75rem 0.2rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+
+/* ============================================================
+   FIX DEFINITIVO: Navbar y dropdown SIEMPRE por encima de todo
+   ============================================================ */
+
+/* Cards y elementos de contenido: z-index bajo */
+.card {
+    position: relative;
+    z-index: 0;
+}
+
+/* Navbar siempre encima */
+.navbar,
+.app-navbar {
+    position: relative !important;
+    z-index: 1050 !important;
+}
+
+/* Dropdown del navbar: z-index máximo */
+.navbar .dropdown-menu,
+.app-navbar .dropdown-menu,
+.navbar .dropdown-menu.show {
+    z-index: 99999 !important;
+    position: absolute !important;
+}
