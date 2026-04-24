@@ -339,6 +339,11 @@ function pasarADecants(index) {
         if (idx !== -1) {
             prods.splice(idx, 1);
             setInventoryList(prods);
+                            // Guardar en todas las keys posibles de localStorage para garantizar consistencia
+                const _invKey = resolveInventoryStorageKey();
+                localStorage.setItem(_invKey, JSON.stringify(prods));
+                localStorage.setItem('perfume_inventory_v1', JSON.stringify(prods));
+                localStorage.setItem('fitoscents_perfumes', JSON.stringify(prods));
             if (typeof setDataCloud === 'function') {
                 try { await setDataCloud('perfumes', prods); }
                 catch (e) { console.warn('No se pudo sincronizar inventario antes de redirigir:', e); }
