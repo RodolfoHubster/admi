@@ -181,3 +181,38 @@ code, pre {
     z-index: 99999 !important;
     position: absolute !important;
 }
+
+
+/* ============================================================
+   FIX DROPDOWN DESKTOP: El menú no empuja el contenido
+   ============================================================ */
+
+/* El nav-item dropdown es el padre del dropdown-menu */
+.navbar .nav-item.dropdown,
+.app-navbar .nav-item.dropdown {
+    position: relative !important;
+}
+
+/* El dropdown-menu es absolute respecto al nav-item, no al navbar */
+.navbar .nav-item.dropdown .dropdown-menu,
+.app-navbar .nav-item.dropdown .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    margin-top: 0 !important;
+    z-index: 99999 !important;
+}
+
+/* El navbar NO debe ser el ancestor posicionado del dropdown */
+.navbar {
+    overflow: visible !important;
+}
+
+/* El navbar-collapse tampoco debe cortar el dropdown */
+.navbar-collapse {
+    overflow: visible !important;
+}
+
+.navbar-nav {
+    overflow: visible !important;
+}
