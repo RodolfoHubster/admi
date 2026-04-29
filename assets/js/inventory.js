@@ -112,11 +112,6 @@ function cargarInventario() {
             const accordionId = `grupo-${grupo.nombre.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}`;
             const imgUrl  = principal.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
             const ganancia = principal.precioVenta - principal.costo;
-            let deudaSocioTotal = 0;
-            items.forEach(item => {
-                const d = calcularDeudaSocioPorPieza(item.costo, item.precioVenta, item.inversion, item.porcentajeSocio || 0);
-                deudaSocioTotal += d.totalPagarSocio;
-            });
             const filaPadre = `
                 <tr class="align-middle fw-bold table-group-header">
                     <td><span class="badge bg-dark">LOTE (${grupo.totalStock})</span></td>
@@ -132,7 +127,7 @@ function cargarInventario() {
                     <td>$${principal.precioVenta}</td>
                     <td class="text-success">+$${ganancia}</td>
                     <td class="text-center">${grupo.totalStock} Unid.</td>
-                    <td class="text-center">${deudaSocioTotal > 0 ? `<span class="badge bg-warning text-dark border border-dark">$${deudaSocioTotal.toFixed(0)}</span>` : '-'}</td>
+                    <td class="text-center"><span class="text-muted small fst-italic">Varios</span></td>
                     <td>
                         <button class="btn btn-sm btn-outline-dark w-100" type="button"
                             data-bs-toggle="collapse" data-bs-target="#${accordionId}">Ver ${grupo.totalStock} 🔽</button>
@@ -159,8 +154,6 @@ function renderFila(prod, index) {
     const imgSegura = validarURLImagen(prod.imagen);
     const ganancia  = prod.precioVenta - prod.costo;
     const cantidad  = prod.cantidad || 1;
-    const datosSocio = calcularDeudaSocioPorPieza(prod.costo, prod.precioVenta, prod.inversion, prod.porcentajeSocio || 0);
-    const dineroSocio = datosSocio.totalPagarSocio;
     let claseFila = '', badgeUbicacion = '', botonRecibir = '';
     if (prod.ubicacion === 'en_camino') {
         claseFila = 'table-warning';
@@ -185,11 +178,7 @@ function renderFila(prod, index) {
             <td class="fw-bold text-success">+$${ganancia}</td>
             <td class="text-center fw-bold fs-5">${cantidad}</td>
             <td class="text-center">
-                ${dineroSocio > 0
-                    ? `<span class="badge bg-warning text-dark border border-dark"
-                            title="Inversión: $${datosSocio.inversionSocio.toFixed(0)} + Ganancia: $${datosSocio.gananciaSocio.toFixed(0)}">
-                        $${dineroSocio.toFixed(0)}</span>`
-                    : '-'}
+                <small class="text-muted" title="${prod.notas || ''}" style="display:inline-block;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${prod.notas ? prod.notas.substring(0, 22) + (prod.notas.length > 22 ? '…' : '') : '—'}</small>
             </td>
             <td>${getBotonesAccion(index, prod.id)}</td>
         </tr>`;
@@ -198,8 +187,6 @@ function renderFila(prod, index) {
 function renderFilaHija(prod, index) {
     const ganancia   = prod.precioVenta - prod.costo;
     const imgSegura  = prod.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
-    const datosSocio = calcularDeudaSocioPorPieza(prod.costo, prod.precioVenta, prod.inversion, prod.porcentajeSocio || 0);
-    const dineroSocio = datosSocio.totalPagarSocio;
     let claseFila = '', badgeUbicacion = '', botonRecibir = '';
     if (prod.ubicacion === 'en_camino') {
         claseFila = 'table-warning';
@@ -224,11 +211,7 @@ function renderFilaHija(prod, index) {
             <td style="width:8%" class="text-success fw-bold small">+$${ganancia}</td>
             <td style="width:5%" class="text-center small">1</td>
             <td style="width:8%" class="text-center">
-                ${dineroSocio > 0
-                    ? `<span class="badge bg-warning text-dark border border-dark"
-                            title="Inversión: $${datosSocio.inversionSocio.toFixed(0)} + Ganancia: $${datosSocio.gananciaSocio.toFixed(0)}">
-                        $${dineroSocio.toFixed(0)}</span>`
-                    : '-'}
+                <small class="text-muted" title="${prod.notas || ''}" style="display:inline-block;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${prod.notas ? prod.notas.substring(0, 15) + (prod.notas.length > 15 ? '…' : '') : '—'}</small>
             </td>
             <td style="width:12%">${getBotonesAccion(index, prod.id)}</td>
         </tr>`;
@@ -254,7 +237,7 @@ function getBotonesAccion(index, productId = null) {
                 <i class="bi bi-pencil"></i>
             </button>
             <button class="btn btn-sm btn-outline-primary" onclick="duplicarProducto(${index})" title="Duplicar" aria-label="Duplicar producto" ${canEdit ? '' : 'disabled'}>
-                <i class="bi bi-copy"></i>
+                📋
             </button>
             <button class="btn btn-sm btn-outline-info" onclick="pasarADecants(${index})" title="Pasar a Decants 🧪" aria-label="Pasar producto a decants" style="font-size:0.75rem">
                 🧪
@@ -274,6 +257,7 @@ function duplicarProducto(index) {
         ...original,
         id: Date.now(),
         sku: `${original.sku}-COPIA`,
+        cantidad: 1,
         fechaRegistro: new Date().toISOString()
     };
     productos.push(nuevo);

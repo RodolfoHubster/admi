@@ -179,55 +179,102 @@ function cargarFuentes() {
         if (filtroStock === 'agotado') return mlDisp <= 0;
         if (filtroStock === 'bajo') return esBajo;
         if (filtroStock === 'disponible') return mlDisp > 0 && !esBajo;
-        return true;
+        // 'todos' muestra solo los NO agotados; los agotados van a sección separada
+        return mlDisp > 0;
     });
 
     if (!lista.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
             Sin fuentes. Usa "Nueva Fuente" para agregar una botella.
         </td></tr>`;
+    } else {
+        tbody.innerHTML = lista.map(f => {
+            const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
+            const pct    = f.mlTotal ? Math.round(((f.mlUsados||0) / f.mlTotal) * 100) : 0;
+            const badgeCls = mlDisp <= 0 ? 'badge-ml-low' : mlDisp < (f.mlTotal * 0.2) ? 'badge-ml-mid' : 'badge-ml-avail';
+            const img    = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+            const tallasHTML = (f.tallas || []).map(t =>
+                `<span class="badge bg-secondary ml-badge me-1">${t.ml}ml $${t.precio}</span>`
+            ).join('');
+            const contVentas = _ventasD.filter(v => v.fuenteId === f.id).length;
+
+            return `
+            <tr class="fuente-row">
+                <td><img src="${img}" class="img-decant-thumb"></td>
+                <td>
+                    <strong>${f.nombre}</strong><br>
+                    <small class="text-muted">${f.marca || ''}</small>
+                </td>
+                <td>${tallasHTML || '<span class="text-muted small">Sin tallas</span>'}</td>
+                <td>
+                    <div class="progress progress-ml mb-1">
+                        <div class="progress-bar bg-warning" style="width:${pct}%"></div>
+                    </div>
+                    <small class="text-muted">${f.mlUsados || 0} / ${f.mlTotal || 0} ml usados</small>
+                </td>
+                <td><span class="badge ml-badge ${badgeCls}">${mlDisp} ml</span></td>
+                <td><span class="badge bg-info bg-opacity-25 text-info border border-info">${contVentas} 💧</span></td>
+                <td class="text-center">
+                    <div class="d-flex gap-1 justify-content-center flex-wrap">
+                        <button class="btn btn-sm btn-outline-success" onclick="abrirVentaRapida('${f.id}')" title="Vender decant">
+                            <i class="bi bi-cash-coin"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="abrirVentaBotella('${f.id}')" title="Vender botella con remanente">
+                            🍾
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editarFuente('${f.id}')" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="abrirAjusteML('${f.id}')" title="Ajustar ml">
+                            🔧
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarFuente('${f.id}')" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    cargarFuentesAgotadas();
+}
+
+// =========================================================
+// SECCIÓN AGOTADOS
+// =========================================================
+function cargarFuentesAgotadas() {
+    const seccion = document.getElementById('seccion-agotados');
+    const tbody   = document.getElementById('tabla-agotados');
+    const badge   = document.getElementById('badge-count-agotados');
+    if (!seccion || !tbody) return;
+
+    const agotados = _fuentes.filter(f => ((f.mlTotal || 0) - (f.mlUsados || 0)) <= 0);
+
+    if (!agotados.length) {
+        seccion.style.display = 'none';
         return;
     }
 
-    tbody.innerHTML = lista.map(f => {
-        const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
-        const pct    = f.mlTotal ? Math.round(((f.mlUsados||0) / f.mlTotal) * 100) : 0;
-        const badgeCls = mlDisp <= 0 ? 'badge-ml-low' : mlDisp < (f.mlTotal * 0.2) ? 'badge-ml-mid' : 'badge-ml-avail';
-        const img    = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
-        const tallasHTML = (f.tallas || []).map(t =>
-            `<span class="badge bg-secondary ml-badge me-1">${t.ml}ml $${t.precio}</span>`
-        ).join('');
-        const contVentas = _ventasD.filter(v => v.fuenteId === f.id).length;
+    seccion.style.display = '';
+    if (badge) badge.textContent = agotados.length;
 
+    tbody.innerHTML = agotados.map(f => {
+        const img        = f.imagen || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png';
+        const contVentas = _ventasD.filter(v => v.fuenteId === f.id).length;
         return `
-        <tr class="fuente-row">
+        <tr>
             <td><img src="${img}" class="img-decant-thumb"></td>
             <td>
                 <strong>${f.nombre}</strong><br>
                 <small class="text-muted">${f.marca || ''}</small>
             </td>
-            <td>${tallasHTML || '<span class="text-muted small">Sin tallas</span>'}</td>
-            <td>
-                <div class="progress progress-ml mb-1">
-                    <div class="progress-bar bg-warning" style="width:${pct}%"></div>
-                </div>
-                <small class="text-muted">${f.mlUsados || 0} / ${f.mlTotal || 0} ml usados</small>
-            </td>
-            <td><span class="badge ml-badge ${badgeCls}">${mlDisp} ml</span></td>
+            <td><small class="text-muted">${f.mlTotal || 0} ml · Costo: $${f.costo || 0}</small></td>
             <td><span class="badge bg-info bg-opacity-25 text-info border border-info">${contVentas} 💧</span></td>
             <td class="text-center">
                 <div class="d-flex gap-1 justify-content-center flex-wrap">
-                    <button class="btn btn-sm btn-outline-success" onclick="abrirVentaRapida('${f.id}')" title="Vender decant">
-                        <i class="bi bi-cash-coin"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" onclick="abrirVentaBotella('${f.id}')" title="Vender botella con remanente">
-                        🍾
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning" onclick="editarFuente('${f.id}')" title="Editar">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="abrirAjusteML('${f.id}')" title="Ajustar ml">
-                        🔧
+                    <button class="btn btn-sm btn-success fw-bold" onclick="abrirRestock('${f.id}')" title="Reabastecer">
+                        🔄 Restock
                     </button>
                     <button class="btn btn-sm btn-outline-danger" onclick="eliminarFuente('${f.id}')" title="Eliminar">
                         <i class="bi bi-trash"></i>
@@ -238,9 +285,37 @@ function cargarFuentes() {
     }).join('');
 }
 
-// =========================================================
-// HISTORIAL VENTAS
-// =========================================================
+function abrirRestock(id) {
+    const f = _fuentes.find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('restock-id').value           = id;
+    document.getElementById('restock-nombre').textContent = f.nombre;
+    document.getElementById('restock-ml').value           = '';
+    document.getElementById('restock-costo').value        = '';
+    new bootstrap.Modal(document.getElementById('modalRestock')).show();
+}
+
+function guardarRestock() {
+    const id    = document.getElementById('restock-id').value;
+    const ml    = parseFloat(document.getElementById('restock-ml').value) || 0;
+    const costo = parseFloat(document.getElementById('restock-costo').value) || 0;
+    if (!ml) { alert('⚠️ Ingresa los ml de la nueva botella.'); return; }
+    const idx = _fuentes.findIndex(f => f.id === id);
+    if (idx === -1) return;
+    _fuentes[idx].mlTotal  = ml;
+    _fuentes[idx].mlUsados = 0;
+    if (costo > 0) _fuentes[idx].costo = costo;
+    _fuentes[idx].updatedAt = new Date().toISOString();
+    saveDecantsData(DECANTS_FUENTES_KEY, _fuentes).then(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalRestock'))?.hide();
+        cargarFuentes();
+        actualizarKPIs();
+        llenarSelectFuentes();
+        mostrarToast(`🔄 Restock de "${_fuentes[idx].nombre}" registrado (${ml}ml)`, 'success');
+    });
+}
+
+
 function cargarHistorialVentas() {
     const tbody = document.getElementById('tabla-ventas-decants');
     const badge = document.getElementById('badge-total-ventas');
@@ -294,9 +369,10 @@ function cargarHistorialVentas() {
 // KPIs
 // =========================================================
 function actualizarKPIs() {
-    const mlTotal  = _fuentes.reduce((s, f) => s + ((f.mlTotal||0) - (f.mlUsados||0)), 0);
+    const activas  = _fuentes.filter(f => ((f.mlTotal||0) - (f.mlUsados||0)) > 0);
+    const mlTotal  = activas.reduce((s, f) => s + ((f.mlTotal||0) - (f.mlUsados||0)), 0);
     const ganancia = _ventasD.reduce((s, v)  => s + ((v.precio||0)  - (v.costoAprox||0)), 0);
-    document.getElementById('kpi-fuentes').textContent  = _fuentes.length;
+    document.getElementById('kpi-fuentes').textContent  = activas.length;
     document.getElementById('kpi-ml-total').textContent = mlTotal + ' ml';
     document.getElementById('kpi-vendidos').textContent = _ventasD.length;
     document.getElementById('kpi-ganancia').textContent = '$' + ganancia.toFixed(0);
