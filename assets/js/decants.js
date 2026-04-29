@@ -179,7 +179,7 @@ function cargarFuentes() {
         if (filtroStock === 'agotado') return mlDisp <= 0;
         if (filtroStock === 'bajo') return esBajo;
         if (filtroStock === 'disponible') return mlDisp > 0 && !esBajo;
-        // 'todos' muestra solo los NO agotados; los agotados van a sección separada
+        // 'todos' muestra solo los NO agotados; los agotados aparecen en la sección inferior
         return mlDisp > 0;
     });
 
@@ -299,7 +299,7 @@ function guardarRestock() {
     const id    = document.getElementById('restock-id').value;
     const ml    = parseFloat(document.getElementById('restock-ml').value) || 0;
     const costo = parseFloat(document.getElementById('restock-costo').value) || 0;
-    if (!ml) { alert('⚠️ Ingresa los ml de la nueva botella.'); return; }
+    if (!ml) { mostrarToast('⚠️ Ingresa los ml de la nueva botella.', 'warning'); return; }
     const idx = _fuentes.findIndex(f => f.id === id);
     if (idx === -1) return;
     _fuentes[idx].mlTotal  = ml;

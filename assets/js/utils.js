@@ -165,8 +165,7 @@ function getBadgeInversion(tipo) {
 function getBadgeDestino(prod) {
     if (prod.destino === 'pedido') {
         const nombre = prod.cliente || 'Pedido';
-        const corto  = nombre.length > 11 ? nombre.substring(0, 10) + '…' : nombre;
-        return `<span class="badge border border-danger text-danger" title="${nombre}" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;">👤 ${corto}</span>`;
+        return `<span class="badge border border-danger text-danger" title="${nombre}" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;">👤 ${nombre}</span>`;
     }
     return '<span class="badge border border-secondary text-secondary bg-light">🏠 Stock</span>';
 }

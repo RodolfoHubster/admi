@@ -178,7 +178,7 @@ function renderFila(prod, index) {
             <td class="fw-bold text-success">+$${ganancia}</td>
             <td class="text-center fw-bold fs-5">${cantidad}</td>
             <td class="text-center">
-                <small class="text-muted" title="${prod.notas || ''}" style="display:inline-block;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${prod.notas ? prod.notas.substring(0, 22) + (prod.notas.length > 22 ? '…' : '') : '—'}</small>
+                <small class="text-muted" title="${prod.notas || ''}" style="display:inline-block;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${prod.notas || '—'}</small>
             </td>
             <td>${getBotonesAccion(index, prod.id)}</td>
         </tr>`;
@@ -211,7 +211,7 @@ function renderFilaHija(prod, index) {
             <td style="width:8%" class="text-success fw-bold small">+$${ganancia}</td>
             <td style="width:5%" class="text-center small">1</td>
             <td style="width:8%" class="text-center">
-                <small class="text-muted" title="${prod.notas || ''}" style="display:inline-block;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${prod.notas ? prod.notas.substring(0, 15) + (prod.notas.length > 15 ? '…' : '') : '—'}</small>
+                <small class="text-muted" title="${prod.notas || ''}" style="display:inline-block;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${prod.notas || '—'}</small>
             </td>
             <td style="width:12%">${getBotonesAccion(index, prod.id)}</td>
         </tr>`;
