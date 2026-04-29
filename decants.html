@@ -118,6 +118,31 @@
         </div>
     </div>
 
+    <!-- PERFUMES AGOTADOS -->
+    <div class="card shadow border-0 mb-4" id="seccion-agotados" style="display:none;">
+        <div class="card-header bg-danger bg-opacity-25 py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-danger">🔴 Perfumes Agotados — Por Reabastecer</h6>
+            <span class="badge bg-danger" id="badge-count-agotados">0</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th></th>
+                            <th>Perfume</th>
+                            <th>Última botella</th>
+                            <th>Decants vendidos</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-agotados">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- HISTORIAL VENTAS DECANTS -->
     <div class="card shadow border-0">
         <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
@@ -331,6 +356,34 @@
             <div class="modal-footer border-secondary">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button class="btn btn-warning fw-bold" onclick="guardarAjusteML()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL RESTOCK -->
+<div class="modal fade" id="modalRestock" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">🔄 Reabastecer Perfume</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-2">Perfume: <strong id="restock-nombre" class="text-white">-</strong></p>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nueva cantidad (ml totales) *</label>
+                    <input type="number" class="form-control" id="restock-ml" placeholder="Ej: 100" min="1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Costo de la nueva botella ($MXN)</label>
+                    <input type="number" class="form-control" id="restock-costo" placeholder="0.00" min="0">
+                </div>
+                <input type="hidden" id="restock-id">
+            </div>
+            <div class="modal-footer border-secondary">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success fw-bold" onclick="guardarRestock()">🔄 Reabastecer</button>
             </div>
         </div>
     </div>
