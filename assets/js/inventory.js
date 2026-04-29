@@ -49,9 +49,11 @@ function cargarInventario() {
     if(badgeEnCaminoBoton) badgeEnCaminoBoton.innerText = totalEnCamino;
     tableBody.innerHTML = '';
 
-    const filtroProp = document.getElementById('filtroPropiedad') ? document.getElementById('filtroPropiedad').value : 'todos';
-    const filtroDest = document.getElementById('filtroDestino')   ? document.getElementById('filtroDestino').value   : 'todos';
-    const busqueda   = document.getElementById('buscador')        ? document.getElementById('buscador').value.toLowerCase() : '';
+    const filtroProp   = document.getElementById('filtroPropiedad') ? document.getElementById('filtroPropiedad').value : 'todos';
+    const filtroDest   = document.getElementById('filtroDestino')   ? document.getElementById('filtroDestino').value   : 'todos';
+    const filtroTipo   = document.getElementById('filtroTipo')      ? document.getElementById('filtroTipo').value      : 'todos';
+    const filtroGenero = document.getElementById('filtroGenero')    ? document.getElementById('filtroGenero').value    : 'todos';
+    const busqueda     = document.getElementById('buscador')        ? document.getElementById('buscador').value.toLowerCase() : '';
 
     let filtrados = productos.filter(p => {
         const textoMatch = p.nombre.toLowerCase().includes(busqueda) ||
@@ -62,7 +64,9 @@ function cargarInventario() {
         if (filtroDest === 'stock')     destMatch = (p.destino === 'stock' && p.ubicacion !== 'en_camino');
         else if (filtroDest === 'pedido')    destMatch = (p.destino === 'pedido');
         else if (filtroDest === 'en_camino') destMatch = (p.ubicacion === 'en_camino');
-        return textoMatch && propMatch && destMatch;
+        const tipoMatch   = (filtroTipo   === 'todos') ? true : (p.tipo   === filtroTipo);
+        const generoMatch = (filtroGenero === 'todos') ? true : (p.genero === filtroGenero);
+        return textoMatch && propMatch && destMatch && tipoMatch && generoMatch;
     });
 
     if (contadorLabel) contadorLabel.innerText = filtrados.length;
@@ -389,9 +393,11 @@ function guardarProducto() {
     const tipoEl   = document.getElementById('inputTipo');
     const notasEl  = document.getElementById('inputNotas');
     const batchEl  = document.getElementById('inputBatch');
-    const tipo     = tipoEl  ? tipoEl.value.trim()  : '';
-    const notas    = notasEl ? notasEl.value.trim()  : '';
-    const batch    = batchEl ? batchEl.value.trim()  : '';
+    const generoEl = document.getElementById('inputGenero');
+    const tipo     = tipoEl   ? tipoEl.value.trim()   : '';
+    const notas    = notasEl  ? notasEl.value.trim()   : '';
+    const batch    = batchEl  ? batchEl.value.trim()   : '';
+    const genero   = generoEl ? generoEl.value.trim()  : 'unisex';
 
     const costoNum = parseFloat(costo);
     const precioNum = parseFloat(precio);
@@ -424,7 +430,7 @@ function guardarProducto() {
             inversion, porcentajeSocio, destino, cliente, ubicacion,
             imagen: imagenUrl || 'https://cdn-icons-png.flaticon.com/512/2636/2636280.png',
             cantidad: 1, fechaRegistro: new Date().toISOString(),
-            tipo, notas, batch
+            tipo, notas, batch, genero
         });
     }
 
@@ -492,9 +498,11 @@ function editarProducto(index) {
     const tipoEl  = document.getElementById('inputTipo');
     const notasEl = document.getElementById('inputNotas');
     const batchEl = document.getElementById('inputBatch');
-    if (tipoEl)  tipoEl.value  = prod.tipo  || 'designer';
-    if (notasEl) notasEl.value = prod.notas || '';
-    if (batchEl) batchEl.value = prod.batch || '';
+    const generoEl = document.getElementById('inputGenero');
+    if (tipoEl)   tipoEl.value   = prod.tipo   || 'designer';
+    if (notasEl)  notasEl.value  = prod.notas  || '';
+    if (batchEl)  batchEl.value  = prod.batch  || '';
+    if (generoEl) generoEl.value = prod.genero || 'unisex';
 
     const tituloModal = document.getElementById('titulo-modal-perfume');
     const btnGuardar  = document.getElementById('btn-guardar-perfume');
@@ -526,9 +534,11 @@ function guardarCambiosEdicion() {
     const tipoEl  = document.getElementById('inputTipo');
     const notasEl = document.getElementById('inputNotas');
     const batchEl = document.getElementById('inputBatch');
-    if (tipoEl)  p.tipo  = tipoEl.value.trim();
-    if (notasEl) p.notas = notasEl.value.trim();
-    if (batchEl) p.batch = batchEl.value.trim();
+    const generoEl = document.getElementById('inputGenero');
+    if (tipoEl)   p.tipo   = tipoEl.value.trim();
+    if (notasEl)  p.notas  = notasEl.value.trim();
+    if (batchEl)  p.batch  = batchEl.value.trim();
+    if (generoEl) p.genero = generoEl.value.trim();
 
     const skuNormalizado = String(p.sku || '').toLowerCase();
     const duplicado = productos.some((item, idx) => idx !== indiceEdicion && String(item.sku || '').toLowerCase() === skuNormalizado);
@@ -633,8 +643,10 @@ function cargarPlantilla() {
     // — Nuevos campos desde plantilla —
     const tipoEl  = document.getElementById('inputTipo');
     const notasEl = document.getElementById('inputNotas');
-    if (tipoEl  && template.tipo)  tipoEl.value  = template.tipo;
-    if (notasEl && template.notas) notasEl.value = template.notas;
+    const generoEl = document.getElementById('inputGenero');
+    if (tipoEl   && template.tipo)   tipoEl.value   = template.tipo;
+    if (notasEl  && template.notas)  notasEl.value  = template.notas;
+    if (generoEl && template.genero) generoEl.value  = template.genero;
 
     document.getElementById('inputCosto').value  = '';
     document.getElementById('inputPrecio').value = '';
@@ -651,17 +663,19 @@ function guardarComoPlantilla() {
     const destino   = document.getElementById('inputDestino').value;
     const inputPct  = document.getElementById('inputPorcentajeSocio');
     const porcentajeSocio = (inversion === 'personalizado' && inputPct) ? parseFloat(inputPct.value) : 0;
-    const tipoEl  = document.getElementById('inputTipo');
-    const notasEl = document.getElementById('inputNotas');
-    const tipo    = tipoEl  ? tipoEl.value.trim()  : '';
-    const notas   = notasEl ? notasEl.value.trim() : '';
+    const tipoEl   = document.getElementById('inputTipo');
+    const notasEl  = document.getElementById('inputNotas');
+    const generoEl = document.getElementById('inputGenero');
+    const tipo    = tipoEl   ? tipoEl.value.trim()   : '';
+    const notas   = notasEl  ? notasEl.value.trim()  : '';
+    const genero  = generoEl ? generoEl.value.trim()  : 'unisex';
     if(!nombre || !marca) { alert('❌ Necesitas al menos nombre y marca para guardar plantilla'); return false; }
     const plantillas = JSON.parse(localStorage.getItem(TEMPLATES_KEY)) || [];
     const existe = plantillas.findIndex(t =>
         t.nombre.toLowerCase() === nombre.toLowerCase() &&
         t.marca.toLowerCase()  === marca.toLowerCase()
     );
-    const nuevaPlantilla = { id: Date.now(), nombre, marca, sku, imagen, inversion, porcentajeSocio, destino, tipo, notas, fechaCreacion: new Date().toISOString() };
+    const nuevaPlantilla = { id: Date.now(), nombre, marca, sku, imagen, inversion, porcentajeSocio, destino, tipo, notas, genero, fechaCreacion: new Date().toISOString() };
     if(existe !== -1) {
         if(confirm('⚠️ Ya existe una plantilla con este nombre. ¿Actualizar?')) plantillas[existe] = nuevaPlantilla;
         else return false;

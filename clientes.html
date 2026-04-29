@@ -64,12 +64,12 @@
                 </div>
             </div>
             <div class="table-responsive shadow-sm rounded">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" style="table-layout:fixed;width:100%">
                     <thead>
                         <tr>
-                            <th>Cliente</th>
-                            <th>Progreso de Pago</th>
-                            <th>Saldo Pendiente</th>
+                            <th style="width:20%">Cliente</th>
+                            <th style="width:30%">Progreso de Pago</th>
+                            <th style="width:15%">Saldo Pendiente</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -110,13 +110,13 @@
                 </div>
             </div>
             <div class="table-responsive shadow-sm rounded">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" style="table-layout:fixed;width:100%">
                     <thead>
                         <tr>
-                            <th>Cliente</th>
-                            <th>Perfume Encargado</th>
-                            <th>Estado Actual</th>
-                            <th>Inversión</th>
+                            <th style="width:18%">Cliente</th>
+                            <th style="width:30%">Perfume Encargado</th>
+                            <th style="width:22%">Estado Actual</th>
+                            <th style="width:12%">Inversión</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -428,7 +428,7 @@ function renderDeudas() {
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="fw-bold">${c.nombre}</td>
+            <td class="fw-bold" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.nombre}">${c.nombre}</td>
             <td style="width:30%;">
                 <div class="d-flex justify-content-between small mb-1">
                     <span>Progreso</span><span class="fw-bold">${Math.round(porcentajePagado)}%</span>
@@ -495,7 +495,7 @@ function renderEncargos() {
         }
         tbody.innerHTML += `
             <tr>
-                <td class="fw-bold text-gold">${prod.cliente}</td>
+                <td class="fw-bold text-gold" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${prod.cliente}">${prod.cliente}</td>
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <img src="${prod.imagen}" class="img-thumb-mini" alt="${prod.nombre}">

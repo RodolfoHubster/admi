@@ -105,12 +105,28 @@
                                 <option value="mitad">🌗 Mitad y Mitad</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <select class="form-select form-select-sm" id="filtroDestino" onchange="cargarInventario()">
                                 <option value="todos">📦 Destino: TODOS</option>
                                 <option value="stock">✅ En Stock (Libre)</option>
                                 <option value="pedido">👤 Pedidos (Apartados)</option>
                                 <option value="en_camino">🚚 En Camino (Por llegar)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select form-select-sm" id="filtroTipo" onchange="cargarInventario()">
+                                <option value="todos">🏷️ Tipo: TODOS</option>
+                                <option value="designer">🏛️ Diseñador</option>
+                                <option value="arabe">🕌 Árabe / Oud</option>
+                                <option value="nicho">💎 Nicho</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select form-select-sm" id="filtroGenero" onchange="cargarInventario()">
+                                <option value="todos">⚧ Género: TODOS</option>
+                                <option value="hombre">👨 Hombre</option>
+                                <option value="mujer">👩 Mujer</option>
+                                <option value="unisex">⚧ Unisex</option>
                             </select>
                         </div>
                         <div class="col text-end d-flex gap-2 justify-content-end align-items-center">
@@ -280,7 +296,15 @@
                                 <option value="nicho">💎 Nicho</option>
                             </select>
                         </div>
-                        <div class="col-md-8 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Género</label>
+                            <select class="form-select" id="inputGenero">
+                                <option value="unisex">⚧ Unisex</option>
+                                <option value="hombre">👨 Hombre</option>
+                                <option value="mujer">👩 Mujer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Notas Olfativas</label>
                             <input type="text" class="form-control" id="inputNotas"
                                 placeholder="Ej: Bergamota, Cedro, Almizcle...">
