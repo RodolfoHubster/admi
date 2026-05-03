@@ -87,13 +87,13 @@
         <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold">🧴 Botellas Fuente (Inventario de Decants)</h6>
             <div class="d-flex gap-2 flex-wrap justify-content-end">
-                <select id="filtro-stock-fuentes" class="form-select form-select-sm w-auto" onchange="cargarFuentes()">
+                <select id="filtro-stock-fuentes" class="form-select form-select-sm w-auto" onchange="filtrarFuentes()">
                     <option value="todos">Todo stock</option>
                     <option value="disponible">Disponible</option>
                     <option value="bajo">Stock bajo</option>
                     <option value="agotado">Agotado</option>
                 </select>
-                <input type="text" id="buscador-fuentes" class="form-control form-control-sm w-auto" placeholder="🔍 Buscar..." oninput="cargarFuentes()">
+                <input type="text" id="buscador-fuentes" class="form-control form-control-sm w-auto" placeholder="🔍 Buscar..." oninput="filtrarFuentes()">
             </div>
         </div>
         <div class="card-body p-0">
@@ -115,6 +115,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="paginacion-fuentes"></div>
         </div>
     </div>
 
@@ -148,13 +149,13 @@
         <div class="card-header bg-dark py-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold">📋 Historial de Ventas de Decants</h6>
             <div class="d-flex gap-2 flex-wrap justify-content-end">
-                <select id="filtro-ventas-decants" class="form-select form-select-sm w-auto" onchange="cargarHistorialVentas()">
+                <select id="filtro-ventas-decants" class="form-select form-select-sm w-auto" onchange="filtrarVentasD()">
                     <option value="todos">Todo periodo</option>
                     <option value="hoy">Hoy</option>
                     <option value="7dias">Últimos 7 días</option>
                     <option value="30dias">Últimos 30 días</option>
                 </select>
-                <input type="text" id="buscador-ventas-decants" class="form-control form-control-sm w-auto" placeholder="🔍 Cliente o perfume..." oninput="cargarHistorialVentas()">
+                <input type="text" id="buscador-ventas-decants" class="form-control form-control-sm w-auto" placeholder="🔍 Cliente o perfume..." oninput="filtrarVentasD()">
                 <span class="badge bg-secondary d-flex align-items-center" id="badge-total-ventas">0 ventas</span>
             </div>
         </div>
@@ -177,6 +178,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="paginacion-ventas-decants"></div>
         </div>
     </div>
 </div>
@@ -222,10 +224,11 @@
                         <label class="form-label small fw-bold">Tallas disponibles y precio de venta</label>
                         <div class="card bg-secondary bg-opacity-25 p-3">
                             <div class="row g-2 align-items-center mb-2 small fw-bold text-muted">
-                                <div class="col-3">Talla (ml)</div>
-                                <div class="col-3">Precio Venta ($)</div>
-                                <div class="col-3">Activa</div>
-                                <div class="col-3"></div>
+                                <div class="col-auto" style="width:24px"></div>
+                                <div class="col">Talla (ml)</div>
+                                <div class="col">Precio Venta ($)</div>
+                                <div class="col-auto">Activa</div>
+                                <div class="col-auto"></div>
                             </div>
                             <div id="tallas-container"></div>
                             <button type="button" class="btn btn-outline-light btn-sm mt-2" onclick="agregarFilaTalla()">

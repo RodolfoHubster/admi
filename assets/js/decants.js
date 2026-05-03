@@ -11,6 +11,17 @@ let _fuentes  = [];
 let _ventasD  = [];
 let _tallasFila = [];
 
+// Paginación — Fuentes
+let _paginaFuentes = 1;
+let _tamFuentes    = 15;
+
+// Paginación — Historial ventas decants
+let _paginaVentasD = 1;
+let _tamVentasD    = 15;
+
+// Drag & Drop — tallas
+let _dndSrcIdx = null;
+
 // =========================================================
 // INIT
 // =========================================================
@@ -166,6 +177,9 @@ document.getElementById('__precarga-nombre-label').innerHTML =
 // =========================================================
 // TABLA FUENTES
 // =========================================================
+function filtrarFuentes()  { _paginaFuentes = 1; cargarFuentes(); }
+function filtrarVentasD()  { _paginaVentasD = 1; cargarHistorialVentas(); }
+
 function cargarFuentes() {
     const tbody    = document.getElementById('tabla-fuentes');
     const busqueda = (document.getElementById('buscador-fuentes')?.value || '').toLowerCase();
@@ -183,12 +197,20 @@ function cargarFuentes() {
         return mlDisp > 0;
     });
 
+    const totalFuentes = lista.length;
+    const showAll      = _tamFuentes <= 0;
+    const totalPages   = showAll ? 1 : Math.ceil(totalFuentes / _tamFuentes);
+    _paginaFuentes     = Math.max(1, Math.min(_paginaFuentes, totalPages || 1));
+    const inicio       = showAll ? 0 : (_paginaFuentes - 1) * _tamFuentes;
+    const fin          = showAll ? totalFuentes : Math.min(inicio + _tamFuentes, totalFuentes);
+    const pagina       = lista.slice(inicio, fin);
+
     if (!lista.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
             Sin fuentes. Usa "Nueva Fuente" para agregar una botella.
         </td></tr>`;
     } else {
-        tbody.innerHTML = lista.map(f => {
+        tbody.innerHTML = pagina.map(f => {
             const mlDisp = (f.mlTotal || 0) - (f.mlUsados || 0);
             const pct    = f.mlTotal ? Math.round(((f.mlUsados||0) / f.mlTotal) * 100) : 0;
             const badgeCls = mlDisp <= 0 ? 'badge-ml-low' : mlDisp < (f.mlTotal * 0.2) ? 'badge-ml-mid' : 'badge-ml-avail';
@@ -237,8 +259,15 @@ function cargarFuentes() {
         }).join('');
     }
 
+    if (typeof renderPaginacion === 'function') {
+        renderPaginacion('paginacion-fuentes', totalFuentes, _paginaFuentes, _tamFuentes, 'cambiarPaginaFuentes', 'cambiarTamFuentes');
+    }
+
     cargarFuentesAgotadas();
 }
+
+function cambiarPaginaFuentes(page) { _paginaFuentes = page; cargarFuentes(); }
+function cambiarTamFuentes(size)    { _tamFuentes = size; _paginaFuentes = 1; cargarFuentes(); }
 
 // =========================================================
 // SECCIÓN AGOTADOS
@@ -327,6 +356,7 @@ function cargarHistorialVentas() {
     if (!_ventasD.length) {
         if (badge) badge.textContent = '0 ventas';
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Sin ventas registradas</td></tr>`;
+        if (typeof renderPaginacion === 'function') renderPaginacion('paginacion-ventas-decants', 0, 1, _tamVentasD, 'cambiarPaginaVentasD', 'cambiarTamVentasD');
         return;
     }
 
@@ -341,13 +371,22 @@ function cargarHistorialVentas() {
         const texto = `${nombre} ${v.cliente || ''} ${v.marca || ''} ${v.ml || ''}`.toLowerCase();
         return texto.includes(busqueda);
     });
-    if (badge) badge.textContent = `${filtradas.length}/${_ventasD.length} ventas`;
     const ordenadas = [...filtradas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    if (!ordenadas.length) {
+
+    const totalVentasD = ordenadas.length;
+    if (badge) badge.textContent = `${totalVentasD}/${_ventasD.length} ventas`;
+
+    const showAll    = _tamVentasD <= 0;
+    const totalPages = showAll ? 1 : Math.ceil(totalVentasD / _tamVentasD);
+    _paginaVentasD   = Math.max(1, Math.min(_paginaVentasD, totalPages || 1));
+    const inicio     = showAll ? 0 : (_paginaVentasD - 1) * _tamVentasD;
+    const fin        = showAll ? totalVentasD : Math.min(inicio + _tamVentasD, totalVentasD);
+    const pagina     = ordenadas.slice(inicio, fin);
+
+    if (!pagina.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">No hay ventas que coincidan con el filtro</td></tr>`;
-        return;
-    }
-    tbody.innerHTML = ordenadas.map(v => {
+    } else {
+        tbody.innerHTML = pagina.map(v => {
         const fuente   = _fuentes.find(f => f.id === v.fuenteId);
         const nombre   = fuente ? fuente.nombre : (v.nombrePerfume || '-');
         const ganancia = (v.precio || 0) - (v.costoAprox || 0);
@@ -363,11 +402,15 @@ function cargarHistorialVentas() {
             <td><small>${v.cliente || '-'}</small></td>
         </tr>`;
     }).join('');
+    }
+
+    if (typeof renderPaginacion === 'function') {
+        renderPaginacion('paginacion-ventas-decants', totalVentasD, _paginaVentasD, _tamVentasD, 'cambiarPaginaVentasD', 'cambiarTamVentasD');
+    }
 }
 
-// =========================================================
-// KPIs
-// =========================================================
+function cambiarPaginaVentasD(page) { _paginaVentasD = page; cargarHistorialVentas(); }
+function cambiarTamVentasD(size)    { _tamVentasD = size; _paginaVentasD = 1; cargarHistorialVentas(); }
 function actualizarKPIs() {
     const activas  = _fuentes.filter(f => ((f.mlTotal||0) - (f.mlUsados||0)) > 0);
     const mlTotal  = activas.reduce((s, f) => s + ((f.mlTotal||0) - (f.mlUsados||0)), 0);
@@ -390,27 +433,64 @@ function renderFilasTallas() {
     const cont = document.getElementById('tallas-container');
     if (!cont) return;
     cont.innerHTML = _tallasFila.map((t, i) => `
-        <div class="row g-2 align-items-center mb-1" id="talla-row-${i}">
-            <div class="col-3">
+        <div class="row g-2 align-items-center mb-1 talla-dnd-row"
+             draggable="true"
+             data-idx="${i}"
+             ondragstart="_tallaDragStart(event,${i})"
+             ondragover="_tallaDragOver(event)"
+             ondrop="_tallaDrop(event,${i})"
+             ondragend="_tallaDragEnd(event)"
+             style="cursor:default;transition:opacity .15s">
+            <div class="col-auto d-flex align-items-center ps-2" style="cursor:grab" title="Arrastrar para reordenar">
+                <i class="bi bi-grip-vertical text-secondary"></i>
+            </div>
+            <div class="col">
                 <input type="number" class="form-control form-control-sm" value="${t.ml}" placeholder="ml"
                     onchange="_tallasFila[${i}].ml = +this.value">
             </div>
-            <div class="col-3">
+            <div class="col">
                 <input type="number" class="form-control form-control-sm" value="${t.precio}" placeholder="$"
                     onchange="_tallasFila[${i}].precio = +this.value">
             </div>
-            <div class="col-3 text-center">
+            <div class="col-auto text-center">
                 <div class="form-check form-switch d-inline-block">
                     <input class="form-check-input" type="checkbox" ${t.activa ? 'checked' : ''}
                         onchange="_tallasFila[${i}].activa = this.checked">
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-auto">
                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="quitarFilaTalla(${i})">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
         </div>`).join('');
+}
+
+function _tallaDragStart(e, idx) {
+    _dndSrcIdx = idx;
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.style.opacity = '0.4';
+}
+
+function _tallaDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function _tallaDrop(e, targetIdx) {
+    e.stopPropagation();
+    if (_dndSrcIdx === null || _dndSrcIdx === targetIdx) return false;
+    const moved = _tallasFila.splice(_dndSrcIdx, 1)[0];
+    _tallasFila.splice(targetIdx, 0, moved);
+    _dndSrcIdx = null;
+    renderFilasTallas();
+    return false;
+}
+
+function _tallaDragEnd(e) {
+    _dndSrcIdx = null;
+    document.querySelectorAll('.talla-dnd-row').forEach(r => (r.style.opacity = ''));
 }
 
 function agregarFilaTalla() {
