@@ -411,6 +411,10 @@ function cargarHistorialVentas() {
 
 function cambiarPaginaVentasD(page) { _paginaVentasD = page; cargarHistorialVentas(); }
 function cambiarTamVentasD(size)    { _tamVentasD = size; _paginaVentasD = 1; cargarHistorialVentas(); }
+
+// =========================================================
+// KPIs
+// =========================================================
 function actualizarKPIs() {
     const activas  = _fuentes.filter(f => ((f.mlTotal||0) - (f.mlUsados||0)) > 0);
     const mlTotal  = activas.reduce((s, f) => s + ((f.mlTotal||0) - (f.mlUsados||0)), 0);
