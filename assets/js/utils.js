@@ -198,3 +198,66 @@ function calcularDeudaSocioPorPieza(costo, precioVenta, tipoInversion, porcentaj
 }
 
 window.requirePermission = requirePermission;
+
+// =========================================================
+// PAGINACIÓN — Renderiza controles reutilizables
+// Uso: renderPaginacion(containerId, total, page, size, 'fnPage', 'fnSize')
+//   size = 0  →  mostrar todo (sin paginar)
+// =========================================================
+function renderPaginacion(containerId, total, page, size, fnPage, fnSize) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (total === 0) { container.innerHTML = ''; return; }
+
+    const showAll    = size <= 0;
+    const totalPages = showAll ? 1 : Math.ceil(total / size);
+    const currPage   = showAll ? 1 : Math.max(1, Math.min(page, totalPages));
+    const desde      = showAll ? 1 : (currPage - 1) * size + 1;
+    const hasta      = showAll ? total : Math.min(currPage * size, total);
+
+    let pagesHtml = '';
+    if (!showAll && totalPages > 1) {
+        const isPrev = currPage > 1;
+        const isNext = currPage < totalPages;
+        pagesHtml += `<li class="page-item${isPrev ? '' : ' disabled'}"><button class="page-link" ${isPrev ? `onclick="${fnPage}(${currPage - 1})"` : 'tabindex="-1"'}>‹</button></li>`;
+
+        let pages = [];
+        if (totalPages <= 7) {
+            pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+        } else {
+            pages = [1];
+            if (currPage > 3) pages.push('…');
+            for (let i = Math.max(2, currPage - 1); i <= Math.min(totalPages - 1, currPage + 1); i++) pages.push(i);
+            if (currPage < totalPages - 2) pages.push('…');
+            pages.push(totalPages);
+        }
+
+        pages.forEach(p => {
+            if (typeof p === 'string') {
+                pagesHtml += `<li class="page-item disabled"><span class="page-link">${p}</span></li>`;
+            } else {
+                pagesHtml += `<li class="page-item${p === currPage ? ' active' : ''}"><button class="page-link" onclick="${fnPage}(${p})">${p}</button></li>`;
+            }
+        });
+
+        pagesHtml += `<li class="page-item${isNext ? '' : ' disabled'}"><button class="page-link" ${isNext ? `onclick="${fnPage}(${currPage + 1})"` : 'tabindex="-1"'}>›</button></li>`;
+    }
+
+    const sizeOpts = [10, 15, 25, 50, 0].map(s =>
+        `<option value="${s}"${s === size ? ' selected' : ''}>${s === 0 ? 'Todo' : s}</option>`
+    ).join('');
+
+    container.innerHTML = `
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-2 px-3"
+             style="background:rgba(255,255,255,0.03);border-top:1px solid rgba(255,255,255,0.08)">
+            <small class="text-muted">Mostrando <strong class="text-white">${desde}–${hasta}</strong> de <strong class="text-white">${total}</strong></small>
+            ${!showAll && totalPages > 1 ? `<nav aria-label="Páginas"><ul class="pagination pagination-sm mb-0">${pagesHtml}</ul></nav>` : '<div></div>'}
+            <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Por página:</small>
+                <select class="form-select form-select-sm"
+                        style="width:80px;background:#1a1a1a;border-color:#444;color:#ccc"
+                        onchange="${fnSize}(parseInt(this.value))">${sizeOpts}</select>
+            </div>
+        </div>`;
+}

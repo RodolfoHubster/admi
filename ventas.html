@@ -101,7 +101,7 @@
                 <div class="col-auto d-none d-md-block"><div style="width:1px; height:40px; background: rgba(255,255,255,0.1);"></div></div>
                 <div class="col">
                     <small class="text-muted fw-bold d-block mb-1">🔍 BUSCAR</small>
-                    <input type="text" class="form-control form-control-sm" id="filtro-texto-ventas" placeholder="Cliente o producto..." oninput="renderVentas()">
+                    <input type="text" class="form-control form-control-sm" id="filtro-texto-ventas" placeholder="Cliente o producto..." oninput="_paginaVentas=1; renderVentas()">
                 </div>
                 <div class="col-auto text-end">
                     <small class="text-muted d-block">Mostrando</small>
@@ -124,6 +124,7 @@
                 </thead>
                 <tbody id="sales-table-body"></tbody>
             </table>
+            <div id="paginacion-ventas"></div>
         </div>
     </div>
 
@@ -142,6 +143,7 @@
             <div id="no-pagos-msg" class="p-3 text-center text-muted" style="display:none">
                 Aún no has registrado pagos al socio.
             </div>
+            <div id="paginacion-pagos"></div>
         </div>
     </div>
 </div>

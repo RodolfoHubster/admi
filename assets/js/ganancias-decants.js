@@ -9,6 +9,10 @@ const DECANTS_VENTAS_KEY_G = 'decants_ventas';
 let _decantVentas  = [];   // todas las ventas cargadas
 let _chartDecants  = null; // instancia Chart.js
 
+// Paginación — historial de decants
+let _paginaDecants = 1;
+let _tamDecants    = 15;
+
 // ── Helpers de formato (igual que ganancias.js) ──
 function _fmt(n) {
     return '$' + (n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -54,6 +58,7 @@ function _decantEnPeriodo() {
 
 // ── Render principal (llamado al cambiar a la pestaña o al cambiar período) ──
 window.renderDecants = function() {
+    _paginaDecants = 1;
     const ventas = _decantEnPeriodo();
 
     // ── KPIs ──
@@ -187,12 +192,19 @@ function _renderHistorialDecants(ventas) {
     const tbody = document.getElementById('d-tabla-historial');
     if (ventas.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Sin ventas de decants en este período</td></tr>';
+        if (typeof renderPaginacion === 'function') renderPaginacion('paginacion-decants', 0, 1, _tamDecants, 'cambiarPaginaDecants', 'cambiarTamDecants');
         return;
     }
 
-    const sorted = [...ventas].sort((a, b) => _tsDecant(b) - _tsDecant(a));
+    const sorted    = [...ventas].sort((a, b) => _tsDecant(b) - _tsDecant(a));
+    const total     = sorted.length;
+    const showAll   = _tamDecants <= 0;
+    const totalPags = showAll ? 1 : Math.ceil(total / _tamDecants);
+    _paginaDecants  = Math.max(1, Math.min(_paginaDecants, totalPags));
+    const inicio    = showAll ? 0 : (_paginaDecants - 1) * _tamDecants;
+    const fin       = showAll ? total : Math.min(inicio + _tamDecants, total);
 
-    tbody.innerHTML = sorted.map(v => {
+    tbody.innerHTML = sorted.slice(inicio, fin).map(v => {
         const precio   = parseFloat(v.precio     || 0);
         const costo    = parseFloat(v.costoAprox || 0);
         const ganancia = precio - costo;
@@ -211,7 +223,13 @@ function _renderHistorialDecants(ventas) {
             <td class="text-end" style="color:${margen >= 30 ? '#28a745' : margen >= 15 ? '#ffc107' : '#dc3545'}">${margen}%</td>
         </tr>`;
     }).join('');
+
+    if (typeof renderPaginacion === 'function')
+        renderPaginacion('paginacion-decants', total, _paginaDecants, _tamDecants, 'cambiarPaginaDecants', 'cambiarTamDecants');
 }
+
+window.cambiarPaginaDecants = function(page) { _paginaDecants = page; _renderHistorialDecants(_decantEnPeriodo()); };
+window.cambiarTamDecants    = function(size) { _tamDecants = size; _paginaDecants = 1; _renderHistorialDecants(_decantEnPeriodo()); };
 
 // ── Inicialización: cargar datos al arrancar la página ──
 document.addEventListener('DOMContentLoaded', async () => {
