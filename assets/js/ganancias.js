@@ -444,8 +444,8 @@ function renderHistorial(ventas) {
         renderPaginacion('paginacion-historial', total, _paginaHistorial, _tamHistorial, 'cambiarPaginaHistorial', 'cambiarTamHistorial');
 }
 
-window.cambiarPaginaHistorial = function(p) { _paginaHistorial = p; renderHistorial(ventasEnPeriodo()); };
-window.cambiarTamHistorial    = function(t) { _tamHistorial = t; _paginaHistorial = 1; renderHistorial(ventasEnPeriodo()); };
+window.cambiarPaginaHistorial = function(page) { _paginaHistorial = page; renderHistorial(ventasEnPeriodo()); };
+window.cambiarTamHistorial    = function(size) { _tamHistorial = size; _paginaHistorial = 1; renderHistorial(ventasEnPeriodo()); };
 
 // =========================================================
 // CHIPS DE PERFUMES

@@ -400,8 +400,8 @@ function renderVentas() {
         renderPaginacion('paginacion-ventas', totalVentas, _paginaVentas, _tamVentas, 'cambiarPaginaVentas', 'cambiarTamVentas');
 }
 
-function cambiarPaginaVentas(p) { _paginaVentas = p; renderVentas(); }
-function cambiarTamVentas(t)    { _tamVentas = t; _paginaVentas = 1; renderVentas(); }
+function cambiarPaginaVentas(page) { _paginaVentas = page; renderVentas(); }
+function cambiarTamVentas(size)    { _tamVentas = size; _paginaVentas = 1; renderVentas(); }
 
 async function deshacerVenta(id) {
     if (typeof requirePermission === 'function' && !requirePermission('delete')) return;
@@ -507,8 +507,8 @@ function renderPagos() {
         renderPaginacion('paginacion-pagos', totalPagos, _paginaPagos, _tamPagos, 'cambiarPaginaPagos', 'cambiarTamPagos');
 }
 
-function cambiarPaginaPagos(p) { _paginaPagos = p; renderPagos(); }
-function cambiarTamPagos(t)    { _tamPagos = t; _paginaPagos = 1; renderPagos(); }
+function cambiarPaginaPagos(page) { _paginaPagos = page; renderPagos(); }
+function cambiarTamPagos(size)    { _tamPagos = size; _paginaPagos = 1; renderPagos(); }
 
 function guardarPago() {
     if (typeof requirePermission === 'function' && !requirePermission('charge')) return;

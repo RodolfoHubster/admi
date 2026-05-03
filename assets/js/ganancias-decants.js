@@ -228,8 +228,8 @@ function _renderHistorialDecants(ventas) {
         renderPaginacion('paginacion-decants', total, _paginaDecants, _tamDecants, 'cambiarPaginaDecants', 'cambiarTamDecants');
 }
 
-window.cambiarPaginaDecants = function(p) { _paginaDecants = p; _renderHistorialDecants(_decantEnPeriodo()); };
-window.cambiarTamDecants    = function(t) { _tamDecants = t; _paginaDecants = 1; _renderHistorialDecants(_decantEnPeriodo()); };
+window.cambiarPaginaDecants = function(page) { _paginaDecants = page; _renderHistorialDecants(_decantEnPeriodo()); };
+window.cambiarTamDecants    = function(size) { _tamDecants = size; _paginaDecants = 1; _renderHistorialDecants(_decantEnPeriodo()); };
 
 // ── Inicialización: cargar datos al arrancar la página ──
 document.addEventListener('DOMContentLoaded', async () => {
