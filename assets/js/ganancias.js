@@ -13,6 +13,10 @@ let todosGastos    = [];
 // Historial de períodos anteriores para calcular tendencias
 let _kpiAnterior   = null;
 
+// Paginación — historial de ventas (perfumes)
+let _paginaHistorial = 1;
+let _tamHistorial    = 15;
+
 document.addEventListener('DOMContentLoaded', async () => {
     await initApp();
     todasVentas  = JSON.parse(localStorage.getItem(SALES_KEY))    || [];
@@ -151,6 +155,7 @@ function gastosEnPeriodo() {
 }
 
 function calcularYRenderizar() {
+    _paginaHistorial = 1;
     const ventas  = ventasEnPeriodo();
     const gastos  = gastosEnPeriodo();
 
@@ -401,12 +406,19 @@ function renderHistorial(ventas) {
     const tbody = document.getElementById('tabla-historial');
     if (ventas.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Sin ventas en este período</td></tr>';
+        if (typeof renderPaginacion === 'function') renderPaginacion('paginacion-historial', 0, 1, _tamHistorial, 'cambiarPaginaHistorial', 'cambiarTamHistorial');
         return;
     }
 
-    const sorted = [...ventas].sort((a, b) => _tsDeVenta(b) - _tsDeVenta(a));
+    const sorted    = [...ventas].sort((a, b) => _tsDeVenta(b) - _tsDeVenta(a));
+    const total     = sorted.length;
+    const showAll   = _tamHistorial <= 0;
+    const totalPags = showAll ? 1 : Math.ceil(total / _tamHistorial);
+    _paginaHistorial = Math.max(1, Math.min(_paginaHistorial, totalPags));
+    const inicio    = showAll ? 0 : (_paginaHistorial - 1) * _tamHistorial;
+    const fin       = showAll ? total : Math.min(inicio + _tamHistorial, total);
 
-    tbody.innerHTML = sorted.map(v => {
+    tbody.innerHTML = sorted.slice(inicio, fin).map(v => {
         const precio   = parseFloat(v.precioFinal || 0);
         const ganancia = parseFloat(v.utilidad    || 0);
         const costo    = precio - ganancia;
@@ -427,7 +439,13 @@ function renderHistorial(ventas) {
             <td>${tipoBadge}</td>
         </tr>`;
     }).join('');
+
+    if (typeof renderPaginacion === 'function')
+        renderPaginacion('paginacion-historial', total, _paginaHistorial, _tamHistorial, 'cambiarPaginaHistorial', 'cambiarTamHistorial');
 }
+
+window.cambiarPaginaHistorial = function(p) { _paginaHistorial = p; renderHistorial(ventasEnPeriodo()); };
+window.cambiarTamHistorial    = function(t) { _tamHistorial = t; _paginaHistorial = 1; renderHistorial(ventasEnPeriodo()); };
 
 // =========================================================
 // CHIPS DE PERFUMES

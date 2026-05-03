@@ -6,6 +6,14 @@ let listadoPagos = [];
 let filtroFechaActual = 'todos';
 let filtroEstadoActual = 'todos';
 
+// Paginación — ventas
+let _paginaVentas = 1;
+let _tamVentas    = 15;
+
+// Paginación — pagos al socio
+let _paginaPagos = 1;
+let _tamPagos    = 15;
+
 // =========================================================
 // 2. FUNCIONES DE VENTA (CREAR)
 // =========================================================
@@ -302,12 +310,24 @@ function renderVentas() {
     });
 
     const ventasDisplay = ventasFiltradas.sort((a, b) => b.id - a.id);
+    const counter = document.getElementById('contador-ventas');
+    if (counter) counter.innerText = ventasDisplay.length;
+
     if (ventasDisplay.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted p-4">📅 No hay ventas en este periodo.</td></tr>`;
+        if (typeof renderPaginacion === 'function') renderPaginacion('paginacion-ventas', 0, 1, _tamVentas, 'cambiarPaginaVentas', 'cambiarTamVentas');
         return;
     }
 
-    ventasDisplay.forEach(venta => {
+    const totalVentas = ventasDisplay.length;
+    const showAll     = _tamVentas <= 0;
+    const totalPages  = showAll ? 1 : Math.ceil(totalVentas / _tamVentas);
+    _paginaVentas     = Math.max(1, Math.min(_paginaVentas, totalPages));
+    const inicio      = showAll ? 0 : (_paginaVentas - 1) * _tamVentas;
+    const fin         = showAll ? totalVentas : Math.min(inicio + _tamVentas, totalVentas);
+    const ventasPagina = ventasDisplay.slice(inicio, fin);
+
+    ventasPagina.forEach(venta => {
         const canEdit = typeof fitoCan === 'function' ? fitoCan('edit') : true;
         const canDelete = typeof fitoCan === 'function' ? fitoCan('delete') : true;
         const canCharge = typeof fitoCan === 'function' ? fitoCan('charge') : true;
@@ -375,10 +395,13 @@ function renderVentas() {
                 </td>
             </tr>`;
         tbody.innerHTML += row;
-        const counter = document.getElementById('contador-ventas');
-        if (counter) counter.innerText = ventasDisplay.length;
     });
+    if (typeof renderPaginacion === 'function')
+        renderPaginacion('paginacion-ventas', totalVentas, _paginaVentas, _tamVentas, 'cambiarPaginaVentas', 'cambiarTamVentas');
 }
+
+function cambiarPaginaVentas(p) { _paginaVentas = p; renderVentas(); }
+function cambiarTamVentas(t)    { _tamVentas = t; _paginaVentas = 1; renderVentas(); }
 
 async function deshacerVenta(id) {
     if (typeof requirePermission === 'function' && !requirePermission('delete')) return;
@@ -456,9 +479,22 @@ function renderPagos() {
     const msg   = document.getElementById('no-pagos-msg');
     if(!tbody) return;
     tbody.innerHTML = '';
-    if (listadoPagos.length === 0) { if(msg) msg.style.display = 'block'; return; }
+    if (listadoPagos.length === 0) {
+        if(msg) msg.style.display = 'block';
+        if (typeof renderPaginacion === 'function') renderPaginacion('paginacion-pagos', 0, 1, _tamPagos, 'cambiarPaginaPagos', 'cambiarTamPagos');
+        return;
+    }
     if(msg) msg.style.display = 'none';
-    [...listadoPagos].sort((a, b) => b.id - a.id).forEach(pago => {
+
+    const pagosSorted = [...listadoPagos].sort((a, b) => b.id - a.id);
+    const totalPagos  = pagosSorted.length;
+    const showAll     = _tamPagos <= 0;
+    const totalPages  = showAll ? 1 : Math.ceil(totalPagos / _tamPagos);
+    _paginaPagos      = Math.max(1, Math.min(_paginaPagos, totalPages));
+    const inicio      = showAll ? 0 : (_paginaPagos - 1) * _tamPagos;
+    const fin         = showAll ? totalPagos : Math.min(inicio + _tamPagos, totalPagos);
+
+    pagosSorted.slice(inicio, fin).forEach(pago => {
         tbody.innerHTML += `
             <tr>
                 <td>${new Date(pago.id).toLocaleDateString()}</td>
@@ -467,7 +503,12 @@ function renderPagos() {
                 <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarPago(${pago.id})">❌</button></td>
             </tr>`;
     });
+    if (typeof renderPaginacion === 'function')
+        renderPaginacion('paginacion-pagos', totalPagos, _paginaPagos, _tamPagos, 'cambiarPaginaPagos', 'cambiarTamPagos');
 }
+
+function cambiarPaginaPagos(p) { _paginaPagos = p; renderPagos(); }
+function cambiarTamPagos(t)    { _tamPagos = t; _paginaPagos = 1; renderPagos(); }
 
 function guardarPago() {
     if (typeof requirePermission === 'function' && !requirePermission('charge')) return;
@@ -555,6 +596,7 @@ function calcularTotales() {
 
 function setFiltroFecha(tipo, btn) {
     filtroFechaActual = tipo;
+    _paginaVentas = 1;
     const grupo = btn.parentElement.querySelectorAll('.btn');
     grupo.forEach(b => {
         b.classList.remove('active','btn-primary','text-dark','fw-bold');
@@ -567,6 +609,7 @@ function setFiltroFecha(tipo, btn) {
 
 function setFiltroEstado(tipo, btn) {
     filtroEstadoActual = tipo;
+    _paginaVentas = 1;
     btn.closest('.btn-group').querySelectorAll('.btn').forEach(b => {
         b.classList.remove('active','btn-warning','btn-danger','btn-success','fw-bold');
         b.classList.add('btn-outline-secondary');
