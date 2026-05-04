@@ -416,7 +416,7 @@
                 <i class="bi bi-arrow-left"></i> Decants
             </button>
             <button id="btn-exportar-fuentes" class="btn btn-outline-info btn-sm" onclick="exportarDesdeFuentes()">
-                <i class="bi bi-box-arrow-in-down"></i> Exportar desde Decants
+                <i class="bi bi-arrow-repeat"></i> Sincronizar desde Decants
             </button>
             <button class="btn btn-outline-light btn-sm" onclick="imprimirPDF()">
                 <i class="bi bi-printer"></i> Imprimir PDF
@@ -1122,39 +1122,62 @@ window.eliminarTarjeta = async function(id) {
 window.exportarDesdeFuentes = async function() {
     const btn = document.getElementById('btn-exportar-fuentes');
     btn.classList.add('loading');
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Exportando...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sincronizando...';
     try {
         const snapFuentes = await getDocs(collection(db, 'decants_fuentes'));
-        if (snapFuentes.empty) { mostrarToast('⚠️ No hay fuentes en Decants para exportar.'); return; }
+        if (snapFuentes.empty) { mostrarToast('⚠️ No hay fuentes en Decants para sincronizar.'); return; }
         const snapExist = await getDocs(collection(db, 'listadecants'));
-        const nombresExistentes = new Set(snapExist.docs.map(d => (d.data().nombre || '').trim().toLowerCase()));
-        const nuevas = [];
-        snapFuentes.forEach(d => {
+
+        // Build map of existing cards by normalized name -> { id }
+        const existMap = new Map();
+        snapExist.docs.forEach(d => {
+            const nombreNorm = (d.data().nombre || '').trim().toLowerCase();
+            if (nombreNorm) existMap.set(nombreNorm, d.id);
+        });
+
+        let creadas = 0;
+        let actualizadas = 0;
+        for (const d of snapFuentes.docs) {
             const f = d.data();
             const nombreNorm = (f.nombre || '').trim().toLowerCase();
-            if (nombreNorm && !nombresExistentes.has(nombreNorm)) nuevas.push(f);
-        });
-        if (!nuevas.length) { mostrarToast('✅ Todos los decants ya están exportados. No hay nuevos.'); return; }
-        let creadas = 0;
-        for (const f of nuevas) {
+            if (!nombreNorm) continue;
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
-            await setDoc(doc(collection(db, 'listadecants')), {
-                nombre: f.nombre||'', marca: f.marca||'', imagen: f.imagen||'',
-                descripcion: f.notas||'', tallas, ocasiones:[], temporadas:[], intensidad:'',
-                createdAt: serverTimestamp(), updatedAt: serverTimestamp(), exportadoDe: 'decants_fuentes',
-            });
-            creadas++;
+            if (existMap.has(nombreNorm)) {
+                // Update tallas (ml/prices) of the existing card
+                await setDoc(doc(db, 'listadecants', existMap.get(nombreNorm)),
+                    { tallas, updatedAt: serverTimestamp() }, { merge: true });
+                actualizadas++;
+            } else {
+                // Create new card
+                await setDoc(doc(collection(db, 'listadecants')), {
+                    nombre: f.nombre||'', marca: f.marca||'', imagen: f.imagen||'',
+                    descripcion: f.notas||'', tallas, ocasiones:[], temporadas:[], intensidad:'',
+                    createdAt: serverTimestamp(), updatedAt: serverTimestamp(), exportadoDe: 'decants_fuentes',
+                });
+                creadas++;
+            }
         }
+
+        let msg = '';
+        if (creadas > 0 && actualizadas > 0)
+            msg = `✅ ${creadas} tarjeta(s) nueva(s), ${actualizadas} sincronizada(s) 🎉`;
+        else if (creadas > 0)
+            msg = `✅ ${creadas} tarjeta(s) exportada(s) correctamente 🎉`;
+        else if (actualizadas > 0)
+            msg = `✅ ${actualizadas} tarjeta(s) sincronizada(s) con los ml/precios actuales 🎉`;
+        else
+            msg = '✅ Todo ya estaba sincronizado.';
+
         document.getElementById('grid-tarjetas').innerHTML =
             '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
         await cargarTarjetas();
-        mostrarToast(`✅ ${creadas} tarjeta(s) exportada(s) correctamente 🎉`);
+        mostrarToast(msg);
     } catch(e) {
-        console.error('Error exportando:', e);
-        mostrarToast('❌ Error al exportar: ' + e.message);
+        console.error('Error sincronizando:', e);
+        mostrarToast('❌ Error al sincronizar: ' + e.message);
     } finally {
         btn.classList.remove('loading');
-        btn.innerHTML = '<i class="bi bi-box-arrow-in-down"></i> Exportar desde Decants';
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sincronizar desde Decants';
     }
 };
 
