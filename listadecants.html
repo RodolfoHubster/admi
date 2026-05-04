@@ -828,7 +828,7 @@ window.copiarCardImagen = async function(btn, cardId) {
 
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp }
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, writeBatch, serverTimestamp }
     from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 const FIREBASE_CONFIG = {
@@ -1137,6 +1137,7 @@ window.exportarDesdeFuentes = async function() {
 
         let creadas = 0;
         let actualizadas = 0;
+        const batch = writeBatch(db);
         for (const d of snapFuentes.docs) {
             const f = d.data();
             const nombreNorm = (f.nombre || '').trim().toLowerCase();
@@ -1144,12 +1145,12 @@ window.exportarDesdeFuentes = async function() {
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
             if (existMap.has(nombreNorm)) {
                 // Update tallas (ml/prices) of the existing card
-                await setDoc(doc(db, 'listadecants', existMap.get(nombreNorm)),
+                batch.set(doc(db, 'listadecants', existMap.get(nombreNorm)),
                     { tallas, updatedAt: serverTimestamp() }, { merge: true });
                 actualizadas++;
             } else {
                 // Create new card
-                await setDoc(doc(collection(db, 'listadecants')), {
+                batch.set(doc(collection(db, 'listadecants')), {
                     nombre: f.nombre||'', marca: f.marca||'', imagen: f.imagen||'',
                     descripcion: f.notas||'', tallas, ocasiones:[], temporadas:[], intensidad:'',
                     createdAt: serverTimestamp(), updatedAt: serverTimestamp(), exportadoDe: 'decants_fuentes',
@@ -1157,6 +1158,7 @@ window.exportarDesdeFuentes = async function() {
                 creadas++;
             }
         }
+        await batch.commit();
 
         let msg = '';
         if (creadas > 0 && actualizadas > 0)
