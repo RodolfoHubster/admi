@@ -428,7 +428,12 @@
     <div class="row mb-3 align-items-center" style="max-width:var(--dc-card-maxw);margin-inline:auto;">
         <div class="col">
             <h2 class="fw-bold mb-0">🃏 Lista de Decants</h2>
-            <p class="text-muted mb-0 small">Personaliza y guarda las tarjetas de tu catálogo de decants</p>
+            <p class="text-muted mb-1 small">Personaliza y guarda las tarjetas de tu catálogo de decants</p>
+            <div class="d-flex flex-wrap gap-2 align-items-center small text-muted">
+                <span class="badge bg-success" id="badge-count-activas">0 disponibles</span>
+                <span class="badge bg-secondary" id="badge-count-archivadas-top">0 archivados</span>
+                <span class="ms-auto" id="sync-status"></span>
+            </div>
         </div>
         <div class="col-auto d-flex gap-2 flex-wrap">
             <button class="btn btn-outline-secondary btn-sm" onclick="window.location.href='decants.html'">
@@ -957,6 +962,70 @@ function esArchivada(d) {
     return Boolean(d?.archivado);
 }
 
+function normalizarNombre(nombre) {
+    return (nombre || '').toString().trim().toLowerCase();
+}
+
+function normalizarTallas(list=[]) {
+    return (list || []).map(t => ({
+        ml: parseFloat(t.ml) || 0,
+        precio: parseFloat(t.precio) || 0,
+        activa: t.activa !== false,
+    })).filter(t => t.ml > 0)
+      .sort((a, b) => (a.ml - b.ml) || (a.precio - b.precio));
+}
+
+function tallasIguales(a, b) {
+    const na = normalizarTallas(a);
+    const nb = normalizarTallas(b);
+    if (na.length !== nb.length) return false;
+    return na.every((t, i) =>
+        t.ml === nb[i].ml && t.precio === nb[i].precio && t.activa === nb[i].activa
+    );
+}
+
+function buildTallasDesdeFuente(fuente) {
+    return (fuente?.tallas || []).map(t => ({
+        ml: parseFloat(t.ml) || 0,
+        precio: parseFloat(t.precio) || 0,
+        activa: true,
+    })).filter(t => t.ml > 0);
+}
+
+function calcularArchivadoFuente(fuente) {
+    const mlTotal = parseFloat(fuente?.mlTotal);
+    const mlUsados = parseFloat(fuente?.mlUsados);
+    const esTotalValido = Number.isFinite(mlTotal);
+    const mlUsadosValidos = Number.isFinite(mlUsados) ? mlUsados : 0;
+    return esTotalValido && (mlTotal - mlUsadosValidos) <= 0;
+}
+
+function buildFuentesMap(snapFuentes) {
+    const byId = new Map();
+    const byName = new Map();
+    if (!snapFuentes) return { byId, byName };
+    snapFuentes.forEach(d => {
+        const data = d.data();
+        const fuente = { id: d.id, ...data };
+        byId.set(d.id, fuente);
+        const nombreNorm = normalizarNombre(data.nombre);
+        if (nombreNorm) byName.set(nombreNorm, fuente);
+    });
+    return { byId, byName };
+}
+
+function resolverFuenteParaTarjeta(tarjeta, fuentesMap) {
+    if (!fuentesMap) return null;
+    if (tarjeta?.fuenteId && fuentesMap.byId.has(tarjeta.fuenteId)) {
+        return fuentesMap.byId.get(tarjeta.fuenteId);
+    }
+    const nombreNorm = normalizarNombre(tarjeta?.nombre);
+    if (nombreNorm && fuentesMap.byName.has(nombreNorm)) {
+        return fuentesMap.byName.get(nombreNorm);
+    }
+    return null;
+}
+
 function buildCard(d) {
     const nombre = d.nombre || 'Nombre del perfume';
     const marca  = d.marca  || '';
@@ -1061,7 +1130,14 @@ async function cargarPerfumesInventario() {
 
 async function cargarTarjetas() {
     try {
-        const snap  = await getDocs(collection(db, 'listadecants'));
+        const [tarjetasResult, fuentesResult] = await Promise.allSettled([
+            getDocs(collection(db, 'listadecants')),
+            getDocs(collection(db, 'decants_fuentes')),
+        ]);
+        if (tarjetasResult.status !== 'fulfilled') throw tarjetasResult.reason;
+        const snap = tarjetasResult.value;
+        const fuentesMap = (fuentesResult.status === 'fulfilled') ? buildFuentesMap(fuentesResult.value) : null;
+        const syncOk = (fuentesResult.status === 'fulfilled');
         const grid  = document.getElementById('grid-tarjetas');
         const gridArchivadas = document.getElementById('grid-archivadas');
         const seccionArchivadas = document.getElementById('seccion-archivadas');
@@ -1070,20 +1146,50 @@ async function cargarTarjetas() {
         grid.innerHTML = '';
         if (gridArchivadas) gridArchivadas.innerHTML = '';
 
+        let activas = 0;
+        let archivadas = 0;
+
         if (snap.empty) {
             grid.innerHTML = EMPTY_STATE_HTML;
             if (seccionArchivadas) seccionArchivadas.style.display = 'none';
+            actualizarResumen(activas, archivadas, syncOk);
             return;
         }
 
-        let activas = 0;
-        let archivadas = 0;
+        const batch = writeBatch(db);
+        let updates = 0;
         snap.forEach(d => {
             const data = d.data();
-            const esArch = esArchivada(data);
-            renderTarjetaGrid(d.id, data, esArch);
+            const fuente = resolverFuenteParaTarjeta(data, fuentesMap);
+            let esArch = esArchivada(data);
+            const cambios = {};
+
+            if (fuente) {
+                const archivadoFuente = calcularArchivadoFuente(fuente);
+                esArch = archivadoFuente;
+                if (data.archivado !== archivadoFuente) cambios.archivado = archivadoFuente;
+                if (data.fuenteId !== fuente.id) cambios.fuenteId = fuente.id;
+
+                if (data.exportadoDe === 'decants_fuentes') {
+                    const tallasFuente = buildTallasDesdeFuente(fuente);
+                    if (!tallasIguales(data.tallas, tallasFuente)) cambios.tallas = tallasFuente;
+                    if ((!data.marca || !data.marca.trim()) && fuente.marca) cambios.marca = fuente.marca;
+                    if ((!data.imagen || !data.imagen.trim()) && fuente.imagen) cambios.imagen = fuente.imagen;
+                }
+            }
+
+            if (Object.keys(cambios).length) {
+                cambios.updatedAt = serverTimestamp();
+                batch.set(doc(db, 'listadecants', d.id), cambios, { merge: true });
+                updates++;
+            }
+
+            const renderData = { ...data, ...cambios, archivado: esArch };
+            renderTarjetaGrid(d.id, renderData, esArch);
             if (esArch) archivadas++; else activas++;
         });
+
+        if (updates > 0) await batch.commit();
 
         if (activas === 0) {
             grid.innerHTML = EMPTY_STATE_HTML;
@@ -1097,7 +1203,21 @@ async function cargarTarjetas() {
                 seccionArchivadas.style.display = 'none';
             }
         }
+        actualizarResumen(activas, archivadas, syncOk);
     } catch(e) { console.error('Error cargando tarjetas:', e); }
+}
+
+function actualizarResumen(activas, archivadas, syncOk) {
+    const badgeActivas = document.getElementById('badge-count-activas');
+    const badgeArchivadasTop = document.getElementById('badge-count-archivadas-top');
+    const syncStatus = document.getElementById('sync-status');
+    if (badgeActivas) badgeActivas.textContent = `${activas} disponibles`;
+    if (badgeArchivadasTop) badgeArchivadasTop.textContent = `${archivadas} archivados`;
+    if (syncStatus) {
+        syncStatus.textContent = syncOk
+            ? `Sincronizado con Decants · ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`
+            : 'Sin conexión a Decants';
+    }
 }
 
 function renderTarjetaGrid(id, t, archivada) {
@@ -1200,11 +1320,14 @@ window.exportarDesdeFuentes = async function() {
         if (snapFuentes.empty) { mostrarToast('⚠️ No hay fuentes en Decants para sincronizar.'); return; }
         const snapExist = await getDocs(collection(db, 'listadecants'));
 
-        // Build map of existing cards by normalized name -> { id }
-        const existMap = new Map();
+        // Build map of existing cards by fuenteId and normalized name -> { id }
+        const existById = new Map();
+        const existByName = new Map();
         snapExist.docs.forEach(d => {
-            const nombreNorm = (d.data().nombre || '').trim().toLowerCase();
-            if (nombreNorm) existMap.set(nombreNorm, d.id);
+            const data = d.data();
+            if (data.fuenteId) existById.set(data.fuenteId, d.id);
+            const nombreNorm = normalizarNombre(data.nombre);
+            if (nombreNorm) existByName.set(nombreNorm, d.id);
         });
 
         let creadas = 0;
@@ -1214,16 +1337,18 @@ window.exportarDesdeFuentes = async function() {
             const f = d.data();
             const nombreNorm = (f.nombre || '').trim().toLowerCase();
             if (!nombreNorm) continue;
+            const fuenteId = d.id;
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
             const mlTotal = parseFloat(f.mlTotal);
             const mlUsados = parseFloat(f.mlUsados);
             const esTotalValido = Number.isFinite(mlTotal);
             const mlUsadosValidos = Number.isFinite(mlUsados) ? mlUsados : 0;
             const archivado = esTotalValido && (mlTotal - mlUsadosValidos) <= 0;
-            if (existMap.has(nombreNorm)) {
+            const existingId = existById.get(fuenteId) || existByName.get(nombreNorm);
+            if (existingId) {
                 // Update tallas (ml/prices) of the existing card
-                batch.set(doc(db, 'listadecants', existMap.get(nombreNorm)),
-                    { tallas, archivado, updatedAt: serverTimestamp() }, { merge: true });
+                batch.set(doc(db, 'listadecants', existingId),
+                    { tallas, archivado, fuenteId, updatedAt: serverTimestamp() }, { merge: true });
                 actualizadas++;
             } else {
                 // Create new card
@@ -1231,6 +1356,7 @@ window.exportarDesdeFuentes = async function() {
                     nombre: f.nombre||'', marca: f.marca||'', imagen: f.imagen||'',
                     descripcion: f.notas||'', tallas, ocasiones:[], temporadas:[], intensidad:'',
                     archivado,
+                    fuenteId,
                     createdAt: serverTimestamp(), updatedAt: serverTimestamp(), exportadoDe: 'decants_fuentes',
                 });
                 creadas++;
