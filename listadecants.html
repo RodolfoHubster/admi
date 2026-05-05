@@ -455,7 +455,9 @@
 
     <div class="card shadow border-0 mb-4 mt-4" id="seccion-archivadas" style="display:none;">
         <div class="card-header bg-secondary bg-opacity-25 py-3 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold text-secondary">🗃️ Perfumes Agotados / Archivados</h6>
+            <h6 class="mb-0 fw-bold text-secondary" aria-label="Perfumes agotados o archivados">
+                <span aria-hidden="true">🗃️</span> Perfumes Agotados / Archivados
+            </h6>
             <span class="badge bg-secondary" id="badge-count-archivadas" aria-label="Número de perfumes archivados">0</span>
         </div>
         <div class="card-body">
@@ -1309,8 +1311,6 @@ function imprimirPDF() {
     const grid = document.getElementById('grid-tarjetas');
     const printGrid = document.getElementById('print-grid');
     const gridArchivadas = document.getElementById('grid-archivadas');
-    const printArchivadas = document.getElementById('print-grid-archivadas');
-    const printArchivadasWrap = document.getElementById('print-archivadas');
     if (!grid || !printGrid) { console.warn('Elementos de impresión no encontrados.'); return; }
     printGrid.innerHTML = '';
     const wrappers = grid.querySelectorAll('.card-snap-wrap');
@@ -1320,19 +1320,25 @@ function imprimirPDF() {
         if (overlay) overlay.remove();
         printGrid.appendChild(clone);
     });
-    if (gridArchivadas && printArchivadas && printArchivadasWrap) {
-        printArchivadas.innerHTML = '';
-        const wrappersArchivadas = gridArchivadas.querySelectorAll('.card-snap-wrap');
-        if (wrappersArchivadas.length) {
-            wrappersArchivadas.forEach(wrap => {
-                const clone = wrap.cloneNode(true);
-                const overlay = clone.querySelector('.card-img-overlay');
-                if (overlay) overlay.remove();
-                printArchivadas.appendChild(clone);
-            });
-            printArchivadasWrap.style.display = '';
+    if (gridArchivadas) {
+        const printArchivadas = document.getElementById('print-grid-archivadas');
+        const printArchivadasWrap = document.getElementById('print-archivadas');
+        if (!printArchivadas || !printArchivadasWrap) {
+            console.warn('Elementos de impresión de archivados no encontrados.');
         } else {
-            printArchivadasWrap.style.display = 'none';
+            printArchivadas.innerHTML = '';
+            const wrappersArchivadas = gridArchivadas.querySelectorAll('.card-snap-wrap');
+            if (wrappersArchivadas.length) {
+                wrappersArchivadas.forEach(wrap => {
+                    const clone = wrap.cloneNode(true);
+                    const overlay = clone.querySelector('.card-img-overlay');
+                    if (overlay) overlay.remove();
+                    printArchivadas.appendChild(clone);
+                });
+                printArchivadasWrap.style.display = '';
+            } else {
+                printArchivadasWrap.style.display = 'none';
+            }
         }
     }
     window.print();
