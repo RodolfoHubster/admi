@@ -1215,7 +1215,7 @@ function actualizarResumen(activas, archivadas, syncOk) {
     if (badgeArchivadasTop) badgeArchivadasTop.textContent = `${archivadas} archivados`;
     if (syncStatus) {
         syncStatus.textContent = syncOk
-            ? `Sincronizado con Decants · ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`
+            ? `Actualizado con Decants · ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`
             : 'Sin conexión a Decants';
     }
 }
@@ -1335,7 +1335,7 @@ window.exportarDesdeFuentes = async function() {
         const batch = writeBatch(db);
         for (const d of snapFuentes.docs) {
             const f = d.data();
-            const nombreNorm = (f.nombre || '').trim().toLowerCase();
+            const nombreNorm = normalizarNombre(f.nombre);
             if (!nombreNorm) continue;
             const fuenteId = d.id;
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
