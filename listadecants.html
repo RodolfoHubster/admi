@@ -873,11 +873,7 @@ const FIREBASE_CONFIG = {
 const app = getApps().find(a => a.name === 'listadecants') || initializeApp(FIREBASE_CONFIG, 'listadecants');
 const db  = getFirestore(app);
 
-const EMPTY_STATE_HTML = `
-    <div class="text-center text-muted py-5" id="empty-state">
-        <i class="bi bi-card-list" style="font-size:3rem;"></i>
-        <p class="mt-2">No hay tarjetas aún. Crea la primera.</p>
-    </div>`;
+const EMPTY_STATE_HTML = document.getElementById('empty-state')?.outerHTML || '';
 
 const OCASIONES = [
     { id:'diario',   emoji:'📍', label:'Diario',   cls:'tag-diario'   },
@@ -1326,6 +1322,7 @@ function imprimirPDF() {
         if (overlay) overlay.remove();
         printGrid.appendChild(clone);
     });
+    // gridArchivadas es opcional si no hay sección de archivados en el DOM
     if (gridArchivadas) {
         const printArchivadas = document.getElementById('print-grid-archivadas');
         const printArchivadasWrap = document.getElementById('print-archivadas');
