@@ -1105,7 +1105,7 @@ async function cargarTarjetas() {
 function renderTarjetaGrid(id, t, archivada) {
     const esArch = typeof archivada === 'boolean' ? archivada : esArchivada(t);
     const wrap = document.createElement('div');
-    wrap.className = 'tarjeta-wrapper' + (esArch ? ' archivada' : '');
+    wrap.className = `tarjeta-wrapper${esArch ? ' archivada' : ''}`;
     wrap.id = `tarjeta-col-${id}`;
     wrap.innerHTML = `
         <div class="card-snap-wrap" id="card-snap-${id}">
@@ -1218,7 +1218,7 @@ window.exportarDesdeFuentes = async function() {
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
             const mlTotal = f.mlTotal || 0;
             const mlUsados = f.mlUsados || 0;
-            const archivado = (mlTotal - mlUsados) <= 0; // sin ml disponible tambien se archiva
+            const archivado = (mlTotal - mlUsados) <= 0;
             if (existMap.has(nombreNorm)) {
                 // Update tallas (ml/prices) of the existing card
                 batch.set(doc(db, 'listadecants', existMap.get(nombreNorm)),
