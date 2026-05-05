@@ -1252,7 +1252,8 @@ window.exportarDesdeFuentes = async function() {
             '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
         const gridArchivadas = document.getElementById('grid-archivadas');
         if (gridArchivadas) gridArchivadas.innerHTML = '';
-        document.getElementById('seccion-archivadas')?.style.display = 'none';
+        const seccionArchivadas = document.getElementById('seccion-archivadas');
+        if (seccionArchivadas) seccionArchivadas.style.display = 'none';
         await cargarTarjetas();
         mostrarToast(msg);
     } catch(e) {
