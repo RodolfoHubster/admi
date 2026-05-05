@@ -843,21 +843,21 @@ const app = getApps().find(a => a.name === 'listadecants') || initializeApp(FIRE
 const db  = getFirestore(app);
 
 const OCASIONES = [
-    { id:'diario',   emoji:'📍', label:'Firma / Diario',   cls:'tag-diario'   },
-    { id:'oficina',  emoji:'💼', label:'Oficina / Formal', cls:'tag-oficina'  },
+    { id:'diario',   emoji:'📍', label:'Diario',   cls:'tag-diario'   },
+    { id:'oficina',  emoji:'💼', label:'Oficina', cls:'tag-oficina'  },
     { id:'cita',     emoji:'🌹', label:'Cita Romántica',   cls:'tag-cita'     },
     { id:'noche',    emoji:'🌙', label:'Noche',            cls:'tag-noche'    },
-    { id:'club',     emoji:'🎉', label:'Club / Fiesta',    cls:'tag-club'     },
-    { id:'casual',   emoji:'😊', label:'Casual / Salida',  cls:'tag-casual'   },
-    { id:'deporte',  emoji:'🏃', label:'Deporte / Gym',    cls:'tag-deporte'  },
+    { id:'club',     emoji:'🎉', label:'Fiesta',    cls:'tag-club'     },
+    { id:'casual',   emoji:'😊', label:'Casual',  cls:'tag-casual'   },
+    { id:'deporte',  emoji:'🏃', label:'Gym',    cls:'tag-deporte'  },
     { id:'viaje',    emoji:'✈️', label:'Viaje',            cls:'tag-viaje'    },
 ];
 const TEMPORADAS = [
     { id:'todo',      emoji:'🌀', label:'Todo el año'     },
     { id:'primavera', emoji:'🌸', label:'Primavera'       },
-    { id:'verano',    emoji:'☀️', label:'Verano / Calor'  },
+    { id:'verano',    emoji:'☀️', label:'Calor'  },
     { id:'otono',     emoji:'🍂', label:'Otoño'           },
-    { id:'invierno',  emoji:'❄️', label:'Invierno / Frío' },
+    { id:'invierno',  emoji:'❄️', label:'Frío' },
 ];
 const INTENSIDADES = [
     { id:'sutil',    emoji:'🌬️', label:'Sutil',    sublabel:'proyección cercana', pct:25,  color:'#6ea8fe' },
