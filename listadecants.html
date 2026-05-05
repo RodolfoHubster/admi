@@ -950,7 +950,7 @@ function setTallas(arr=[]) {
 }
 
 function esArchivada(d) {
-    return Boolean(d?.archivado || d?.agotado);
+    return Boolean(d?.archivado);
 }
 
 function buildCard(d) {
@@ -1102,9 +1102,10 @@ async function cargarTarjetas() {
     } catch(e) { console.error('Error cargando tarjetas:', e); }
 }
 
-function renderTarjetaGrid(id, t, archivada = esArchivada(t)) {
+function renderTarjetaGrid(id, t, archivada) {
+    const esArch = typeof archivada === 'boolean' ? archivada : esArchivada(t);
     const wrap = document.createElement('div');
-    wrap.className = archivada ? 'tarjeta-wrapper archivada' : 'tarjeta-wrapper';
+    wrap.className = esArch ? 'tarjeta-wrapper archivada' : 'tarjeta-wrapper';
     wrap.id = `tarjeta-col-${id}`;
     wrap.innerHTML = `
         <div class="card-snap-wrap" id="card-snap-${id}">
@@ -1128,7 +1129,7 @@ function renderTarjetaGrid(id, t, archivada = esArchivada(t)) {
                 <i class="bi bi-trash"></i>
             </button>
         </div>`;
-    const targetGrid = archivada ? document.getElementById('grid-archivadas') : document.getElementById('grid-tarjetas');
+    const targetGrid = esArch ? document.getElementById('grid-archivadas') : document.getElementById('grid-tarjetas');
     targetGrid?.appendChild(wrap);
 }
 
@@ -1217,7 +1218,7 @@ window.exportarDesdeFuentes = async function() {
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
             const mlTotal = f.mlTotal || 0;
             const mlUsados = f.mlUsados || 0;
-            const archivado = (mlTotal - mlUsados) <= 0;
+            const archivado = mlTotal > 0 && (mlTotal - mlUsados) <= 0;
             if (existMap.has(nombreNorm)) {
                 // Update tallas (ml/prices) of the existing card
                 batch.set(doc(db, 'listadecants', existMap.get(nombreNorm)),
