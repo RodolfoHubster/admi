@@ -33,7 +33,8 @@
             --dc-tag-maxw:    49%;
         }
 
-        #grid-tarjetas {
+        #grid-tarjetas,
+        #grid-archivadas {
             display: flex;
             flex-direction: column;
             gap: var(--dc-outer-gap);
@@ -144,6 +145,12 @@
         .tag-verano    { background-color: #2a1a00; color: #ffe69c; border: 1px solid #ffc107; }
         .tag-primavera { background-color: #0a1a10; color: #75c896; border: 1px solid #198754; }
         .tag-otono     { background-color: #2a1000; color: #feb272; border: 1px solid #fd7e14; }
+        .tag-archivado { background-color: #2a2a2a; color: #adb5bd; border: 1px solid #6c757d; }
+
+        .decant-card.archivada {
+            border-left-color: #6c757d;
+            opacity: 0.7;
+        }
 
         .description {
             margin: 0;
@@ -172,6 +179,8 @@
 
         .tarjeta-wrapper  { display: flex; flex-direction: column; gap: 6px; }
         .tarjeta-acciones { display: flex; gap: 6px; }
+
+        #seccion-archivadas { max-width: var(--dc-card-maxw); margin-inline: auto; }
 
         /* =============================================
            HOVER OVERLAY — guardar/copiar imagen
@@ -337,7 +346,17 @@
                 font-family: 'Poppins', sans-serif; letter-spacing: 1px;
             }
 
-            #print-grid { display: flex !important; flex-direction: column; gap: 20px; }
+            #print-grid,
+            #print-grid-archivadas { display: flex !important; flex-direction: column; gap: 20px; }
+
+            .print-section-title {
+                margin: 22px 0 12px;
+                font-size: 16px;
+                font-weight: 700;
+                color: #adb5bd !important;
+                border-bottom: 1px solid #444;
+                padding-bottom: 6px;
+            }
 
             .decant-card {
                 background-color: #1e1e1e !important;
@@ -431,6 +450,16 @@
         <div class="text-center text-muted py-5" id="empty-state">
             <i class="bi bi-card-list" style="font-size:3rem;"></i>
             <p class="mt-2">No hay tarjetas aún. Crea la primera.</p>
+        </div>
+    </div>
+
+    <div class="card shadow border-0 mb-4 mt-4" id="seccion-archivadas" style="display:none;">
+        <div class="card-header bg-secondary bg-opacity-25 py-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-secondary">🗃️ Perfumes Agotados / Archivados</h6>
+            <span class="badge bg-secondary" id="badge-count-archivadas">0</span>
+        </div>
+        <div class="card-body">
+            <div id="grid-archivadas"></div>
         </div>
     </div>
 </div>
@@ -920,10 +949,15 @@ function setTallas(arr=[]) {
     arr.length ? arr.forEach(r => agregarFilaTalla(r.ml, r.precio, r.activa !== false)) : agregarFilaTalla();
 }
 
+function esArchivada(d) {
+    return Boolean(d?.archivado || d?.agotado);
+}
+
 function buildCard(d) {
     const nombre = d.nombre || 'Nombre del perfume';
     const marca  = d.marca  || '';
     const desc   = d.descripcion ? `<p class="description">${d.descripcion}</p>` : '';
+    const archivada = esArchivada(d);
 
     const imgHTML = d.imagen
         ? `<img src="${d.imagen}" alt="${nombre}" onerror="this.outerHTML='<span style=color:#555;font-size:10px>FOTO<br>PERFUME</span>'">`
@@ -933,6 +967,7 @@ function buildCard(d) {
         ...( d.ocasiones  || []).map(id => { const x=OCASIONES.find(o=>o.id===id);  return x?{emoji:x.emoji,label:x.label,cls:x.cls}:null; }),
         ...( d.temporadas || []).map(id => { const x=TEMPORADAS.find(t=>t.id===id); return x?{emoji:x.emoji,label:x.label,cls:'tag-'+id}:null; }),
     ].filter(Boolean);
+    if (archivada) allTagsData.unshift({ emoji: '⛔', label: 'Archivado', cls: 'tag-archivado' });
     const tagsHTML = allTagsData.length
         ? `<div class="tags-container">${allTagsData.map(t=>`<span class="tag ${t.cls}">${t.emoji} ${t.label}</span>`).join('')}</div>`
         : '';
@@ -958,8 +993,9 @@ function buildCard(d) {
             </div>`;
     }
 
+    const cardClass = archivada ? 'decant-card archivada' : 'decant-card';
     return `
-        <div class="decant-card">
+        <div class="${cardClass}">
             <div class="card-image">${imgHTML}</div>
             <div class="card-content">
                 <div class="card-header">
@@ -1023,17 +1059,52 @@ async function cargarTarjetas() {
     try {
         const snap  = await getDocs(collection(db, 'listadecants'));
         const grid  = document.getElementById('grid-tarjetas');
-        const empty = document.getElementById('empty-state');
-        if (snap.empty) { empty.style.display=''; return; }
-        empty.style.display = 'none';
+        const gridArchivadas = document.getElementById('grid-archivadas');
+        const seccionArchivadas = document.getElementById('seccion-archivadas');
+        const badgeArchivadas = document.getElementById('badge-count-archivadas');
+        const emptyMarkup = `
+            <div class="text-center text-muted py-5" id="empty-state">
+                <i class="bi bi-card-list" style="font-size:3rem;"></i>
+                <p class="mt-2">No hay tarjetas aún. Crea la primera.</p>
+            </div>`;
+
+        if (!grid) return;
         grid.innerHTML = '';
-        snap.forEach(d => renderTarjetaGrid(d.id, d.data()));
+        if (gridArchivadas) gridArchivadas.innerHTML = '';
+
+        if (snap.empty) {
+            grid.innerHTML = emptyMarkup;
+            if (seccionArchivadas) seccionArchivadas.style.display = 'none';
+            return;
+        }
+
+        let activas = 0;
+        let archivadas = 0;
+        snap.forEach(d => {
+            const data = d.data();
+            const esArch = esArchivada(data);
+            renderTarjetaGrid(d.id, data, esArch);
+            if (esArch) archivadas++; else activas++;
+        });
+
+        if (activas === 0) {
+            grid.innerHTML = emptyMarkup;
+        }
+
+        if (seccionArchivadas) {
+            if (archivadas > 0) {
+                seccionArchivadas.style.display = '';
+                if (badgeArchivadas) badgeArchivadas.textContent = archivadas;
+            } else {
+                seccionArchivadas.style.display = 'none';
+            }
+        }
     } catch(e) { console.error('Error cargando tarjetas:', e); }
 }
 
-function renderTarjetaGrid(id, t) {
+function renderTarjetaGrid(id, t, archivada = esArchivada(t)) {
     const wrap = document.createElement('div');
-    wrap.className = 'tarjeta-wrapper';
+    wrap.className = archivada ? 'tarjeta-wrapper archivada' : 'tarjeta-wrapper';
     wrap.id = `tarjeta-col-${id}`;
     wrap.innerHTML = `
         <div class="card-snap-wrap" id="card-snap-${id}">
@@ -1057,7 +1128,8 @@ function renderTarjetaGrid(id, t) {
                 <i class="bi bi-trash"></i>
             </button>
         </div>`;
-    document.getElementById('grid-tarjetas').appendChild(wrap);
+    const targetGrid = archivada ? document.getElementById('grid-archivadas') : document.getElementById('grid-tarjetas');
+    targetGrid?.appendChild(wrap);
 }
 
 window.guardarTarjeta = async function() {
@@ -1080,6 +1152,9 @@ window.guardarTarjeta = async function() {
         bootstrap.Modal.getInstance(document.getElementById('modalNuevaTarjeta')).hide();
         document.getElementById('grid-tarjetas').innerHTML =
             '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
+        const gridArchivadas = document.getElementById('grid-archivadas');
+        if (gridArchivadas) gridArchivadas.innerHTML = '';
+        document.getElementById('seccion-archivadas')?.style.display = 'none';
         await cargarTarjetas();
     } catch(e) { console.error(e); alert('Error al guardar: '+e.message); }
 };
@@ -1111,11 +1186,8 @@ window.eliminarTarjeta = async function(id) {
     if (!confirm('¿Eliminar esta tarjeta?')) return;
     try {
         await deleteDoc(doc(db,'listadecants',id));
-        document.getElementById(`tarjeta-col-${id}`)?.remove();
         mostrarToast('🗑️ Tarjeta eliminada');
-        if (!document.querySelector('#grid-tarjetas .tarjeta-wrapper'))
-            document.getElementById('grid-tarjetas').innerHTML =
-                '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-card-list" style="font-size:3rem;"></i><p class="mt-2">No hay tarjetas aún.</p></div>';
+        await cargarTarjetas();
     } catch(e) { alert('Error: '+e.message); }
 };
 
@@ -1143,16 +1215,20 @@ window.exportarDesdeFuentes = async function() {
             const nombreNorm = (f.nombre || '').trim().toLowerCase();
             if (!nombreNorm) continue;
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
+            const mlTotal = f.mlTotal || 0;
+            const mlUsados = f.mlUsados || 0;
+            const archivado = (mlTotal - mlUsados) <= 0;
             if (existMap.has(nombreNorm)) {
                 // Update tallas (ml/prices) of the existing card
                 batch.set(doc(db, 'listadecants', existMap.get(nombreNorm)),
-                    { tallas, updatedAt: serverTimestamp() }, { merge: true });
+                    { tallas, archivado, updatedAt: serverTimestamp() }, { merge: true });
                 actualizadas++;
             } else {
                 // Create new card
                 batch.set(doc(collection(db, 'listadecants')), {
                     nombre: f.nombre||'', marca: f.marca||'', imagen: f.imagen||'',
                     descripcion: f.notas||'', tallas, ocasiones:[], temporadas:[], intensidad:'',
+                    archivado,
                     createdAt: serverTimestamp(), updatedAt: serverTimestamp(), exportadoDe: 'decants_fuentes',
                 });
                 creadas++;
@@ -1172,6 +1248,9 @@ window.exportarDesdeFuentes = async function() {
 
         document.getElementById('grid-tarjetas').innerHTML =
             '<div class="text-center text-muted py-5" id="empty-state"><i class="bi bi-hourglass-split" style="font-size:2rem;"></i><p class="mt-2">Cargando...</p></div>';
+        const gridArchivadas = document.getElementById('grid-archivadas');
+        if (gridArchivadas) gridArchivadas.innerHTML = '';
+        document.getElementById('seccion-archivadas')?.style.display = 'none';
         await cargarTarjetas();
         mostrarToast(msg);
     } catch(e) {
@@ -1217,6 +1296,10 @@ actualizarPreview();
         <h2>Catálogo de Decants</h2>
     </div>
     <div id="print-grid"></div>
+    <div id="print-archivadas" style="display:none;">
+        <div class="print-section-title">Perfumes Agotados / Archivados</div>
+        <div id="print-grid-archivadas"></div>
+    </div>
 </div>
 
 
@@ -1224,6 +1307,9 @@ actualizarPreview();
 function imprimirPDF() {
     const grid = document.getElementById('grid-tarjetas');
     const printGrid = document.getElementById('print-grid');
+    const gridArchivadas = document.getElementById('grid-archivadas');
+    const printArchivadas = document.getElementById('print-grid-archivadas');
+    const printArchivadasWrap = document.getElementById('print-archivadas');
     if (!grid || !printGrid) { window.print(); return; }
     printGrid.innerHTML = '';
     const wrappers = grid.querySelectorAll('.card-snap-wrap');
@@ -1233,6 +1319,21 @@ function imprimirPDF() {
         if (overlay) overlay.remove();
         printGrid.appendChild(clone);
     });
+    if (gridArchivadas && printArchivadas && printArchivadasWrap) {
+        printArchivadas.innerHTML = '';
+        const wrappersArchivadas = gridArchivadas.querySelectorAll('.card-snap-wrap');
+        if (wrappersArchivadas.length) {
+            wrappersArchivadas.forEach(wrap => {
+                const clone = wrap.cloneNode(true);
+                const overlay = clone.querySelector('.card-img-overlay');
+                if (overlay) overlay.remove();
+                printArchivadas.appendChild(clone);
+            });
+            printArchivadasWrap.style.display = '';
+        } else {
+            printArchivadasWrap.style.display = 'none';
+        }
+    }
     window.print();
 }
 </script>
