@@ -1325,27 +1325,9 @@ function imprimirPDF() {
         printGrid.appendChild(clone);
     });
     // gridArchivadas es opcional si no hay sección de archivados en el DOM
-    if (gridArchivadas) {
-        const printArchivadas = document.getElementById('print-grid-archivadas');
-        const printArchivadasWrap = document.getElementById('print-archivadas');
-        if (!printArchivadas || !printArchivadasWrap) {
-            console.warn('Elementos de impresión de archivados no encontrados.');
-        } else {
-            printArchivadas.innerHTML = '';
-            const wrappersArchivadas = gridArchivadas.querySelectorAll('.card-snap-wrap');
-            if (wrappersArchivadas.length) {
-                wrappersArchivadas.forEach(wrap => {
-                    const clone = wrap.cloneNode(true);
-                    const overlay = clone.querySelector('.card-img-overlay');
-                    if (overlay) overlay.remove();
-                    printArchivadas.appendChild(clone);
-                });
-                printArchivadasWrap.style.display = '';
-            } else {
-                printArchivadasWrap.style.display = 'none';
-            }
-        }
-    }
+        // Archivadas: siempre ocultas en el PDF
+    const printArchivadasWrap = document.getElementById('print-archivadas');
+    if (printArchivadasWrap) printArchivadasWrap.style.display = 'none';
     window.print();
 }
 </script>
