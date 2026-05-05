@@ -455,7 +455,7 @@
 
     <div class="card shadow border-0 mb-4 mt-4" id="seccion-archivadas" style="display:none;">
         <div class="card-header bg-secondary bg-opacity-25 py-3 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold text-secondary" aria-label="Perfumes agotados o archivados">
+            <h6 class="mb-0 fw-bold text-secondary" aria-label="Perfumes Agotados o Archivados">
                 <span aria-hidden="true">🗃️</span> Perfumes Agotados / Archivados
             </h6>
             <span class="badge bg-secondary" id="badge-count-archivadas" aria-label="Número de perfumes archivados">0</span>
@@ -1218,9 +1218,11 @@ window.exportarDesdeFuentes = async function() {
             const nombreNorm = (f.nombre || '').trim().toLowerCase();
             if (!nombreNorm) continue;
             const tallas = (f.tallas || []).map(t => ({ ml: t.ml||0, precio: t.precio||0, activa: true })).filter(t => t.ml > 0);
-            const mlTotal = f.mlTotal || 0;
-            const mlUsados = f.mlUsados || 0;
-            const archivado = (mlTotal - mlUsados) <= 0;
+            const mlTotal = parseFloat(f.mlTotal);
+            const mlUsados = parseFloat(f.mlUsados);
+            const totalValido = Number.isFinite(mlTotal);
+            const usadosValido = Number.isFinite(mlUsados) ? mlUsados : 0;
+            const archivado = totalValido && (mlTotal - usadosValido) <= 0;
             if (existMap.has(nombreNorm)) {
                 // Update tallas (ml/prices) of the existing card
                 batch.set(doc(db, 'listadecants', existMap.get(nombreNorm)),
@@ -1311,7 +1313,11 @@ function imprimirPDF() {
     const grid = document.getElementById('grid-tarjetas');
     const printGrid = document.getElementById('print-grid');
     const gridArchivadas = document.getElementById('grid-archivadas');
-    if (!grid || !printGrid) { console.warn('Elementos de impresión no encontrados.'); return; }
+    if (!grid || !printGrid) {
+        console.warn('Elementos de impresión no encontrados.');
+        window.print();
+        return;
+    }
     printGrid.innerHTML = '';
     const wrappers = grid.querySelectorAll('.card-snap-wrap');
     wrappers.forEach(wrap => {
